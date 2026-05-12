@@ -3,16 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>로그인 — (주)이든푸드 인트라넷</title>
+  <title>로그인 — 주식회사 이든푸드 인트라넷</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/global.css" />
   <style>
     :root {
-      --green: #2d8a4e; --green-dark: #1a5c33; --green-light: #4caf72;
-      --green-bg: #f0f9f3; --green-pale: #e8f5e9;
-      --text: #1a1a2e; --text-sub: #5a6472; --border: #d4e6d9;
+      --green: #16a34a;
+      --green-dark: #15803d;
+      --green-light: #22c55e;
+      --green-bg: #f0fdf4;
+      --text: #1f2937;
+      --text-sub: #6b7280;
+      --border: #e5e7eb;
       --font: 'Noto Sans KR', sans-serif;
     }
+    
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: var(--font);
@@ -259,6 +265,60 @@
 
     /* 회원가입 패널 */
     #register-panel { display: none; }
+    
+    /* 하단 탭 전환 버튼 */
+    .bottom-tab-switch {
+      text-align: center;
+      margin-top: 24px;
+    }
+    
+    .bottom-tab-switch p {
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+    
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--green);
+      font-weight: 600;
+      font-size: 14px;
+      font-family: var(--font);
+      cursor: pointer;
+      text-decoration: underline;
+      transition: opacity 0.2s;
+    }
+    
+    .link-btn:hover {
+      opacity: 0.8;
+    }
+    
+    /* 비밀번호 토글 */
+    .password-field {
+      position: relative;
+    }
+    
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: var(--text-sub);
+      transition: color 0.2s;
+    }
+    
+    .password-toggle:hover {
+      color: var(--text);
+    }
+    
+    .password-toggle svg {
+      width: 20px;
+      height: 20px;
+    }
 
     /* 반응형 */
     @media (max-width: 768px) {
@@ -277,7 +337,8 @@
   </video>
   <div class="visual-content">
     <div class="visual-logo">
-      <span>🌿</span> (주)이든푸드
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" style="height: 60px; width: auto; filter: brightness(0) invert(1);" />
+      <span>주식회사 이든푸드</span>
     </div>
     <h2 class="visual-title">
       신선함을<br /><span>이어가는</span><br />인트라넷
@@ -305,24 +366,26 @@
       <p>이든푸드 임직원만 접근 가능합니다</p>
     </div>
 
-    <!-- 탭 -->
-    <div class="login-tabs">
-      <button class="login-tab active" id="tab-login" onclick="switchTab('login')">로그인</button>
-      <button class="login-tab" id="tab-register" onclick="switchTab('register')">회원가입</button>
-    </div>
-
     <!-- 로그인 패널 -->
     <div id="login-panel">
       <div class="error-msg" id="login-error">아이디 또는 비밀번호가 올바르지 않습니다.</div>
 
       <form id="login-form" onsubmit="doLogin(event)">
         <div class="form-group">
-          <label>아이디</label>
-          <input type="text" id="login-id" placeholder="아이디를 입력하세요" required autocomplete="username" />
+          <label>아이디 / 이름</label>
+          <input type="text" id="login-id" placeholder="아이디 또는 이름을 입력하세요" required autocomplete="username" />
         </div>
         <div class="form-group">
           <label>비밀번호</label>
-          <input type="password" id="login-pw" placeholder="비밀번호를 입력하세요" required autocomplete="current-password" />
+          <div class="password-field">
+            <input type="password" id="login-pw" placeholder="비밀번호를 입력하세요" required autocomplete="current-password" />
+            <button type="button" class="password-toggle" onclick="togglePassword('login-pw', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="form-option">
           <label>
@@ -340,54 +403,113 @@
         <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
         Google 계정으로 로그인
       </button>
+      
+      <!-- 하단 탭 버튼 -->
+      <div class="bottom-tab-switch">
+        <p>아직 계정이 없으신가요? <button class="link-btn" onclick="switchTab('register')">회원가입</button></p>
+      </div>
     </div>
 
     <!-- 회원가입 패널 -->
     <div id="register-panel">
+      <div class="error-msg" id="register-error">회원가입 오류가 발생했습니다.</div>
+      
       <form id="register-form" onsubmit="doRegister(event)">
         <div class="form-group">
           <label>이름</label>
-          <input type="text" placeholder="실명을 입력하세요" required />
+          <input type="text" id="reg-name" placeholder="실명을 입력하세요" required />
         </div>
         <div class="form-group">
           <label>아이디</label>
-          <input type="text" placeholder="영문+숫자 4~16자" required />
+          <input type="text" id="reg-username" placeholder="영문+숫자 4~16자" required />
+        </div>
+        <div class="form-group">
+          <label>이메일</label>
+          <input type="email" id="reg-email" placeholder="이메일 주소" required />
         </div>
         <div class="form-group">
           <label>비밀번호</label>
-          <input type="password" placeholder="8자 이상" required />
+          <div class="password-field">
+            <input type="password" id="reg-password" placeholder="8자 이상" required />
+            <button type="button" class="password-toggle" onclick="togglePassword('reg-password', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="form-group">
           <label>비밀번호 확인</label>
-          <input type="password" placeholder="비밀번호를 다시 입력하세요" required />
+          <div class="password-field">
+            <input type="password" id="reg-password-confirm" placeholder="비밀번호를 다시 입력하세요" required />
+            <button type="button" class="password-toggle" onclick="togglePassword('reg-password-confirm', this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
         </div>
         <button type="submit" class="btn-login-main">회원가입 신청</button>
       </form>
       <p style="font-size:12px;color:#888;text-align:center;margin-top:12px;">
         관리자 승인 후 로그인이 가능합니다.
       </p>
+      
+      <!-- 하단 탭 버튼 -->
+      <div class="bottom-tab-switch">
+        <p>이미 계정이 있으신가요? <button class="link-btn" onclick="switchTab('login')">로그인</button></p>
+      </div>
     </div>
 
     <div class="login-footer-note">
-      <a href="/">← (주)이든푸드 홈으로 돌아가기</a>
+      <a href="/">← 주식회사 이든푸드 홈으로 돌아가기</a>
     </div>
   </div>
 </div>
 
 <script>
+// 비밀번호 표시/숨기기 토글
+function togglePassword(inputId, button) {
+  const input = document.getElementById(inputId);
+  const isPassword = input.type === 'password';
+  
+  input.type = isPassword ? 'text' : 'password';
+  
+  // SVG 아이콘 변경
+  if (isPassword) {
+    button.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+        <line x1="1" y1="1" x2="23" y2="23"/>
+      </svg>
+    `;
+  } else {
+    button.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+    `;
+  }
+}
+
+// 탭 전환
 function switchTab(tab) {
   document.getElementById('login-panel').style.display    = tab === 'login'    ? 'block' : 'none';
   document.getElementById('register-panel').style.display = tab === 'register' ? 'block' : 'none';
-  document.getElementById('tab-login').classList.toggle('active',    tab === 'login');
-  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
 }
 
+// 로그인 처리
 async function doLogin(e) {
   e.preventDefault();
   const id = document.getElementById('login-id').value.trim();
   const pw = document.getElementById('login-pw').value;
   const errEl = document.getElementById('login-error');
   errEl.style.display = 'none';
+  
+  console.log('로그인 시도:', { username: id });
 
   try {
     const res = await fetch('/api/auth/login', {
@@ -396,25 +518,89 @@ async function doLogin(e) {
       body: JSON.stringify({ username: id, password: pw })
     });
     const data = await res.json();
+    console.log('로그인 응답:', data);
+    
     if (data.ok) {
       // 토큰 저장
       localStorage.setItem('eden_token', data.token);
       localStorage.setItem('eden_user',  JSON.stringify(data.user));
-      window.location.href = '/intranet/';
+      console.log('토큰 저장 완료');
+      
+      // 관리자는 관리자 페이지로, 일반 사용자는 인트라넷으로
+      if (data.user && data.user.role === 'admin') {
+        console.log('관리자 로그인 - /admin으로 이동');
+        window.location.href = '/admin';
+      } else {
+        console.log('일반 사용자 로그인 - /intranet/으로 이동');
+        window.location.href = '/intranet/';
+      }
     } else {
+      console.error('로그인 실패:', data.message);
       errEl.textContent = data.message || '아이디 또는 비밀번호가 올바르지 않습니다.';
       errEl.style.display = 'block';
     }
   } catch(err) {
+    console.error('로그인 오류:', err);
     errEl.textContent = '서버 연결에 실패했습니다. 잠시 후 다시 시도하세요.';
     errEl.style.display = 'block';
   }
 }
 
+// 회원가입 처리
 async function doRegister(e) {
   e.preventDefault();
-  alert('회원가입 신청이 접수되었습니다.\n관리자 승인 후 이용하실 수 있��니다.');
-  switchTab('login');
+  
+  const name = document.getElementById('reg-name').value.trim();
+  const username = document.getElementById('reg-username').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const passwordConfirm = document.getElementById('reg-password-confirm').value;
+  const errEl = document.getElementById('register-error');
+  
+  errEl.style.display = 'none';
+  
+  // 유효성 검사
+  if (password !== passwordConfirm) {
+    errEl.textContent = '비밀번호가 일치하지 않습니다.';
+    errEl.style.display = 'block';
+    return;
+  }
+  
+  if (password.length < 8) {
+    errEl.textContent = '비밀번호는 8자 이상이어야 합니다.';
+    errEl.style.display = 'block';
+    return;
+  }
+  
+  if (!/^[a-zA-Z0-9]{4,16}$/.test(username)) {
+    errEl.textContent = '아이디는 영문+숫자 4~16자여야 합니다.';
+    errEl.style.display = 'block';
+    return;
+  }
+  
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, username, email, password })
+    });
+    
+    const data = await res.json();
+    
+    if (data.ok) {
+      alert('회원가입 신청이 접수되었습니다.\n관리자 승인 후 이용하실 수 있습니다.');
+      // 폼 초기화
+      document.getElementById('register-form').reset();
+      switchTab('login');
+    } else {
+      errEl.textContent = data.message || '회원가입에 실패했습니다.';
+      errEl.style.display = 'block';
+    }
+  } catch(err) {
+    console.error('회원가입 오류:', err);
+    errEl.textContent = '서버 연결에 실패했습니다. 잠시 후 다시 시도하세요.';
+    errEl.style.display = 'block';
+  }
 }
 </script>
 </body>

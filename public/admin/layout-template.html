@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><!--TITLE--> - 관리자</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/public/assets/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/public/admin/admin-layout.css?v=1.0" />
+  <!--ADDITIONAL_STYLES-->
+</head>
+<body>
+
+<!-- 기존 헤더 -->
+<header class="site-header scrolled" id="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+    </a>
+    <div class="header-actions">
+      <span style="color: #6b7280; font-size: 0.875rem; margin-right: 1rem;">관리자 모드</span>
+      <button class="btn-login" onclick="logout()">로그아웃</button>
+    </div>
+  </div>
+</header>
+
+<div class="admin-wrapper">
+  <!-- 사이드바 -->
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">관리자 대시보드</div>
+      <div class="sidebar-subtitle">홈페이지 통합 관리</div>
+    </div>
+    
+    <nav class="sidebar-menu">
+      <div class="menu-group">
+        <div class="menu-group-title">대시보드</div>
+        <a href="/admin" class="menu-item" data-menu="dashboard">
+          <span class="menu-item-icon">📊</span>
+          <span>대시보드</span>
+        </a>
+      </div>
+      
+      <div class="menu-group">
+        <div class="menu-group-title">홈페이지 관리</div>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="about" onclick="toggleSubmenu('about', event)">
+          <span class="menu-item-icon">🏢</span>
+          <span>회사소개 관리</span>
+        </a>
+        <div class="submenu" id="submenu-about">
+          <a href="/admin/homepage/about/greeting" class="menu-item" data-menu="about-greeting">
+            <span>CEO 인사말</span>
+          </a>
+          <a href="/admin/homepage/about/history" class="menu-item" data-menu="about-history">
+            <span>연혁</span>
+          </a>
+          <a href="/admin/homepage/about/organization" class="menu-item" data-menu="about-organization">
+            <span>조직도</span>
+          </a>
+          <a href="/admin/homepage/about/executives" class="menu-item" data-menu="about-executives">
+            <span>임원진</span>
+          </a>
+        </div>
+        
+        <a href="/admin/homepage/notices" class="menu-item" data-menu="notices">
+          <span class="menu-item-icon">📢</span>
+          <span>공지사항 관리</span>
+        </a>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="menu" onclick="toggleSubmenu('menu', event)">
+          <span class="menu-item-icon">🍽️</span>
+          <span>메뉴 관리</span>
+        </a>
+        <div class="submenu" id="submenu-menu">
+          <a href="/admin/homepage/menu/categories" class="menu-item" data-menu="menu-categories">
+            <span>카테고리 관리</span>
+          </a>
+          <a href="/admin/homepage/menu/items" class="menu-item" data-menu="menu-items">
+            <span>메뉴 아이템</span>
+          </a>
+          <a href="/admin/homepage/menu/prices" class="menu-item" data-menu="menu-prices">
+            <span>가격/옵션 설정</span>
+          </a>
+        </div>
+        
+        <a href="/admin/homepage/brands" class="menu-item" data-menu="brands">
+          <span class="menu-item-icon">🏷️</span>
+          <span>브랜드소개 관리</span>
+        </a>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="gallery" onclick="toggleSubmenu('gallery', event)">
+          <span class="menu-item-icon">🖼️</span>
+          <span>갤러리 관리</span>
+        </a>
+        <div class="submenu" id="submenu-gallery">
+          <a href="/admin/homepage/gallery/upload" class="menu-item" data-menu="gallery-upload">
+            <span>이미지 업로드</span>
+          </a>
+          <a href="/admin/homepage/gallery/manage" class="menu-item" data-menu="gallery-manage">
+            <span>이미지 관리</span>
+          </a>
+        </div>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="documents" onclick="toggleSubmenu('documents', event)">
+          <span class="menu-item-icon">📄</span>
+          <span>서식자료실 관리</span>
+        </a>
+        <div class="submenu" id="submenu-documents">
+          <a href="/admin/homepage/documents/upload" class="menu-item" data-menu="documents-upload">
+            <span>문서 업로드</span>
+          </a>
+          <a href="/admin/homepage/documents/categories" class="menu-item" data-menu="documents-categories">
+            <span>카테고리 관리</span>
+          </a>
+          <a href="/admin/homepage/documents/stats" class="menu-item" data-menu="documents-stats">
+            <span>다운로드 통계</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="menu-group">
+        <div class="menu-group-title">시스템 관리</div>
+        <a href="/admin/users" class="menu-item" data-menu="users">
+          <span class="menu-item-icon">👥</span>
+          <span>사용자 관리</span>
+        </a>
+        <a href="/admin/logs" class="menu-item" data-menu="logs">
+          <span class="menu-item-icon">📝</span>
+          <span>활동 로그</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+  
+  <!-- 메인 콘텐츠 -->
+  <main class="admin-main">
+    <div class="admin-content">
+      <!--CONTENT-->
+    </div>
+  </main>
+  
+  <!-- 모바일 메뉴 토글 -->
+  <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+    <span>☰</span>
+  </button>
+  
+  <!-- 모바일 오버레이 -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileMenu()"></div>
+</div>
+
+<script>
+// 현재 메뉴 활성화
+function setActiveMenu(menuName) {
+  document.querySelectorAll('.menu-item').forEach(item => {
+    item.classList.remove('active');
+    if (item.dataset.menu === menuName) {
+      item.classList.add('active');
+      
+      // 서브메뉴가 있는 경우 부모 메뉴도 확장
+      const submenu = item.closest('.submenu');
+      if (submenu) {
+        const parentId = submenu.id.replace('submenu-', '');
+        const parentMenu = document.querySelector(`[data-menu="${parentId}"]`);
+        if (parentMenu) {
+          parentMenu.classList.add('expanded');
+          submenu.classList.add('active');
+        }
+      }
+    }
+  });
+}
+
+// 서브메뉴 토글
+function toggleSubmenu(menuId, event) {
+  event.preventDefault();
+  const submenu = document.getElementById(`submenu-${menuId}`);
+  const menuItem = event.currentTarget;
+  
+  submenu.classList.toggle('active');
+  menuItem.classList.toggle('expanded');
+}
+
+// 모바일 메뉴 토글
+function toggleMobileMenu() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  
+  sidebar.classList.toggle('mobile-open');
+  overlay.classList.toggle('active');
+}
+
+function closeMobileMenu() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  
+  sidebar.classList.remove('mobile-open');
+  overlay.classList.remove('active');
+}
+
+// 로그아웃
+async function logout() {
+  try {
+    const response = await fetch('/api/auth/logout', { method: 'POST' });
+    const data = await response.json();
+    
+    if (data.ok) {
+      alert('로그아웃되었습니다.');
+      location.href = '/login';
+    }
+  } catch (error) {
+    console.error('로그아웃 실패:', error);
+  }
+}
+
+// 관리자 권한 확인
+async function checkAuth() {
+  try {
+    const response = await fetch('/api/auth/me');
+    const data = await response.json();
+    
+    if (!data.ok || data.user.role !== 'admin') {
+      alert('관리자 권한이 필요합니다.');
+      location.href = '/login';
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('인증 확인 실패:', error);
+    location.href = '/login';
+    return false;
+  }
+}
+
+// 페이지 로드 시 권한 확인
+checkAuth();
+
+// 추가 스크립트
+<!--ADDITIONAL_SCRIPTS-->
+</script>
+
+</body>
+</html>

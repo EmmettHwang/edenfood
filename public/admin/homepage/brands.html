@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>브랜드소개 관리 - 관리자</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/public/assets/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/public/admin/admin-layout.css?v=1.0" />
+  <style>
+    .brand-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    
+    .brand-card {
+      background: white;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s;
+    }
+    
+    .brand-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .brand-logo {
+      height: 200px;
+      background: #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .brand-logo img {
+      max-width: 80%;
+      max-height: 80%;
+      object-fit: contain;
+    }
+    
+    .brand-status {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 1rem;
+    }
+    
+    .status-active {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .status-inactive {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    
+    .brand-content {
+      padding: 1.5rem;
+    }
+    
+    .brand-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #111827;
+    }
+    
+    .brand-tagline {
+      font-size: 0.938rem;
+      color: #16a34a;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    
+    .brand-desc {
+      font-size: 0.875rem;
+      color: #6b7280;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .brand-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .brand-actions button {
+      flex: 1;
+    }
+    
+    /* 모달 스타일 */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 1rem;
+      width: 100%;
+      max-width: 900px;
+      max-height: 90vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.5rem;
+      transition: background 0.2s;
+    }
+    
+    .modal-close:hover {
+      background: #f3f4f6;
+    }
+    
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+    
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    
+    .logo-upload {
+      border: 2px dashed #d1d5db;
+      border-radius: 0.5rem;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #f9fafb;
+    }
+    
+    .logo-upload:hover {
+      border-color: #9ca3af;
+      background: #f3f4f6;
+    }
+    
+    .logo-upload.has-logo {
+      padding: 1rem;
+      border-style: solid;
+    }
+    
+    .logo-preview {
+      max-width: 200px;
+      max-height: 150px;
+      margin: 0 auto;
+    }
+    
+    .feature-list {
+      background: #f9fafb;
+      border-radius: 0.5rem;
+      padding: 1rem;
+    }
+    
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .feature-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .feature-input {
+      flex: 1;
+    }
+    
+    .color-picker-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .color-picker {
+      width: 50px;
+      height: 38px;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      padding: 0.25rem;
+    }
+    
+    .color-value {
+      font-family: monospace;
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    
+    .contact-info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      background: #f9fafb;
+      padding: 1rem;
+      border-radius: 0.5rem;
+    }
+    
+    .preview-section {
+      background: #f3f4f6;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-top: 1rem;
+    }
+    
+    .preview-brand {
+      background: white;
+      border-radius: 0.5rem;
+      padding: 2rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .contact-info-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .brand-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header scrolled" id="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+    </a>
+    <div class="header-actions">
+      <span style="color: #6b7280; font-size: 0.875rem; margin-right: 1rem;">관리자 모드</span>
+      <button class="btn-login" onclick="logout()">로그아웃</button>
+    </div>
+  </div>
+</header>
+
+<div class="admin-wrapper">
+  <!-- 사이드바 -->
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">관리자 대시보드</div>
+      <div class="sidebar-subtitle">홈페이지 통합 관리</div>
+    </div>
+    
+    <nav class="sidebar-menu">
+      <div class="menu-group">
+        <div class="menu-group-title">대시보드</div>
+        <a href="/admin" class="menu-item" data-menu="dashboard">
+          <span class="menu-item-icon">📊</span>
+          <span>대시보드</span>
+        </a>
+      </div>
+      
+      <div class="menu-group">
+        <div class="menu-group-title">홈페이지 관리</div>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="about" onclick="toggleSubmenu('about', event)">
+          <span class="menu-item-icon">🏢</span>
+          <span>회사소개 관리</span>
+        </a>
+        <div class="submenu" id="submenu-about">
+          <a href="/admin/homepage/about/greeting" class="menu-item" data-menu="about-greeting">
+            <span>CEO 인사말</span>
+          </a>
+          <a href="/admin/homepage/about/history" class="menu-item" data-menu="about-history">
+            <span>연혁</span>
+          </a>
+          <a href="/admin/homepage/about/organization" class="menu-item" data-menu="about-organization">
+            <span>조직도</span>
+          </a>
+          <a href="/admin/homepage/about/executives" class="menu-item" data-menu="about-executives">
+            <span>임원진</span>
+          </a>
+        </div>
+        
+        <a href="/admin/homepage/notices" class="menu-item" data-menu="notices">
+          <span class="menu-item-icon">📢</span>
+          <span>공지사항 관리</span>
+        </a>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="menu" onclick="toggleSubmenu('menu', event)">
+          <span class="menu-item-icon">🍽️</span>
+          <span>메뉴 관리</span>
+        </a>
+        <div class="submenu" id="submenu-menu">
+          <a href="/admin/homepage/menu/categories" class="menu-item" data-menu="menu-categories">
+            <span>카테고리 관리</span>
+          </a>
+          <a href="/admin/homepage/menu/items" class="menu-item" data-menu="menu-items">
+            <span>메뉴 아이템</span>
+          </a>
+          <a href="/admin/homepage/menu/prices" class="menu-item" data-menu="menu-prices">
+            <span>가격/옵션 설정</span>
+          </a>
+        </div>
+        
+        <a href="/admin/homepage/brands" class="menu-item active" data-menu="brands">
+          <span class="menu-item-icon">🏷️</span>
+          <span>브랜드소개 관리</span>
+        </a>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="gallery" onclick="toggleSubmenu('gallery', event)">
+          <span class="menu-item-icon">🖼️</span>
+          <span>갤러리 관리</span>
+        </a>
+        <div class="submenu" id="submenu-gallery">
+          <a href="/admin/homepage/gallery/upload" class="menu-item" data-menu="gallery-upload">
+            <span>이미지 업로드</span>
+          </a>
+          <a href="/admin/homepage/gallery/manage" class="menu-item" data-menu="gallery-manage">
+            <span>이미지 관리</span>
+          </a>
+        </div>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="documents" onclick="toggleSubmenu('documents', event)">
+          <span class="menu-item-icon">📄</span>
+          <span>서식자료실 관리</span>
+        </a>
+        <div class="submenu" id="submenu-documents">
+          <a href="/admin/homepage/documents/upload" class="menu-item" data-menu="documents-upload">
+            <span>문서 업로드</span>
+          </a>
+          <a href="/admin/homepage/documents/categories" class="menu-item" data-menu="documents-categories">
+            <span>카테고리 관리</span>
+          </a>
+          <a href="/admin/homepage/documents/stats" class="menu-item" data-menu="documents-stats">
+            <span>다운로드 통계</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="menu-group">
+        <div class="menu-group-title">시스템 관리</div>
+        <a href="/admin/users" class="menu-item" data-menu="users">
+          <span class="menu-item-icon">👥</span>
+          <span>사용자 관리</span>
+        </a>
+        <a href="/admin/logs" class="menu-item" data-menu="logs">
+          <span class="menu-item-icon">📝</span>
+          <span>활동 로그</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+  
+  <!-- 메인 콘텐츠 -->
+  <main class="admin-main">
+    <div class="admin-content">
+      <div class="page-header">
+        <div class="page-header-flex">
+          <div>
+            <h1 class="page-title">브랜드소개 관리</h1>
+            <p class="page-desc">이든푸드의 브랜드를 관리합니다</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openBrandModal()">+ 새 브랜드 추가</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 브랜드 그리드 -->
+      <div class="brand-grid" id="brand-grid">
+        <!-- 브랜드 카드가 여기 표시됩니다 -->
+      </div>
+    </div>
+  </main>
+  
+  <!-- 모바일 메뉴 토글 -->
+  <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+    <span>☰</span>
+  </button>
+  
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileMenu()"></div>
+</div>
+
+<!-- 브랜드 편집 모달 -->
+<div class="modal" id="brand-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">새 브랜드 추가</h2>
+      <button class="modal-close" onclick="closeBrandModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <form id="brand-form">
+        <div class="form-group">
+          <label class="form-label">브랜드명 *</label>
+          <input type="text" class="form-input" id="brand-name" required />
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">슬로건</label>
+          <input type="text" class="form-input" id="brand-tagline" placeholder="예: 중국 정통의 맛" />
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">브랜드 소개</label>
+          <textarea class="form-textarea" id="brand-description" rows="4"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">상세 설명</label>
+          <textarea class="form-textarea" id="brand-detail" rows="6"></textarea>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">브랜드 로고</label>
+            <div class="logo-upload" id="logo-upload" onclick="selectLogo()">
+              <p style="font-size: 1.5rem; margin-bottom: 0.5rem;">🏷️</p>
+              <p>클릭하여 로고 업로드</p>
+              <p style="font-size: 0.813rem; color: #9ca3af;">권장: 400x200px, PNG/SVG</p>
+            </div>
+            <input type="file" id="logo-input" accept="image/*" style="display: none;" onchange="handleLogoSelect(event)" />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">브랜드 컬러</label>
+            <div class="color-picker-wrapper">
+              <input type="color" class="color-picker" id="brand-color" value="#16a34a" />
+              <span class="color-value" id="color-value">#16a34a</span>
+            </div>
+            <p style="font-size: 0.813rem; color: #6b7280; margin-top: 0.5rem;">브랜드를 대표하는 색상</p>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">브랜드 특징</label>
+          <div class="feature-list" id="feature-list">
+            <div class="feature-item">
+              <input type="text" class="form-input feature-input" placeholder="예: 100% 국내산 재료 사용" />
+              <button type="button" class="btn btn-secondary" onclick="removeFeature(this)">삭제</button>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary" onclick="addFeature()" style="margin-top: 0.75rem;">+ 특징 추가</button>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">연락처 정보</label>
+          <div class="contact-info-grid">
+            <div>
+              <label class="form-label" style="font-size: 0.813rem;">전화번호</label>
+              <input type="text" class="form-input" id="brand-phone" placeholder="예: 032-123-4567" />
+            </div>
+            <div>
+              <label class="form-label" style="font-size: 0.813rem;">이메일</label>
+              <input type="email" class="form-input" id="brand-email" placeholder="예: brand@edenfood.com" />
+            </div>
+            <div style="grid-column: 1/-1;">
+              <label class="form-label" style="font-size: 0.813rem;">주소</label>
+              <input type="text" class="form-input" id="brand-address" placeholder="예: 인천광역시 서구 서곶길 314번길 9" />
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">웹사이트</label>
+            <input type="url" class="form-input" id="brand-website" placeholder="https://..." />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">상태</label>
+            <select class="form-select" id="brand-status">
+              <option value="active">활성</option>
+              <option value="inactive">비활성</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- 미리보기 -->
+        <div class="preview-section">
+          <h4 style="margin-bottom: 1rem;">미리보기</h4>
+          <div class="preview-brand" id="preview-brand">
+            <p style="text-align: center; color: #9ca3af;">브랜드 정보를 입력하면 미리보기가 표시됩니다</p>
+          </div>
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeBrandModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveBrand()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let brandList = [];
+let currentEditId = null;
+let currentBrandLogo = null;
+
+// 샘플 브랜드 데이터
+const sampleBrands = [
+  {
+    id: 1,
+    name: '홍안에',
+    tagline: '중국 정통의 맛',
+    description: '본격 중화요리 전문 브랜드',
+    detail: '홍안에는 중국 정통 요리의 맛을 한국에 전하는 프리미엄 중화요리 브랜드입니다.',
+    logo: '/public/assets/brand1.png',
+    color: '#dc2626',
+    features: ['정통 중국 셰프', '프리미엄 식재료', '다양한 메뉴 구성'],
+    phone: '032-123-4567',
+    email: 'hongane@edenfood.com',
+    address: '인천광역시 서구 서곶길 314번길 9',
+    website: 'https://hongane.co.kr',
+    status: 'active'
+  },
+  {
+    id: 2,
+    name: '차이나감자탕',
+    tagline: '중화풍 감자탕의 새로운 맛',
+    description: '한중 퓨전 감자탕 전문점',
+    detail: '전통 감자탕에 중화 향신료를 더한 독특한 맛의 퓨전 요리를 선보입니다.',
+    logo: '/public/assets/brand2.png',
+    color: '#f59e0b',
+    features: ['특제 중화 향신료', '24시간 우려낸 육수', '차별화된 맛'],
+    status: 'active'
+  }
+];
+
+// 브랜드 데이터 로드
+function loadBrands() {
+  // 실제로는 API에서 로드
+  brandList = sampleBrands;
+  renderBrandGrid();
+}
+
+// 브랜드 그리드 렌더링
+function renderBrandGrid() {
+  const grid = document.getElementById('brand-grid');
+  
+  if (brandList.length === 0) {
+    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #9ca3af;">등록된 브랜드가 없습니다.</p>';
+    return;
+  }
+  
+  grid.innerHTML = brandList.map(brand => `
+    <div class="brand-card">
+      <div class="brand-logo" style="background-color: ${brand.color}20;">
+        ${brand.logo ? 
+          `<img src="${brand.logo}" alt="${brand.name}" />` : 
+          `<span style="font-size: 3rem; color: ${brand.color};">🏷️</span>`
+        }
+        <span class="brand-status ${brand.status === 'active' ? 'status-active' : 'status-inactive'}">
+          ${brand.status === 'active' ? '활성' : '비활성'}
+        </span>
+      </div>
+      <div class="brand-content">
+        <h3 class="brand-name">${brand.name}</h3>
+        ${brand.tagline ? `<p class="brand-tagline">${brand.tagline}</p>` : ''}
+        <p class="brand-desc">${brand.description || ''}</p>
+        <div class="brand-actions">
+          <button class="btn btn-secondary" onclick="editBrand(${brand.id})">수정</button>
+          <button class="btn btn-secondary" onclick="deleteBrand(${brand.id})">삭제</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 모달 열기/닫기
+function openBrandModal(brandId = null) {
+  currentEditId = brandId;
+  const modal = document.getElementById('brand-modal');
+  const title = document.getElementById('modal-title');
+  
+  if (brandId) {
+    title.textContent = '브랜드 수정';
+    const brand = brandList.find(b => b.id === brandId);
+    if (brand) {
+      loadBrandToForm(brand);
+    }
+  } else {
+    title.textContent = '새 브랜드 추가';
+    resetBrandForm();
+  }
+  
+  modal.classList.add('active');
+  updatePreview();
+}
+
+function closeBrandModal() {
+  document.getElementById('brand-modal').classList.remove('active');
+  resetBrandForm();
+}
+
+// 폼 리셋
+function resetBrandForm() {
+  document.getElementById('brand-form').reset();
+  document.getElementById('brand-color').value = '#16a34a';
+  document.getElementById('color-value').textContent = '#16a34a';
+  currentBrandLogo = null;
+  
+  // 로고 업로드 영역 리셋
+  const logoUpload = document.getElementById('logo-upload');
+  logoUpload.classList.remove('has-logo');
+  logoUpload.innerHTML = `
+    <p style="font-size: 1.5rem; margin-bottom: 0.5rem;">🏷️</p>
+    <p>클릭하여 로고 업로드</p>
+    <p style="font-size: 0.813rem; color: #9ca3af;">권장: 400x200px, PNG/SVG</p>
+  `;
+  
+  // 특징 리스트 리셋
+  document.getElementById('feature-list').innerHTML = `
+    <div class="feature-item">
+      <input type="text" class="form-input feature-input" placeholder="예: 100% 국내산 재료 사용" />
+      <button type="button" class="btn btn-secondary" onclick="removeFeature(this)">삭제</button>
+    </div>
+  `;
+  
+  // 미리보기 리셋
+  document.getElementById('preview-brand').innerHTML = 
+    '<p style="text-align: center; color: #9ca3af;">브랜드 정보를 입력하면 미리보기가 표시됩니다</p>';
+}
+
+// 브랜드 데이터 폼에 로드
+function loadBrandToForm(brand) {
+  document.getElementById('brand-name').value = brand.name || '';
+  document.getElementById('brand-tagline').value = brand.tagline || '';
+  document.getElementById('brand-description').value = brand.description || '';
+  document.getElementById('brand-detail').value = brand.detail || '';
+  document.getElementById('brand-color').value = brand.color || '#16a34a';
+  document.getElementById('color-value').textContent = brand.color || '#16a34a';
+  document.getElementById('brand-phone').value = brand.phone || '';
+  document.getElementById('brand-email').value = brand.email || '';
+  document.getElementById('brand-address').value = brand.address || '';
+  document.getElementById('brand-website').value = brand.website || '';
+  document.getElementById('brand-status').value = brand.status || 'active';
+  
+  // 로고
+  if (brand.logo) {
+    currentBrandLogo = brand.logo;
+    showLogoPreview(brand.logo);
+  }
+  
+  // 특징
+  if (brand.features && brand.features.length > 0) {
+    const featureList = document.getElementById('feature-list');
+    featureList.innerHTML = brand.features.map(feature => `
+      <div class="feature-item">
+        <input type="text" class="form-input feature-input" value="${feature}" />
+        <button type="button" class="btn btn-secondary" onclick="removeFeature(this)">삭제</button>
+      </div>
+    `).join('');
+  }
+}
+
+// 로고 선택
+function selectLogo() {
+  document.getElementById('logo-input').click();
+}
+
+function handleLogoSelect(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      currentBrandLogo = e.target.result;
+      showLogoPreview(e.target.result);
+      updatePreview();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function showLogoPreview(logoSrc) {
+  const logoUpload = document.getElementById('logo-upload');
+  logoUpload.classList.add('has-logo');
+  logoUpload.innerHTML = `
+    <img src="${logoSrc}" class="logo-preview" alt="로고 미리보기" />
+    <button type="button" class="btn btn-secondary btn-small" onclick="removeLogo()" style="margin-top: 0.5rem;">로고 삭제</button>
+  `;
+}
+
+function removeLogo() {
+  currentBrandLogo = null;
+  const logoUpload = document.getElementById('logo-upload');
+  logoUpload.classList.remove('has-logo');
+  logoUpload.innerHTML = `
+    <p style="font-size: 1.5rem; margin-bottom: 0.5rem;">🏷️</p>
+    <p>클릭하여 로고 업로드</p>
+    <p style="font-size: 0.813rem; color: #9ca3af;">권장: 400x200px, PNG/SVG</p>
+  `;
+  updatePreview();
+}
+
+// 컬러 피커
+document.getElementById('brand-color').addEventListener('input', function() {
+  document.getElementById('color-value').textContent = this.value;
+  updatePreview();
+});
+
+// 특징 추가/삭제
+function addFeature() {
+  const featureList = document.getElementById('feature-list');
+  const newItem = document.createElement('div');
+  newItem.className = 'feature-item';
+  newItem.innerHTML = `
+    <input type="text" class="form-input feature-input" placeholder="예: 100% 국내산 재료 사용" />
+    <button type="button" class="btn btn-secondary" onclick="removeFeature(this)">삭제</button>
+  `;
+  featureList.appendChild(newItem);
+}
+
+function removeFeature(btn) {
+  if (document.querySelectorAll('.feature-item').length > 1) {
+    btn.parentElement.remove();
+  } else {
+    alert('최소 하나의 특징이 필요합니다.');
+  }
+}
+
+// 실시간 미리보기
+function updatePreview() {
+  const name = document.getElementById('brand-name').value;
+  const tagline = document.getElementById('brand-tagline').value;
+  const description = document.getElementById('brand-description').value;
+  const color = document.getElementById('brand-color').value;
+  
+  if (!name) {
+    document.getElementById('preview-brand').innerHTML = 
+      '<p style="text-align: center; color: #9ca3af;">브랜드 정보를 입력하면 미리보기가 표시됩니다</p>';
+    return;
+  }
+  
+  const features = Array.from(document.querySelectorAll('.feature-input'))
+    .map(input => input.value)
+    .filter(value => value);
+  
+  const previewHtml = `
+    <div style="display: flex; gap: 2rem; align-items: start;">
+      <div style="flex-shrink: 0; width: 200px; height: 120px; background: ${color}20; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center;">
+        ${currentBrandLogo ? 
+          `<img src="${currentBrandLogo}" style="max-width: 90%; max-height: 90%; object-fit: contain;" />` :
+          `<span style="font-size: 3rem; color: ${color};">🏷️</span>`
+        }
+      </div>
+      <div style="flex: 1;">
+        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: ${color};">${name}</h3>
+        ${tagline ? `<p style="font-size: 1rem; color: ${color}; margin-bottom: 0.5rem;">${tagline}</p>` : ''}
+        ${description ? `<p style="color: #6b7280; margin-bottom: 1rem;">${description}</p>` : ''}
+        ${features.length > 0 ? `
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            ${features.map(f => `<span style="padding: 0.25rem 0.75rem; background: #f3f4f6; color: #4b5563; border-radius: 1rem; font-size: 0.875rem;">✓ ${f}</span>`).join('')}
+          </div>
+        ` : ''}
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('preview-brand').innerHTML = previewHtml;
+}
+
+// 입력 이벤트 리스너
+['brand-name', 'brand-tagline', 'brand-description'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updatePreview);
+});
+
+// 브랜드 저장
+async function saveBrand() {
+  const brandData = {
+    name: document.getElementById('brand-name').value,
+    tagline: document.getElementById('brand-tagline').value,
+    description: document.getElementById('brand-description').value,
+    detail: document.getElementById('brand-detail').value,
+    logo: currentBrandLogo,
+    color: document.getElementById('brand-color').value,
+    features: Array.from(document.querySelectorAll('.feature-input'))
+      .map(input => input.value)
+      .filter(value => value),
+    phone: document.getElementById('brand-phone').value,
+    email: document.getElementById('brand-email').value,
+    address: document.getElementById('brand-address').value,
+    website: document.getElementById('brand-website').value,
+    status: document.getElementById('brand-status').value
+  };
+  
+  if (!brandData.name) {
+    alert('브랜드명은 필수 항목입니다.');
+    return;
+  }
+  
+  // 실제로는 API 호출
+  console.log('저장할 브랜드 데이터:', brandData);
+  alert('브랜드가 저장되었습니다.');
+  
+  closeBrandModal();
+  renderBrandGrid();
+}
+
+// 브랜드 수정
+function editBrand(brandId) {
+  openBrandModal(brandId);
+}
+
+// 브랜드 삭제
+async function deleteBrand(brandId) {
+  if (!confirm('정말로 이 브랜드를 삭제하시겠습니까?')) {
+    return;
+  }
+  
+  // 실제로는 API 호출
+  brandList = brandList.filter(b => b.id !== brandId);
+  renderBrandGrid();
+  alert('브랜드가 삭제되었습니다.');
+}
+
+// 사이드바 관련 함수들
+function toggleSubmenu(menuId, event) {
+  event.preventDefault();
+  const submenu = document.getElementById(`submenu-${menuId}`);
+  const menuItem = event.currentTarget;
+  
+  submenu.classList.toggle('active');
+  menuItem.classList.toggle('expanded');
+}
+
+function toggleMobileMenu() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  
+  sidebar.classList.toggle('mobile-open');
+  overlay.classList.toggle('active');
+}
+
+function closeMobileMenu() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  
+  sidebar.classList.remove('mobile-open');
+  overlay.classList.remove('active');
+}
+
+async function logout() {
+  try {
+    const response = await fetch('/api/auth/logout', { method: 'POST' });
+    const data = await response.json();
+    
+    if (data.ok) {
+      alert('로그아웃되었습니다.');
+      location.href = '/login';
+    }
+  } catch (error) {
+    console.error('로그아웃 실패:', error);
+  }
+}
+
+async function checkAuth() {
+  try {
+    const response = await fetch('/api/auth/me');
+    const data = await response.json();
+    
+    if (!data.ok || data.user.role !== 'admin') {
+      alert('관리자 권한이 필요합니다.');
+      location.href = '/login';
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('인증 확인 실패:', error);
+    location.href = '/login';
+    return false;
+  }
+}
+
+// 페이지 초기화
+checkAuth().then(isAuth => {
+  if (isAuth) {
+    loadBrands();
+  }
+});
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeBrandModal();
+  }
+});
+</script>
+
+</body>
+</html>

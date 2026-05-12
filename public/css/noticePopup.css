@@ -1,0 +1,225 @@
+/* 공지사항 팝업 스타일 */
+.popup-container {
+  position: fixed;
+  z-index: 9999;
+}
+
+.popup-window {
+  position: fixed;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  width: calc(100vw - 2rem);
+  max-width: 400px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 헤더 */
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #15803d;
+  color: white;
+  cursor: move;
+  user-select: none;
+}
+
+.popup-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.popup-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+
+.popup-close:hover {
+  opacity: 0.7;
+}
+
+/* 콘텐츠 */
+.popup-content {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.popup-image {
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  object-fit: cover;
+  max-height: 256px;
+}
+
+.popup-text {
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin-bottom: 12px;
+}
+
+/* 액션 버튼 */
+.popup-actions {
+  margin-bottom: 12px;
+}
+
+.popup-btn {
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.popup-btn.primary {
+  background: #16a34a;
+  color: white;
+}
+
+.popup-btn.primary:hover {
+  background: #15803d;
+}
+
+.popup-btn.secondary {
+  background: transparent;
+  color: #6b7280;
+  font-size: 13px;
+  padding: 4px 8px;
+  width: auto;
+}
+
+.popup-btn.secondary:hover {
+  color: #374151;
+}
+
+/* 네비게이션 */
+.popup-navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.popup-navigation button {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color 0.2s;
+}
+
+.popup-navigation button:hover:not(:disabled) {
+  color: #4b5563;
+}
+
+.popup-navigation button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.popup-navigation span {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* 푸터 */
+.popup-footer {
+  padding: 12px 16px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.checkbox-label input {
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  accent-color: #16a34a;
+}
+
+.checkbox-label span {
+  user-select: none;
+}
+
+/* 모바일 대응 */
+@media (max-width: 640px) {
+  .popup-window {
+    width: calc(100vw - 1rem);
+    margin: 0 0.5rem;
+  }
+  
+  .popup-header {
+    touch-action: none;
+  }
+}
+
+/* 애니메이션 */
+.popup-container {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.popup-window {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

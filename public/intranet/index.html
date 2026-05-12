@@ -3,43 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>인트라넷 — (주)이든푸드</title>
+  <title>인트라넷 — 주식회사 이든푸드</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/global.css" />
+  <link rel="stylesheet" href="/css/noticePopup.css" />
   <style>
+    /* 인트라넷 스타일 */
     :root {
-      --green: #2d8a4e; --green-dark: #1a5c33; --green-light: #4caf72;
-      --green-bg: #f0f9f3; --green-pale: #e8f5e9;
-      --text: #1a1a2e; --text-sub: #5a6472; --border: #d4e6d9;
-      --sidebar-w: 240px;
-      --font: 'Noto Sans KR', sans-serif;
+      --sidebar-width: 0px;
+    }
+    body { 
+      background: var(--gray-50); 
+      color: var(--gray-800);
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: var(--font); background: #f5f7fa; display: flex; min-height: 100vh; }
 
-    /* ── 사이드바 ── */
+    /* ── 사이드바 제거 ── */
     .sidebar {
-      width: var(--sidebar-w);
-      background: #0d2b1a;
+      display: none !important;
+      width: var(--sidebar-width);
+      background: linear-gradient(180deg, var(--primary-800) 0%, var(--primary-900) 100%);
       display: flex;
       flex-direction: column;
       position: fixed;
       top: 0; left: 0; bottom: 0;
       z-index: 100;
       transition: transform .3s;
+      box-shadow: 2px 0 8px rgba(0,0,0,0.1);
     }
     .sidebar-logo {
       padding: 24px 20px 20px;
       border-bottom: 1px solid rgba(255,255,255,.1);
+      background: rgba(0,0,0,0.1);
     }
     .sidebar-logo a {
-      display: flex; align-items: center; gap: 10px;
-      color: #fff; text-decoration: none; font-size: 16px; font-weight: 800;
+      display: flex; align-items: center; gap: 12px;
+      color: #fff; text-decoration: none; font-size: 18px; font-weight: 700;
     }
-    .sidebar-logo .logo-icon { font-size: 24px; }
+    .sidebar-logo .logo-icon { 
+      font-size: 28px; 
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
     .sidebar-logo .logo-sub {
       font-size: 11px; font-weight: 400;
-      color: rgba(255,255,255,.5); margin-top: 2px;
+      color: rgba(255,255,255,.7); margin-top: 2px;
     }
     .sidebar-user {
       padding: 16px 20px;
@@ -102,19 +111,35 @@
     .btn-logout {
       width: 100%;
       padding: 10px;
-      background: rgba(255,255,255,.07);
-      border: 1px solid rgba(255,255,255,.12);
+      background: #dc2626;
+      border: 1px solid #dc2626;
       border-radius: 8px;
-      color: rgba(255,255,255,.6);
+      color: #fff;
       font-size: 13px; font-family: var(--font);
+      font-weight: 600;
       cursor: pointer; transition: all .2s;
       display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    .btn-logout:hover { background: rgba(220,50,50,.2); color: #fc8181; border-color: rgba(220,50,50,.3); }
+    .btn-logout:hover { background: #b91c1c; border-color: #b91c1c; transform: scale(1.02); }
+    
+    .btn-home {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 8px;
+      color: rgba(255,255,255,.9);
+      font-size: 13px; font-family: var(--font);
+      font-weight: 500;
+      cursor: pointer; transition: all .2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-home:hover { background: rgba(255,255,255,.15); border-color: rgba(255,255,255,.3); }
 
     /* ── 메인 ── */
     .main-wrap {
-      margin-left: var(--sidebar-w);
+      margin-left: 0;
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -131,10 +156,20 @@
     .topbar-title { font-size: 16px; font-weight: 700; color: var(--text); }
     .topbar-right { display: flex; align-items: center; gap: 12px; }
     .topbar-time { font-size: 12px; color: var(--text-sub); }
+    .btn-topbar-logout {
+      padding: 6px 14px;
+      background: #dc2626;
+      border: 1.5px solid #dc2626;
+      border-radius: 8px;
+      font-size: 12px; font-weight: 600;
+      font-family: var(--font);
+      color: #fff;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-topbar-logout:hover { background: #b91c1c; border-color: #b91c1c; transform: scale(1.05); }
     .btn-hamburger {
-      display: none;
-      border: none; background: none; cursor: pointer;
-      font-size: 22px; color: var(--text);
+      display: none !important;
     }
 
     .content { padding: 28px; flex: 1; }
@@ -261,17 +296,187 @@
 
     /* ── 반응형 ── */
     @media (max-width: 768px) {
-      :root { --sidebar-w: 0px; }
-      .sidebar {
-        transform: translateX(-240px);
-        width: 240px;
-      }
-      .sidebar.open { transform: translateX(0); }
-      .main-wrap { margin-left: 0; }
-      .btn-hamburger { display: block; }
       .welcome-banner { flex-direction: column; gap: 12px; align-items: flex-start; }
       .app-grid { grid-template-columns: 1fr 1fr; }
       .content { padding: 16px; }
+    }
+    
+    /* 공지사항 카드 스타일 */
+    .notice-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .notice-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+      border-color: var(--green-light);
+    }
+    
+    .notice-card.important {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border-color: #fbbf24;
+    }
+    
+    .notice-card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .notice-card-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    
+    .notice-card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      flex: 1;
+      line-height: 1.4;
+    }
+    
+    .notice-card-content {
+      font-size: 0.875rem;
+      color: var(--text-sub);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+    }
+    
+    .notice-card-date {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    
+    /* 공지사항 상세 모달 */
+    .notice-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .notice-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .notice-modal-content {
+      background: white;
+      border-radius: 16px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 80vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: modalSlideIn 0.3s ease;
+    }
+    
+    @keyframes modalSlideIn {
+      from {
+        transform: translateY(20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    
+    .notice-modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .notice-modal-icon {
+      font-size: 2rem;
+    }
+    
+    .notice-modal-title {
+      flex: 1;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    
+    .notice-modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #6b7280;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    
+    .notice-modal-close:hover {
+      background: #f3f4f6;
+    }
+    
+    .notice-modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    
+    .notice-modal-content-text {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: var(--text);
+      white-space: pre-wrap;
+    }
+    
+    .notice-modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .notice-modal-date {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    
+    .notice-modal-author {
+      font-size: 0.875rem;
+      color: #6b7280;
     }
   </style>
 </head>
@@ -287,9 +492,9 @@
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <a href="/intranet/">
-      <span class="logo-icon">🌿</span>
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" style="height: 40px; width: auto; object-fit: contain; margin-right: 10px;" />
       <div>
-        <div>(주)이든푸드</div>
+        <div style="font-size: 16px;">주식회사 이든푸드</div>
         <div class="logo-sub">인트라넷 v1.0</div>
       </div>
     </a>
@@ -330,6 +535,9 @@
     </a>
   </nav>
   <div class="sidebar-bottom">
+    <button class="btn-home" onclick="goHome()">
+      <span>🏠</span> 메인 홈으로
+    </button>
     <button class="btn-logout" onclick="doLogout()">
       <span>🚪</span> 로그아웃
     </button>
@@ -345,6 +553,7 @@
     </div>
     <div class="topbar-right">
       <span class="topbar-time" id="topbar-time"></span>
+      <button class="btn-topbar-logout" onclick="doLogout()" title="로그아웃">🚪 로그아웃</button>
     </div>
   </header>
 
@@ -399,24 +608,21 @@
     </div>
 
     <p class="section-title">공지 & 안내</p>
-    <div style="background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:20px;">
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <div style="display:flex;gap:12px;align-items:flex-start;padding-bottom:12px;border-bottom:1px solid var(--border);">
-          <span style="font-size:20px;">📌</span>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px;">인트라넷 v1.0 오픈 안내</div>
-            <div style="font-size:12px;color:var(--text-sub);">차량 운행기록부 시스템이 인트라넷에 통합되었습니다. 로그인 후 이용하세요.</div>
-            <div style="font-size:11px;color:#aaa;margin-top:4px;">2026-03-09</div>
-          </div>
-        </div>
-        <div style="display:flex;gap:12px;align-items:flex-start;">
-          <span style="font-size:20px;">🔔</span>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px;">추가 기능 개발 예정</div>
-            <div style="font-size:12px;color:var(--text-sub);">주문/결제/배송 관리, 상품 소개, 블로그 기능이 순차적으로 추가될 예정입니다.</div>
-            <div style="font-size:11px;color:#aaa;margin-top:4px;">2026-03-09</div>
-          </div>
-        </div>
+    <div id="notice-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;">
+      <!-- 공지사항 카드들이 여기에 동적으로 추가됩니다 -->
+    </div>
+    
+    
+    <!-- 관리자 전용 섹션 -->
+    <div id="admin-section" style="display: none;">
+      <p class="section-title">관리자 메뉴</p>
+      <div class="app-grid">
+        <a class="app-card" href="/admin" style="text-decoration: none;">
+          <span class="app-card-tag live">관리자</span>
+          <div class="app-card-icon">⚙️</div>
+          <div class="app-card-name">관리자 대시보드</div>
+          <div class="app-card-desc">홈페이지 콘텐츠 관리, 시스템 모니터링</div>
+        </a>
       </div>
     </div>
   </div>
@@ -433,6 +639,29 @@
 
 <!-- 사이드바 오버레이 (모바일) -->
 <div id="sidebar-overlay" onclick="toggleSidebar()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99;"></div>
+
+<!-- 공지사항 상세 모달 -->
+<div id="notice-modal" class="notice-modal" onclick="if(event.target.id === 'notice-modal') closeNoticeModal()">
+  <div class="notice-modal-content">
+    <div class="notice-modal-header">
+      <span class="notice-modal-icon" id="modal-notice-icon">📌</span>
+      <h2 class="notice-modal-title" id="modal-notice-title">공지사항 제목</h2>
+      <button class="notice-modal-close" onclick="closeNoticeModal()">×</button>
+    </div>
+    <div class="notice-modal-body">
+      <div id="modal-notice-image-wrapper" style="display: none; margin-bottom: 1.5rem;">
+        <img id="modal-notice-image" src="" alt="공지사항 이미지" style="width: 100%; border-radius: 8px;">
+      </div>
+      <div class="notice-modal-content-text" id="modal-notice-content">
+        공지사항 내용이 여기에 표시됩니다.
+      </div>
+    </div>
+    <div class="notice-modal-footer">
+      <div class="notice-modal-author" id="modal-notice-author">작성자</div>
+      <div class="notice-modal-date" id="modal-notice-date">2024-01-01</div>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ── 인증 체크 ── */
@@ -467,6 +696,11 @@ function initIntranet(user) {
   document.getElementById('user-role').textContent = user.role === 'admin' ? '관리자' : '직원';
   document.getElementById('user-avatar').textContent = name[0] || '?';
   document.getElementById('welcome-name').textContent = name;
+  
+  // 관리자 섹션 표시
+  if (user.role === 'admin') {
+    document.getElementById('admin-section').style.display = 'block';
+  }
 
   // 날짜
   const now = new Date();
@@ -481,6 +715,153 @@ function initIntranet(user) {
       d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   }
   tick(); setInterval(tick, 1000);
+  
+  // 공지사항 로드
+  loadNotices();
+}
+
+// 공지사항 로드
+async function loadNotices() {
+  try {
+    const response = await fetch('/api/notices?target=intranet');
+    const data = await response.json();
+    
+    if (data.ok && data.notices) {
+      renderNotices(data.notices);
+    }
+  } catch (error) {
+    console.error('공지사항 로드 실패:', error);
+    document.getElementById('notice-content').innerHTML = `
+      <div style="text-align: center; color: var(--text-sub); padding: 1rem;">
+        공지사항을 불러올 수 없습니다.
+      </div>
+    `;
+  }
+}
+
+// 공지사항 렌더링
+function renderNotices(notices) {
+  const noticeContainer = document.getElementById('notice-container');
+  
+  if (notices.length === 0) {
+    noticeContainer.innerHTML = `
+      <div style="grid-column: 1 / -1; text-align: center; color: var(--text-sub); padding: 3rem 1rem; background: white; border-radius: 12px; border: 1px solid var(--border);">
+        등록된 공지사항이 없습니다.
+      </div>
+    `;
+    return;
+  }
+  
+  // 중요 공지사항과 일반 공지사항 분리
+  const importantNotices = notices.filter(n => n.is_important);
+  const normalNotices = notices.filter(n => !n.is_important);
+  
+  // 최대 6개의 공지사항만 표시
+  const displayNotices = [...importantNotices, ...normalNotices].slice(0, 6);
+  
+  noticeContainer.innerHTML = displayNotices.map(notice => `
+    <div class="notice-card ${notice.is_important ? 'important' : ''}" onclick="viewNotice(${notice.id})">
+      <div class="notice-card-header">
+        <span class="notice-card-icon">${notice.is_important ? '📌' : '🔔'}</span>
+        <h3 class="notice-card-title">${escapeHtml(notice.title)}</h3>
+      </div>
+      ${notice.content ? `
+        <div class="notice-card-content">
+          ${escapeHtml(notice.content)}
+        </div>
+      ` : ''}
+      <div class="notice-card-date">
+        <span>📅</span>
+        <span>${new Date(notice.created_at).toLocaleDateString()}</span>
+      </div>
+    </div>
+  `).join('');
+  
+  // 공지사항 데이터를 전역 변수에 저장 (모달에서 사용)
+  window.noticesData = notices;
+}
+
+// 공지사항 상세 보기
+function viewNotice(id) {
+  const notice = window.noticesData.find(n => n.id === id);
+  if (!notice) return;
+  
+  // 모달 요소 가져오기
+  const modal = document.getElementById('notice-modal');
+  const modalIcon = document.getElementById('modal-notice-icon');
+  const modalTitle = document.getElementById('modal-notice-title');
+  const modalContent = document.getElementById('modal-notice-content');
+  const modalAuthor = document.getElementById('modal-notice-author');
+  const modalDate = document.getElementById('modal-notice-date');
+  const modalImageWrapper = document.getElementById('modal-notice-image-wrapper');
+  const modalImage = document.getElementById('modal-notice-image');
+  
+  // 팝업 콘텐츠가 있는 경우 팝업 형식으로 표시
+  if (notice.popup_content && notice.popup_image) {
+    // 팝업 스타일 적용
+    modalIcon.style.display = 'none';
+    modalTitle.style.display = 'none';
+    modalImageWrapper.style.display = 'block';
+    modalImageWrapper.style.marginBottom = '0';
+    modalImage.src = notice.popup_image;
+    
+    // popup_content를 HTML로 렌더링
+    modalContent.innerHTML = notice.popup_content;
+    modalContent.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 2rem; display: flex; flex-direction: column; justify-content: center;';
+    
+    // 모달 바디 스타일 조정
+    const modalBody = modalContent.parentElement;
+    modalBody.style.position = 'relative';
+    modalBody.style.minHeight = '400px';
+    
+    // 푸터 숨기기
+    document.querySelector('.notice-modal-footer').style.display = 'none';
+  } else {
+    // 일반 공지사항 스타일
+    modalIcon.style.display = '';
+    modalTitle.style.display = '';
+    modalIcon.textContent = notice.is_important ? '📌' : '🔔';
+    modalTitle.textContent = notice.title;
+    modalContent.textContent = notice.content || '내용이 없습니다.';
+    modalContent.style.cssText = '';
+    modalContent.parentElement.style.position = '';
+    modalContent.parentElement.style.minHeight = '';
+    
+    modalAuthor.textContent = `작성자: ${notice.author_name || '관리자'}`;
+    modalDate.textContent = new Date(notice.created_at).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    // 이미지 처리
+    if (notice.popup_image) {
+      modalImage.src = notice.popup_image;
+      modalImageWrapper.style.display = 'block';
+      modalImageWrapper.style.marginBottom = '1.5rem';
+    } else {
+      modalImageWrapper.style.display = 'none';
+    }
+    
+    // 푸터 보이기
+    document.querySelector('.notice-modal-footer').style.display = '';
+  }
+  
+  // 모달 표시
+  modal.classList.add('active');
+}
+
+// 공지사항 모달 닫기
+function closeNoticeModal() {
+  const modal = document.getElementById('notice-modal');
+  modal.classList.remove('active');
+}
+
+// HTML 이스케이프
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
 }
 
 /* ── 홈 / 앱 전환 ── */
@@ -525,5 +906,6 @@ function toggleSidebar() {
   ov.style.display = open ? 'block' : 'none';
 }
 </script>
+<script src="/js/noticePopup.js"></script>
 </body>
 </html>

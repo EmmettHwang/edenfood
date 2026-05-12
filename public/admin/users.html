@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>사용자 관리 - 이든푸드</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/global.css" />
+  <style>
+    :root {
+      --green: var(--primary);
+      --green-dark: var(--primary-dark);
+      --green-light: var(--primary-light);
+      --text: var(--gray-800);
+      --text-sub: var(--gray-500);
+      --border: var(--gray-200);
+      --bg: var(--gray-50);
+      --font: var(--font-family);
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    
+    .header {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--green);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--green-dark);
+    }
+    
+    .btn-secondary {
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-secondary:hover {
+      background: #f3f4f6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--green);
+    }
+    
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--text-sub);
+      margin-top: 0.25rem;
+    }
+    
+    .user-table {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      overflow: hidden;
+    }
+    
+    .table-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .search-box {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .search-input {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      width: 250px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    th {
+      background: #f9fafb;
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-sub);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--green);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+    }
+    
+    .user-details {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .user-name {
+      font-weight: 500;
+    }
+    
+    .user-username {
+      font-size: 0.875rem;
+      color: var(--text-sub);
+    }
+    
+    .badge {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      border-radius: 9999px;
+      font-weight: 500;
+      display: inline-block;
+    }
+    
+    .badge-admin {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    
+    .badge-staff {
+      background: #e5e7eb;
+      color: #374151;
+    }
+    
+    .badge-approved {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .badge-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    
+    .btn-sm {
+      padding: 0.25rem 0.75rem;
+      font-size: 0.813rem;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-sub);
+    }
+    
+    @media (max-width: 768px) {
+      .table-wrapper {
+        overflow-x: auto;
+      }
+      
+      .search-box {
+        flex-direction: column;
+        width: 100%;
+      }
+      
+      .search-input {
+        width: 100%;
+      }
+      
+      table {
+        min-width: 600px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-inner">
+      <h1>사용자 관리</h1>
+      <button class="btn btn-secondary" onclick="goBack()">← 돌아가기</button>
+    </div>
+  </div>
+  
+  <div class="container">
+    <!-- 통계 카드 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number" id="total-users">0</div>
+        <div class="stat-label">전체 사용자</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="approved-users">0</div>
+        <div class="stat-label">승인된 사용자</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="pending-users">0</div>
+        <div class="stat-label">승인 대기</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="admin-users">0</div>
+        <div class="stat-label">관리자</div>
+      </div>
+    </div>
+    
+    <!-- 사용자 테이블 -->
+    <div class="user-table">
+      <div class="table-header">
+        <h2>사용자 목록</h2>
+        <div class="search-box">
+          <input type="text" class="search-input" placeholder="이름 또는 아이디로 검색" id="search-input" onkeyup="filterUsers()">
+          <button class="btn btn-primary" onclick="loadUsers()">새로고침</button>
+        </div>
+      </div>
+      
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>사용자</th>
+              <th>권한</th>
+              <th>상태</th>
+              <th>가입일</th>
+              <th>최근 접속</th>
+              <th>작업</th>
+            </tr>
+          </thead>
+          <tbody id="user-list">
+            <tr>
+              <td colspan="6" class="empty-state">
+                사용자를 불러오는 중...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    let allUsers = [];
+    
+    // 페이지 초기화
+    async function init() {
+      const token = localStorage.getItem('eden_token');
+      if (!token) {
+        location.href = '/login';
+        return;
+      }
+      
+      // 권한 확인
+      try {
+        const res = await fetch('/api/auth/verify', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        
+        if (!data.ok || data.user.role !== 'admin') {
+          alert('관리자 권한이 필요합니다.');
+          location.href = '/admin';
+          return;
+        }
+      } catch (error) {
+        console.error('권한 확인 실패:', error);
+        location.href = '/login';
+        return;
+      }
+      
+      loadUsers();
+    }
+    
+    // 사용자 목록 불러오기
+    async function loadUsers() {
+      try {
+        const response = await fetch('/api/auth/users', {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+          }
+        });
+        const data = await response.json();
+        
+        if (data.ok && data.users) {
+          allUsers = data.users;
+          updateStats(data.users);
+          renderUsers(data.users);
+        }
+      } catch (error) {
+        console.error('사용자 로드 실패:', error);
+      }
+    }
+    
+    // 통계 업데이트
+    function updateStats(users) {
+      if (!users || !Array.isArray(users)) {
+        users = [];
+      }
+      const total = users.length;
+      const approved = users.filter(u => u.is_approved).length;
+      const pending = users.filter(u => !u.is_approved).length;
+      const admins = users.filter(u => u.role === 'admin').length;
+      
+      document.getElementById('total-users').textContent = total;
+      document.getElementById('approved-users').textContent = approved;
+      document.getElementById('pending-users').textContent = pending;
+      document.getElementById('admin-users').textContent = admins;
+    }
+    
+    // 사용자 목록 렌더링
+    function renderUsers(users) {
+      const listEl = document.getElementById('user-list');
+      
+      if (!users || !Array.isArray(users)) {
+        users = [];
+      }
+      
+      if (users.length === 0) {
+        listEl.innerHTML = `
+          <tr>
+            <td colspan="6" class="empty-state">
+              등록된 사용자가 없습니다.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      listEl.innerHTML = users.map(user => `
+        <tr>
+          <td>
+            <div class="user-info">
+              <div class="user-avatar">${user.name ? user.name[0] : user.username[0]}</div>
+              <div class="user-details">
+                <div class="user-name">${user.name || '이름 없음'}</div>
+                <div class="user-username">@${user.username}</div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="badge ${user.role === 'admin' ? 'badge-admin' : 'badge-staff'}">
+              ${user.role === 'admin' ? '관리자' : '직원'}
+            </span>
+          </td>
+          <td>
+            <span class="badge ${user.is_approved ? 'badge-approved' : 'badge-pending'}">
+              ${user.is_approved ? '승인됨' : '대기중'}
+            </span>
+          </td>
+          <td>${new Date(user.created_at).toLocaleDateString()}</td>
+          <td>${user.last_login ? new Date(user.last_login).toLocaleString() : '-'}</td>
+          <td>
+            <div class="action-buttons">
+              ${!user.is_approved ? `
+                <button class="btn btn-sm btn-primary" onclick="approveUser(${user.id})">승인</button>
+              ` : ''}
+              ${user.role !== 'admin' ? `
+                <button class="btn btn-sm btn-secondary" onclick="toggleRole(${user.id}, 'admin')">관리자 지정</button>
+              ` : user.username !== 'admin' ? `
+                <button class="btn btn-sm btn-secondary" onclick="toggleRole(${user.id}, 'staff')">일반 전환</button>
+              ` : ''}
+              ${user.username !== 'admin' ? `
+                <button class="btn btn-sm btn-secondary" onclick="deleteUser(${user.id})">삭제</button>
+              ` : ''}
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+    
+    // 사용자 승인
+    async function approveUser(userId) {
+      if (!confirm('이 사용자를 승인하시겠습니까?')) return;
+      
+      try {
+        const response = await fetch(`/api/auth/users/${userId}/approve`, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+          }
+        });
+        
+        const result = await response.json();
+        
+        if (result.ok) {
+          alert('사용자가 승인되었습니다.');
+          loadUsers();
+        } else {
+          alert(result.message || '승인에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('승인 실패:', error);
+        alert('승인에 실패했습니다.');
+      }
+    }
+    
+    // 권한 변경
+    async function toggleRole(userId, newRole) {
+      const action = newRole === 'admin' ? '관리자로 지정' : '일반 사용자로 전환';
+      if (!confirm(`이 사용자를 ${action}하시겠습니까?`)) return;
+      
+      try {
+        const response = await fetch(`/api/auth/users/${userId}/role`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+          },
+          body: JSON.stringify({ role: newRole })
+        });
+        
+        const result = await response.json();
+        
+        if (result.ok) {
+          alert(`사용자 권한이 변경되었습니다.`);
+          loadUsers();
+        } else {
+          alert(result.message || '권한 변경에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('권한 변경 실패:', error);
+        alert('권한 변경에 실패했습니다.');
+      }
+    }
+    
+    // 사용자 삭제
+    async function deleteUser(userId) {
+      if (!confirm('이 사용자를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+      
+      try {
+        const response = await fetch(`/api/auth/users/${userId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+          }
+        });
+        
+        const result = await response.json();
+        
+        if (result.ok) {
+          alert('사용자가 삭제되었습니다.');
+          loadUsers();
+        } else {
+          alert(result.message || '삭제에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('삭제 실패:', error);
+        alert('삭제에 실패했습니다.');
+      }
+    }
+    
+    // 사용자 필터링
+    function filterUsers() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      
+      const filtered = allUsers.filter(user => {
+        const name = (user.name || '').toLowerCase();
+        const username = user.username.toLowerCase();
+        return name.includes(searchTerm) || username.includes(searchTerm);
+      });
+      
+      renderUsers(filtered);
+    }
+    
+    // 돌아가기
+    function goBack() {
+      location.href = '/admin';
+    }
+    
+    // 초기화
+    init();
+  </script>
+</body>
+</html>

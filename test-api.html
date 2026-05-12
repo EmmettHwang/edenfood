@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>로그인 API 테스트</title>
+  <meta charset="UTF-8">
+</head>
+<body>
+  <h1>로그인 테스트</h1>
+  <button onclick="testLogin()">로그인 테스트 (admin/eden2026!)</button>
+  <pre id="result"></pre>
+
+  <script>
+    async function testLogin() {
+      const result = document.getElementById('result');
+      
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            username: 'admin',
+            password: 'eden2026!'
+          })
+        });
+        
+        const data = await response.json();
+        result.textContent = '응답 상태: ' + response.status + '\n' + 
+                            JSON.stringify(data, null, 2);
+        
+        if (data.ok && data.token) {
+          result.textContent += '\n\n✅ 로그인 성공! 토큰이 발급되었습니다.';
+          localStorage.setItem('eden_token', data.token);
+          localStorage.setItem('eden_user', JSON.stringify(data.user));
+        }
+      } catch (error) {
+        result.textContent = '오류: ' + error.message;
+      }
+    }
+  </script>
+</body>
+</html>

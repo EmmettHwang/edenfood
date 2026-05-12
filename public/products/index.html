@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>메뉴 - 주식회사 이든푸드</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/public/assets/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/css/global.css?v=2.0" />
+  <style>
+    /* 헤더 공간 확보 */
+    body {
+      padding-top: 60px;
+      background: #f5f5f5;
+    }
+    
+    /* 활성 메뉴 스타일 */
+    .main-nav-links a.active {
+      color: var(--primary) !important;
+      font-weight: 600;
+    }
+    
+    .mobile-menu a.active {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+    
+    /* 메뉴 헤더 */
+    .menu-header {
+      background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+      color: white;
+      padding: 3rem 0;
+      text-align: center;
+    }
+    
+    .menu-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    
+    .menu-header p {
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+    
+    /* 메뉴 카테고리 탭 */
+    .menu-tabs {
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      position: sticky;
+      top: 60px;
+      z-index: 10;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .menu-tabs-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    
+    .menu-tabs-inner::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .menu-tab {
+      padding: 1.25rem 2rem;
+      white-space: nowrap;
+      font-weight: 500;
+      color: #6b7280;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      position: relative;
+    }
+    
+    .menu-tab:hover {
+      color: #374151;
+    }
+    
+    .menu-tab.active {
+      color: #15803d;
+      border-bottom-color: #15803d;
+    }
+    
+    /* 메뉴 컨테이너 */
+    .menu-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 3rem 1rem;
+    }
+    
+    /* 메뉴 섹션 */
+    .menu-section {
+      display: none;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease-out;
+    }
+    
+    .menu-section.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .section-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+      color: #111827;
+      text-align: center;
+    }
+    
+    /* 메뉴 리스트 */
+    .menu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+    
+    /* 메뉴 아이템 (리스트 형태) */
+    .menu-item {
+      background: white;
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s;
+      display: flex;
+      gap: 1.5rem;
+      padding: 1.5rem;
+    }
+    
+    .menu-item:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .menu-thumbnail {
+      position: relative;
+      width: 150px;
+      height: 150px;
+      flex-shrink: 0;
+      overflow: hidden;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+    
+    .menu-thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s;
+    }
+    
+    .menu-thumbnail:hover img {
+      transform: scale(1.1);
+    }
+    
+    .menu-badge {
+      position: absolute;
+      top: 0.5rem;
+      left: 0.5rem;
+      background: #dc2626;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    
+    .menu-badge.new {
+      background: #059669;
+    }
+    
+    .menu-badge.best {
+      background: #dc2626;
+    }
+    
+    .menu-badge.hot {
+      background: #ea580c;
+    }
+    
+    .menu-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    
+    .menu-header-info {
+      flex: 1;
+    }
+    
+    .menu-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #111827;
+    }
+    
+    .menu-desc {
+      font-size: 0.95rem;
+      color: #6b7280;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .menu-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1rem;
+    }
+    
+    .menu-price {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #15803d;
+    }
+    
+    .menu-price span {
+      font-size: 0.875rem;
+      font-weight: 400;
+      color: #6b7280;
+    }
+    
+    .view-detail {
+      padding: 0.5rem 1rem;
+      background: #f3f4f6;
+      color: #374151;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    
+    .view-detail:hover {
+      background: #e5e7eb;
+    }
+    
+    /* 메뉴 상세 모달 */
+    .menu-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+    
+    .menu-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 1rem;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 2rem;
+      height: 2rem;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      z-index: 10;
+    }
+    
+    .modal-image {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+    }
+    
+    .modal-body {
+      padding: 2rem;
+    }
+    
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    
+    .modal-desc {
+      color: #4b5563;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    
+    .modal-info {
+      background: #f9fafb;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    
+    .info-row:last-child {
+      margin-bottom: 0;
+    }
+    
+    .info-label {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+    
+    .info-value {
+      font-weight: 600;
+      color: #111827;
+    }
+    
+    /* 특별 메뉴 섹션 */
+    .special-section {
+      background: white;
+      border-radius: 1rem;
+      padding: 3rem;
+      margin-bottom: 3rem;
+      text-align: center;
+    }
+    
+    .special-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #111827;
+    }
+    
+    .special-desc {
+      color: #6b7280;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+    
+    .special-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .special-item {
+      padding: 1.5rem;
+      background: #f9fafb;
+      border-radius: 0.75rem;
+      transition: all 0.2s;
+    }
+    
+    .special-item:hover {
+      background: #f3f4f6;
+      transform: translateY(-2px);
+    }
+    
+    .special-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .special-name {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .special-price {
+      color: #15803d;
+      font-weight: 700;
+    }
+    
+    /* 반응형 */
+    @media (max-width: 768px) {
+      .menu-header h1 {
+        font-size: 1.5rem;
+      }
+      
+      .menu-tab {
+        padding: 1rem 1.5rem;
+        font-size: 0.875rem;
+      }
+      
+      .menu-item {
+        flex-direction: column;
+        padding: 1rem;
+      }
+      
+      .menu-thumbnail {
+        width: 100%;
+        height: 200px;
+      }
+      
+      .menu-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+      
+      .view-detail {
+        width: 100%;
+        text-align: center;
+      }
+      
+      .modal-body {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="site-header scrolled" id="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+    </a>
+    <nav class="main-nav-links">
+      <a href="/about">회사소개</a>
+      <a href="/products" class="active">메뉴</a>
+      <a href="/brands">브랜드소개</a>
+      <a href="/gallery">갤러리</a>
+      <a href="/documents">서식자료실</a>
+      <a href="/contact">문의</a>
+    </nav>
+    <div class="header-actions">
+      <a href="/intranet" class="btn-login">인트라넷</a>
+    </div>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="메뉴">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <!-- 모바일 드롭다운 -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="/about">회사소개</a>
+    <a href="/products" class="active">메뉴</a>
+    <a href="/brands">브랜드소개</a>
+    <a href="/gallery">갤러리</a>
+    <a href="/documents">서식자료실</a>
+    <a href="/contact">문의</a>
+    <a href="/intranet" class="mobile-login-btn">인트라넷 →</a>
+  </div>
+</header>
+
+<!-- ===== 메뉴 헤더 ===== -->
+<div class="menu-header">
+  <h1>이든푸드 메뉴</h1>
+  <p>감자탕 전문점을 위한 최고의 식재료를 제공합니다</p>
+</div>
+
+<!-- ===== 메뉴 탭 ===== -->
+<div class="menu-tabs">
+  <div class="menu-tabs-inner">
+    <div class="menu-tab active" onclick="showCategory('signature')">시그니처 메뉴</div>
+    <div class="menu-tab" onclick="showCategory('gamjatang')">감자탕/해장국</div>
+    <div class="menu-tab" onclick="showCategory('set')">세트 메뉴</div>
+    <div class="menu-tab" onclick="showCategory('side')">사이드 메뉴</div>
+    <div class="menu-tab" onclick="showCategory('ingredient')">식재료</div>
+    <div class="menu-tab" onclick="showCategory('sauce')">소스/양념</div>
+  </div>
+</div>
+
+<!-- ===== 메뉴 컨테이너 ===== -->
+<div class="menu-container">
+
+  <!-- 시그니처 메뉴 -->
+  <div class="menu-section active" id="signature-menu">
+    <h2 class="section-title">시그니처 메뉴</h2>
+    
+    <div class="menu-list">
+      <div class="menu-item">
+        <div class="menu-thumbnail" onclick="showMenuDetail('뼈다귀해장국', '/public/assets/tang.jpg')">
+          <img src="/public/assets/thumbnails/thumb_tang.jpg" alt="뼈다귀해장국">
+          <span class="menu-badge best">BEST</span>
+        </div>
+        <div class="menu-info">
+          <div class="menu-header-info">
+            <h3 class="menu-name">뼈다귀해장국</h3>
+            <p class="menu-desc">진한 사골육수에 푸짐한 돼지등뼈가 들어간 시원한 해장국. 24시간 푹 고아낸 진한 국물과 부드러운 등뼈살이 일품입니다.</p>
+          </div>
+          <div class="menu-bottom">
+            <div class="menu-price">12,000원 <span>/ 1인분</span></div>
+            <button class="view-detail" onclick="showMenuDetail('뼈다귀해장국', '/public/assets/tang.jpg')">자세히 보기</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="menu-item">
+        <div class="menu-thumbnail" onclick="showMenuDetail('감자탕', '/public/assets/guk.jpg')">
+          <img src="/public/assets/thumbnails/thumb_guk.jpg" alt="감자탕">
+          <span class="menu-badge hot">HOT</span>
+        </div>
+        <div class="menu-info">
+          <div class="menu-header-info">
+            <h3 class="menu-name">감자탕</h3>
+            <p class="menu-desc">통통한 감자와 우거지가 듬뿍 들어간 정통 감자탕. 얼큰하면서도 시원한 국물 맛이 일품이며, 푸짐한 양으로 온 가족이 함께 즐기기 좋습니다.</p>
+          </div>
+          <div class="menu-bottom">
+            <div class="menu-price">35,000원 <span>/ 중자</span></div>
+            <button class="view-detail" onclick="showMenuDetail('감자탕', '/public/assets/guk.jpg')">자세히 보기</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="menu-item">
+        <div class="menu-thumbnail" onclick="showMenuDetail('뼈찜', '/public/assets/jjim.jpg')">
+          <img src="/public/assets/thumbnails/thumb_jjim.jpg" alt="뼈찜">
+          <span class="menu-badge new">NEW</span>
+        </div>
+        <div class="menu-info">
+          <div class="menu-header-info">
+            <h3 class="menu-name">뼈찜</h3>
+            <p class="menu-desc">매콤달콤한 양념에 볶아낸 쫄깃한 등뼈찜. 특제 간장 양념으로 졸여낸 등뼈는 겉은 바삭하고 속은 촉촉하여 남녀노소 누구나 좋아합니다.</p>
+          </div>
+          <div class="menu-bottom">
+            <div class="menu-price">38,000원 <span>/ 중자</span></div>
+            <button class="view-detail" onclick="showMenuDetail('뼈찜', '/public/assets/jjim.jpg')">자세히 보기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 감자탕/해장국 -->
+  <div class="menu-section" id="gamjatang-menu">
+    <h2 class="section-title">감자탕 · 해장국</h2>
+    
+    <div class="menu-list">
+      <div class="menu-item">
+        <div class="menu-thumbnail" onclick="showMenuDetail('감자탕 대자', '/public/assets/guk.jpg')">
+          <img src="/public/assets/thumbnails/thumb_guk.jpg" alt="감자탕 대자">
+        </div>
+        <div class="menu-info">
+          <div class="menu-header-info">
+            <h3 class="menu-name">감자탕 대자</h3>
+            <p class="menu-desc">4~5인이 푸짐하게 즐기는 대자 사이즈. 등뼈가 특히 많이 들어가 있어 국물이 더욱 진하고 고소합니다.</p>
+          </div>
+          <div class="menu-bottom">
+            <div class="menu-price">45,000원</div>
+            <button class="view-detail" onclick="showMenuDetail('감자탕 대자', '/public/assets/guk.jpg')">자세히 보기</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="menu-card" onclick="showMenuDetail('감자탕 중자')">
+        <div class="menu-image">
+          <img src="/public/assets/guk.jpg" alt="감자탕 중자">
+        </div>
+        <div class="menu-content">
+          <h3 class="menu-name">감자탕 중자</h3>
+          <p class="menu-desc">3~4인이 적당히 즐기는 중자 사이즈</p>
+          <div class="menu-price">35,000원</div>
+        </div>
+      </div>
+      
+      <div class="menu-card" onclick="showMenuDetail('감자탕 소자')">
+        <div class="menu-image">
+          <img src="/public/assets/guk.jpg" alt="감자탕 소자">
+        </div>
+        <div class="menu-content">
+          <h3 class="menu-name">감자탕 소자</h3>
+          <p class="menu-desc">2~3인이 가볍게 즐기는 소자 사이즈</p>
+          <div class="menu-price">28,000원</div>
+        </div>
+      </div>
+      
+      <div class="menu-card" onclick="showMenuDetail('묵은지감자탕')">
+        <div class="menu-image">
+          <img src="/public/assets/tang.jpg" alt="묵은지감자탕">
+          <span class="menu-badge best">BEST</span>
+        </div>
+        <div class="menu-content">
+          <h3 class="menu-name">묵은지감자탕</h3>
+          <p class="menu-desc">깊은 맛의 묵은지가 들어간 특별한 감자탕</p>
+          <div class="menu-price">38,000원 <span>/ 중자</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 세트 메뉴 -->
+  <div class="menu-section" id="set-menu">
+    <h2 class="section-title">세트 메뉴</h2>
+    
+    <div class="special-section">
+      <h3 class="special-title">가족 세트</h3>
+      <p class="special-desc">온 가족이 함께 즐기는 푸짐한 세트 메뉴</p>
+      
+      <div class="special-grid">
+        <div class="special-item">
+          <div class="special-icon">🍲</div>
+          <div class="special-name">A세트</div>
+          <p>감자탕(중) + 공기밥 3개</p>
+          <div class="special-price">38,000원</div>
+        </div>
+        
+        <div class="special-item">
+          <div class="special-icon">🍖</div>
+          <div class="special-name">B세트</div>
+          <p>뼈찜(중) + 공기밥 3개 + 음료</p>
+          <div class="special-price">42,000원</div>
+        </div>
+        
+        <div class="special-item">
+          <div class="special-icon">🍛</div>
+          <div class="special-name">C세트</div>
+          <p>감자탕(중) + 뼈찜(소) + 공기밥 4개</p>
+          <div class="special-price">58,000원</div>
+        </div>
+        
+        <div class="special-item">
+          <div class="special-icon">🥘</div>
+          <div class="special-name">스페셜세트</div>
+          <p>감자탕(대) + 뼈찜(중) + 사이드 3종</p>
+          <div class="special-price">85,000원</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 사이드 메뉴 -->
+  <div class="menu-section" id="side-menu">
+    <h2 class="section-title">사이드 메뉴</h2>
+    
+    <div class="menu-grid">
+      <div class="menu-card" onclick="showMenuDetail('수육')">
+        <div class="menu-image">
+          <img src="/public/assets/sang.jpg" alt="수육">
+        </div>
+        <div class="menu-content">
+          <h3 class="menu-name">수육</h3>
+          <p class="menu-desc">부드럽게 삶은 돼지고기 수육</p>
+          <div class="menu-price">25,000원 <span>/ 소</span></div>
+        </div>
+      </div>
+      
+      <div class="menu-card" onclick="showMenuDetail('김치전')">
+        <div class="menu-image">
+          <img src="/public/assets/namchaina.jpg" alt="김치전">
+        </div>
+        <div class="menu-content">
+          <h3 class="menu-name">김치전</h3>
+          <p class="menu-desc">바삭하게 구운 김치전</p>
+          <div class="menu-price">12,000원</div>
+        </div>
+      </div>
+      
+      <div class="menu-card" onclick="showMenuDetail('계란찜')">
+        <div class="menu-image">
+          <img src="/public/assets/yeochina.jpg" alt="계란찜">
+        </div>
+        <div class="menu-content">
+          <h3 class="menu-name">계란찜</h3>
+          <p class="menu-desc">폭신폭신한 계란찜</p>
+          <div class="menu-price">8,000원</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 식재료 -->
+  <div class="menu-section" id="ingredient-menu">
+    <h2 class="section-title">프리미엄 식재료</h2>
+    
+    <div class="menu-grid">
+      <div class="menu-card">
+        <div class="menu-image">
+          <img src="/public/assets/tongjang.jpg" alt="돼지등뼈">
+        </div>
+        <div class="menu-content">
+          <h3 class="menu-name">국내산 돼지등뼈</h3>
+          <p class="menu-desc">엄선된 국내산 돼지등뼈 (냉장)</p>
+          <div class="menu-price">시세 문의</div>
+        </div>
+      </div>
+      
+      <div class="menu-card">
+        <div class="menu-image">
+          <img src="/public/assets/saup.png" alt="우거지">
+        </div>
+        <div class="menu-content">
+          <h3 class="menu-name">국내산 우거지</h3>
+          <p class="menu-desc">신선한 국내산 우거지</p>
+          <div class="menu-price">kg당 8,000원</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 소스/양념 -->
+  <div class="menu-section" id="sauce-menu">
+    <h2 class="section-title">소스 · 양념</h2>
+    
+    <div class="menu-grid">
+      <div class="menu-card">
+        <div class="menu-image">
+          <img src="/public/assets/ganpan.png" alt="감자탕 양념">
+        </div>
+        <div class="menu-content">
+          <h3 class="menu-name">특제 감자탕 양념</h3>
+          <p class="menu-desc">이든푸드만의 비법 양념</p>
+          <div class="menu-price">5kg 35,000원</div>
+        </div>
+      </div>
+      
+      <div class="menu-card">
+        <div class="menu-image">
+          <img src="/public/assets/yuksu.png" alt="육수">
+        </div>
+        <div class="menu-content">
+          <h3 class="menu-name">진한 사골육수</h3>
+          <p class="menu-desc">24시간 우려낸 진한 사골육수</p>
+          <div class="menu-price">10L 25,000원</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 메뉴 상세 모달 -->
+<div class="menu-modal" id="menu-modal">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeMenuModal()">✕</button>
+    <img src="" alt="" class="modal-image" id="modal-image">
+    <div class="modal-body">
+      <h2 class="modal-title" id="modal-title"></h2>
+      <p class="modal-desc" id="modal-desc"></p>
+      
+      <div class="modal-info">
+        <div class="info-row">
+          <span class="info-label">가격</span>
+          <span class="info-value" id="modal-price"></span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">칼로리</span>
+          <span class="info-value" id="modal-calorie">약 800kcal</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">조리시간</span>
+          <span class="info-value" id="modal-time">약 15분</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">추천 인원</span>
+          <span class="info-value" id="modal-serving">3~4인</span>
+        </div>
+      </div>
+      
+      <div style="text-align: center;">
+        <a href="/contact" class="btn-primary">주문 문의하기</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// 메뉴 데이터
+const menuData = {
+  '뼈다귀해장국': {
+    image: '/public/assets/tang.jpg',
+    desc: '진한 사골육수에 푸짐한 돼지등뼈가 들어간 시원한 해장국입니다. 숙취해소에 탁월하며, 든든한 한 끼 식사로 제격입니다.',
+    price: '12,000원',
+    calorie: '약 800kcal',
+    time: '즉시 제공',
+    serving: '1인분'
+  },
+  '감자탕': {
+    image: '/public/assets/guk.jpg',
+    desc: '통통한 감자와 신선한 우거지가 듬뿍 들어간 정통 감자탕입니다. 구수하고 얼큰한 국물이 일품입니다.',
+    price: '소 28,000원 / 중 35,000원 / 대 45,000원',
+    calorie: '약 1,200kcal',
+    time: '약 15분',
+    serving: '사이즈별 상이'
+  },
+  '뼈찜': {
+    image: '/public/assets/jjim.jpg',
+    desc: '매콤달콤한 특제 양념에 볶아낸 쫄깃한 등뼈찜입니다. 불맛이 살아있는 인기 메뉴입니다.',
+    price: '소 30,000원 / 중 38,000원 / 대 48,000원',
+    calorie: '약 1,500kcal',
+    time: '약 20분',
+    serving: '사이즈별 상이'
+  }
+};
+
+// 카테고리 표시
+function showCategory(category) {
+  // 모든 탭 비활성화
+  document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
+  
+  // 현재 활성 섹션 페이드 아웃
+  const currentActive = document.querySelector('.menu-section.active');
+  if (currentActive) {
+    currentActive.style.opacity = '0';
+    currentActive.style.transform = 'translateY(20px)';
+    
+    setTimeout(() => {
+      currentActive.classList.remove('active');
+      currentActive.style.display = 'none';
+      
+      // 새 섹션 표시
+      const newSection = document.getElementById(category + '-menu');
+      newSection.style.display = 'block';
+      
+      // 강제 리플로우
+      newSection.offsetHeight;
+      
+      // 페이드 인
+      setTimeout(() => {
+        newSection.classList.add('active');
+        newSection.style.opacity = '1';
+        newSection.style.transform = 'translateY(0)';
+      }, 10);
+    }, 300);
+  } else {
+    // 첫 로드 시
+    const newSection = document.getElementById(category + '-menu');
+    newSection.style.display = 'block';
+    setTimeout(() => {
+      newSection.classList.add('active');
+      newSection.style.opacity = '1';
+      newSection.style.transform = 'translateY(0)';
+    }, 10);
+  }
+  
+  // 선택된 탭 활성화
+  event.target.classList.add('active');
+}
+
+// 메뉴 상세 모달 표시
+function showMenuDetail(menuName, originalImage) {
+  const modal = document.getElementById('menu-modal');
+  const data = menuData[menuName] || {};
+  
+  document.getElementById('modal-title').textContent = menuName;
+  document.getElementById('modal-desc').textContent = data.desc || '';
+  document.getElementById('modal-price').textContent = data.price || '시세 문의';
+  document.getElementById('modal-calorie').textContent = data.calorie || '정보 없음';
+  document.getElementById('modal-time').textContent = data.time || '약 15분';
+  document.getElementById('modal-serving').textContent = data.serving || '정보 없음';
+  
+  // 원본 이미지가 전달되면 그것을 사용하고, 없으면 menuData의 이미지 사용
+  const imageUrl = originalImage || data.image;
+  if (imageUrl) {
+    document.getElementById('modal-image').src = imageUrl;
+    document.getElementById('modal-image').alt = menuName;
+  }
+  
+  modal.classList.add('active');
+}
+
+// 메뉴 모달 닫기
+function closeMenuModal() {
+  document.getElementById('menu-modal').classList.remove('active');
+}
+
+// 모달 외부 클릭 시 닫기
+document.getElementById('menu-modal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    closeMenuModal();
+  }
+});
+
+// 모바일 메뉴
+document.getElementById('nav-hamburger').addEventListener('click', () => {
+  document.getElementById('mobile-menu').classList.toggle('open');
+});
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeMenuModal();
+  }
+});
+</script>
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+      <p>신선함을 잇는 가치, 이든푸드</p>
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <strong>회사</strong>
+        <a href="/about">회사소개</a>
+        <a href="/products">메뉴</a>
+        <a href="/brands">브랜드소개</a>
+        <a href="/contact">문의</a>
+      </div>
+      <div class="footer-col">
+        <strong>자료실</strong>
+        <a href="/documents">서식 다운로드</a>
+        <a href="/gallery">갤러리</a>
+      </div>
+      <div class="footer-col">
+        <strong>인트라넷</strong>
+        <a href="/intranet">직원 전용</a>
+        <a href="/login">로그인</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p><strong>㈜이든푸드</strong></p>
+    <p>본사/유통 : 인천광역시 서구 서곶길 314번길 9</p>
+    <p>제2공장 : 인천광역시 서구 염곡로 722-1 | 제3공장 : 경기도 시흥시 죽율로 209번길 7-1</p>
+    <p>TEL : 032-567-0111 | FAX : 032-567-0133</p>
+    <p>사업자등록번호: 222-87-02900 | 대표: 노진훈</p>
+    <p style="margin-top: 0.5rem;">© 2026 주식회사 이든푸드. All rights reserved.</p>
+    <div class="footer-legal-links" style="margin-top: 1rem;">
+      <a href="/privacy">개인정보취급방침</a>
+      <a href="/terms">이용약관</a>
+      <a href="/email-policy">이메일무단수집거부</a>
+      <a href="/location">오시는길</a>
+      <a href="/admin">관리자</a>
+    </div>
+  </div>
+  </div>
+</footer>
+
+</body>
+</html>

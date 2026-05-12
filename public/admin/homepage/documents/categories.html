@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>서식자료실 카테고리 관리 - 관리자</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/public/assets/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/public/admin/admin-layout.css?v=1.0" />
+  <style>
+    .category-list {
+      background: white;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .category-item {
+      display: flex;
+      align-items: center;
+      padding: 1.25rem;
+      border-bottom: 1px solid #e5e7eb;
+      transition: background 0.2s;
+    }
+    
+    .category-item:hover {
+      background: #f9fafb;
+    }
+    
+    .category-item:last-child {
+      border-bottom: none;
+    }
+    
+    .drag-handle {
+      cursor: move;
+      color: #9ca3af;
+      margin-right: 1rem;
+      font-size: 1.25rem;
+    }
+    
+    .category-info {
+      flex: 1;
+    }
+    
+    .category-name {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    
+    .category-desc {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    
+    .category-stats {
+      display: flex;
+      gap: 1.5rem;
+      margin-right: 2rem;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #16a34a;
+    }
+    
+    .stat-label {
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+    
+    .category-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+    
+    /* 새 카테고리 추가 폼 */
+    .add-category-form {
+      background: #f9fafb;
+      border: 2px dashed #d1d5db;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: none;
+    }
+    
+    .add-category-form.active {
+      display: block;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 1rem;
+    }
+    
+    /* 모달 스타일 */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 1rem;
+      width: 100%;
+      max-width: 500px;
+      overflow: hidden;
+    }
+    
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.5rem;
+      transition: background 0.2s;
+    }
+    
+    .modal-close:hover {
+      background: #f3f4f6;
+    }
+    
+    .modal-body {
+      padding: 1.5rem;
+    }
+    
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+    
+    /* 드래그 중 스타일 */
+    .category-item.dragging {
+      opacity: 0.5;
+      background: #f3f4f6;
+    }
+    
+    .category-item.drag-over {
+      border-top: 3px solid #16a34a;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #9ca3af;
+    }
+    
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+    
+    @media (max-width: 768px) {
+      .category-stats {
+        display: none;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header scrolled" id="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+    </a>
+    <div class="header-actions">
+      <span style="color: #6b7280; font-size: 0.875rem; margin-right: 1rem;">관리자 모드</span>
+      <button class="btn-login" onclick="logout()">로그아웃</button>
+    </div>
+  </div>
+</header>
+
+<div class="admin-wrapper">
+  <!-- 사이드바 -->
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">관리자 대시보드</div>
+      <div class="sidebar-subtitle">홈페이지 통합 관리</div>
+    </div>
+    
+    <nav class="sidebar-menu">
+      <div class="menu-group">
+        <div class="menu-group-title">대시보드</div>
+        <a href="/admin" class="menu-item" data-menu="dashboard">
+          <span class="menu-item-icon">📊</span>
+          <span>대시보드</span>
+        </a>
+      </div>
+      
+      <div class="menu-group">
+        <div class="menu-group-title">홈페이지 관리</div>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="about" onclick="toggleSubmenu('about', event)">
+          <span class="menu-item-icon">🏢</span>
+          <span>회사소개 관리</span>
+        </a>
+        <div class="submenu" id="submenu-about">
+          <a href="/admin/homepage/about/greeting" class="menu-item" data-menu="about-greeting">
+            <span>CEO 인사말</span>
+          </a>
+          <a href="/admin/homepage/about/history" class="menu-item" data-menu="about-history">
+            <span>연혁</span>
+          </a>
+          <a href="/admin/homepage/about/organization" class="menu-item" data-menu="about-organization">
+            <span>조직도</span>
+          </a>
+          <a href="/admin/homepage/about/executives" class="menu-item" data-menu="about-executives">
+            <span>임원진</span>
+          </a>
+        </div>
+        
+        <a href="/admin/homepage/notices" class="menu-item" data-menu="notices">
+          <span class="menu-item-icon">📢</span>
+          <span>공지사항 관리</span>
+        </a>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="menu" onclick="toggleSubmenu('menu', event)">
+          <span class="menu-item-icon">🍽️</span>
+          <span>메뉴 관리</span>
+        </a>
+        <div class="submenu" id="submenu-menu">
+          <a href="/admin/homepage/menu/categories" class="menu-item" data-menu="menu-categories">
+            <span>카테고리 관리</span>
+          </a>
+          <a href="/admin/homepage/menu/items" class="menu-item" data-menu="menu-items">
+            <span>메뉴 아이템</span>
+          </a>
+          <a href="/admin/homepage/menu/prices" class="menu-item" data-menu="menu-prices">
+            <span>가격/옵션 설정</span>
+          </a>
+        </div>
+        
+        <a href="/admin/homepage/brands" class="menu-item" data-menu="brands">
+          <span class="menu-item-icon">🏷️</span>
+          <span>브랜드소개 관리</span>
+        </a>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="gallery" onclick="toggleSubmenu('gallery', event)">
+          <span class="menu-item-icon">🖼️</span>
+          <span>갤러리 관리</span>
+        </a>
+        <div class="submenu" id="submenu-gallery">
+          <a href="/admin/homepage/gallery/upload" class="menu-item" data-menu="gallery-upload">
+            <span>이미지 업로드</span>
+          </a>
+          <a href="/admin/homepage/gallery/manage" class="menu-item" data-menu="gallery-manage">
+            <span>이미지 관리</span>
+          </a>
+        </div>
+        
+        <a href="#" class="menu-item has-submenu expanded" data-menu="documents" onclick="toggleSubmenu('documents', event)">
+          <span class="menu-item-icon">📄</span>
+          <span>서식자료실 관리</span>
+        </a>
+        <div class="submenu active" id="submenu-documents">
+          <a href="/admin/homepage/documents/upload" class="menu-item" data-menu="documents-upload">
+            <span>문서 업로드</span>
+          </a>
+          <a href="/admin/homepage/documents/categories" class="menu-item active" data-menu="documents-categories">
+            <span>카테고리 관리</span>
+          </a>
+          <a href="/admin/homepage/documents/stats" class="menu-item" data-menu="documents-stats">
+            <span>다운로드 통계</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="menu-group">
+        <div class="menu-group-title">시스템 관리</div>
+        <a href="/admin/users" class="menu-item" data-menu="users">
+          <span class="menu-item-icon">👥</span>
+          <span>사용자 관리</span>
+        </a>
+        <a href="/admin/logs" class="menu-item" data-menu="logs">
+          <span class="menu-item-icon">📝</span>
+          <span>활동 로그</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+  
+  <!-- 메인 콘텐츠 -->
+  <main class="admin-main">
+    <div class="admin-content">
+      <div class="page-header">
+        <div class="page-header-flex">
+          <div>
+            <h1 class="page-title">서식자료실 카테고리 관리</h1>
+            <p class="page-desc">문서 카테고리를 관리하고 순서를 조정할 수 있습니다</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="toggleAddForm()">+ 새 카테고리</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 새 카테고리 추가 폼 -->
+      <div class="add-category-form" id="add-category-form">
+        <h3 style="margin-bottom: 1rem;">새 카테고리 추가</h3>
+        <form id="new-category-form" onsubmit="addCategory(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">카테고리명 *</label>
+              <input type="text" class="form-input" id="new-category-name" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">설명</label>
+              <input type="text" class="form-input" id="new-category-desc" placeholder="카테고리에 대한 간단한 설명" />
+            </div>
+          </div>
+          <div style="margin-top: 1rem; display: flex; gap: 0.5rem; justify-content: flex-end;">
+            <button type="button" class="btn btn-secondary" onclick="toggleAddForm()">취소</button>
+            <button type="submit" class="btn btn-primary">추가</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- 카테고리 목록 -->
+      <div class="category-list" id="category-list">
+        <!-- 카테고리 아이템이 여기 표시됩니다 -->
+      </div>
+      
+      <!-- 빈 상태 -->
+      <div class="empty-state" id="empty-state" style="display: none;">
+        <div class="empty-state-icon">📂</div>
+        <h3>등록된 카테고리가 없습니다</h3>
+        <p>새 카테고리를 추가하여 문서를 체계적으로 관리하세요</p>
+      </div>
+    </div>
+  </main>
+  
+  <!-- 모바일 메뉴 토글 -->
+  <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+    <span>☰</span>
+  </button>
+  
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileMenu()"></div>
+</div>
+
+<!-- 카테고리 편집 모달 -->
+<div class="modal" id="edit-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">카테고리 수정</h2>
+      <button class="modal-close" onclick="closeEditModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <form id="edit-form">
+        <div class="form-group">
+          <label class="form-label">카테고리명 *</label>
+          <input type="text" class="form-input" id="edit-category-name" required />
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">설명</label>
+          <textarea class="form-textarea" id="edit-category-desc" rows="3"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">상태</label>
+          <select class="form-select" id="edit-category-status">
+            <option value="active">활성</option>
+            <option value="inactive">비활성</option>
+          </select>
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeEditModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveCategory()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let categories = [];
+let currentEditId = null;
+let draggedElement = null;
+
+// 샘플 카테고리 데이터
+const sampleCategories = [
+  {
+    id: 1,
+    name: '인사/총무',
+    description: '인사 및 총무 관련 서식',
+    documents: 15,
+    downloads: 342,
+    order: 1,
+    status: 'active'
+  },
+  {
+    id: 2,
+    name: '회계/재무',
+    description: '회계 및 재무 관련 서식',
+    documents: 23,
+    downloads: 567,
+    order: 2,
+    status: 'active'
+  },
+  {
+    id: 3,
+    name: '영업/마케팅',
+    description: '영업 및 마케팅 관련 서식',
+    documents: 18,
+    downloads: 234,
+    order: 3,
+    status: 'active'
+  },
+  {
+    id: 4,
+    name: '기타',
+    description: '기타 업무 서식',
+    documents: 8,
+    downloads: 89,
+    order: 4,
+    status: 'active'
+  }
+];
+
+// 카테고리 로드
+function loadCategories() {
+  // 실제로는 API에서 로드
+  categories = sampleCategories;
+  renderCategories();
+}
+
+// 카테고리 렌더링
+function renderCategories() {
+  const list = document.getElementById('category-list');
+  const emptyState = document.getElementById('empty-state');
+  
+  if (categories.length === 0) {
+    list.style.display = 'none';
+    emptyState.style.display = 'block';
+    return;
+  }
+  
+  list.style.display = 'block';
+  emptyState.style.display = 'none';
+  
+  // 순서대로 정렬
+  categories.sort((a, b) => a.order - b.order);
+  
+  list.innerHTML = categories.map((cat, index) => `
+    <div class="category-item" draggable="true" data-id="${cat.id}" data-order="${index}">
+      <span class="drag-handle">⋮⋮</span>
+      <div class="category-info">
+        <h4 class="category-name">${cat.name}</h4>
+        ${cat.description ? `<p class="category-desc">${cat.description}</p>` : ''}
+      </div>
+      <div class="category-stats">
+        <div class="stat">
+          <div class="stat-value">${cat.documents || 0}</div>
+          <div class="stat-label">문서</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">${cat.downloads || 0}</div>
+          <div class="stat-label">다운로드</div>
+        </div>
+      </div>
+      <div class="category-actions">
+        <button class="btn btn-secondary btn-icon" onclick="editCategory(${cat.id})" title="수정">
+          ✏️
+        </button>
+        <button class="btn btn-secondary btn-icon" onclick="deleteCategory(${cat.id})" title="삭제">
+          🗑️
+        </button>
+      </div>
+    </div>
+  `).join('');
+  
+  // 드래그 앤 드롭 이벤트 설정
+  setupDragAndDrop();
+}
+
+// 드래그 앤 드롭 설정
+function setupDragAndDrop() {
+  const items = document.querySelectorAll('.category-item');
+  
+  items.forEach(item => {
+    item.addEventListener('dragstart', handleDragStart);
+    item.addEventListener('dragend', handleDragEnd);
+    item.addEventListener('dragover', handleDragOver);
+    item.addEventListener('drop', handleDrop);
+    item.addEventListener('dragenter', handleDragEnter);
+    item.addEventListener('dragleave', handleDragLeave);
+  });
+}
+
+function handleDragStart(e) {
+  draggedElement = this;
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function handleDragEnd(e) {
+  this.classList.remove('dragging');
+  
+  // 모든 drag-over 클래스 제거
+  document.querySelectorAll('.category-item').forEach(item => {
+    item.classList.remove('drag-over');
+  });
+}
+
+function handleDragOver(e) {
+  if (e.preventDefault) {
+    e.preventDefault();
+  }
+  e.dataTransfer.dropEffect = 'move';
+  return false;
+}
+
+function handleDragEnter(e) {
+  this.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+  this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+  if (e.stopPropagation) {
+    e.stopPropagation();
+  }
+  
+  if (draggedElement !== this) {
+    const draggedOrder = parseInt(draggedElement.dataset.order);
+    const targetOrder = parseInt(this.dataset.order);
+    
+    // 순서 변경
+    if (draggedOrder < targetOrder) {
+      // 아래로 이동
+      categories.forEach(cat => {
+        if (cat.order > draggedOrder && cat.order <= targetOrder) {
+          cat.order--;
+        }
+      });
+      categories[draggedOrder].order = targetOrder;
+    } else {
+      // 위로 이동
+      categories.forEach(cat => {
+        if (cat.order < draggedOrder && cat.order >= targetOrder) {
+          cat.order++;
+        }
+      });
+      categories[draggedOrder].order = targetOrder;
+    }
+    
+    // 다시 렌더링
+    renderCategories();
+    
+    // 실제로는 API 호출하여 순서 저장
+    console.log('카테고리 순서 변경됨');
+  }
+  
+  return false;
+}
+
+// 새 카테고리 폼 토글
+function toggleAddForm() {
+  const form = document.getElementById('add-category-form');
+  form.classList.toggle('active');
+  
+  if (form.classList.contains('active')) {
+    document.getElementById('new-category-name').focus();
+  } else {
+    document.getElementById('new-category-form').reset();
+  }
+}
+
+// 카테고리 추가
+function addCategory(event) {
+  event.preventDefault();
+  
+  const name = document.getElementById('new-category-name').value;
+  const desc = document.getElementById('new-category-desc').value;
+  
+  if (!name) return;
+  
+  const newCategory = {
+    id: Date.now(), // 임시 ID
+    name: name,
+    description: desc,
+    documents: 0,
+    downloads: 0,
+    order: categories.length + 1,
+    status: 'active'
+  };
+  
+  // 실제로는 API 호출
+  categories.push(newCategory);
+  renderCategories();
+  
+  alert('카테고리가 추가되었습니다.');
+  toggleAddForm();
+  document.getElementById('new-category-form').reset();
+}
+
+// 카테고리 편집
+function editCategory(categoryId) {
+  currentEditId = categoryId;
+  const category = categories.find(cat => cat.id === categoryId);
+  
+  if (category) {
+    document.getElementById('edit-category-name').value = category.name;
+    document.getElementById('edit-category-desc').value = category.description || '';
+    document.getElementById('edit-category-status').value = category.status || 'active';
+    
+    document.getElementById('edit-modal').classList.add('active');
+  }
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('active');
+  currentEditId = null;
+}
+
+// 카테고리 저장
+function saveCategory() {
+  const category = categories.find(cat => cat.id === currentEditId);
+  
+  if (category) {
+    category.name = document.getElementById('edit-category-name').value;
+    category.description = document.getElementById('edit-category-desc').value;
+    category.status = document.getElementById('edit-category-status').value;
+    
+    // 실제로는 API 호출
+    renderCategories();
+    alert('카테고리가 수정되었습니다.');
+    closeEditModal();
+  }
+}
+
+// 카테고리 삭제
+async function deleteCategory(categoryId) {
+  const category = categories.find(cat => cat.id === categoryId);
+  
+  if (!category) return;
+  
+  if (category.documents > 0) {
+    if (!confirm(`이 카테고리에는 ${category.documents}개의 문서가 있습니다. 정말로 삭제하시겠습니까?`)) {
+      return;
+    }
+  } else {
+    if (!confirm('정말로 이 카테고리를 삭제하시겠습니까?')) {
+      return;
+    }
+  }
+  
+  // 실제로는 API 호출
+  categories = categories.filter(cat => cat.id !== categoryId);
+  
+  // 순서 재정렬
+  categories.forEach((cat, index) => {
+    cat.order = index + 1;
+  });
+  
+  renderCategories();
+  alert('카테고리가 삭제되었습니다.');
+}
+
+// 사이드바 관련 함수들
+function toggleSubmenu(menuId, event) {
+  event.preventDefault();
+  const submenu = document.getElementById(`submenu-${menuId}`);
+  const menuItem = event.currentTarget;
+  
+  submenu.classList.toggle('active');
+  menuItem.classList.toggle('expanded');
+}
+
+function toggleMobileMenu() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  
+  sidebar.classList.toggle('mobile-open');
+  overlay.classList.toggle('active');
+}
+
+function closeMobileMenu() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  
+  sidebar.classList.remove('mobile-open');
+  overlay.classList.remove('active');
+}
+
+async function logout() {
+  try {
+    const response = await fetch('/api/auth/logout', { method: 'POST' });
+    const data = await response.json();
+    
+    if (data.ok) {
+      alert('로그아웃되었습니다.');
+      location.href = '/login';
+    }
+  } catch (error) {
+    console.error('로그아웃 실패:', error);
+  }
+}
+
+async function checkAuth() {
+  try {
+    const response = await fetch('/api/auth/me');
+    const data = await response.json();
+    
+    if (!data.ok || data.user.role !== 'admin') {
+      alert('관리자 권한이 필요합니다.');
+      location.href = '/login';
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('인증 확인 실패:', error);
+    location.href = '/login';
+    return false;
+  }
+}
+
+// 페이지 초기화
+checkAuth().then(isAuth => {
+  if (isAuth) {
+    loadCategories();
+  }
+});
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeEditModal();
+  }
+});
+</script>
+
+</body>
+</html>

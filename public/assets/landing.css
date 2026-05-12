@@ -150,19 +150,25 @@ img, video { display: block; max-width: 100%; }
   color: #fff;
   transition: color .3s;
 }
+.logo-image {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
 .site-header.scrolled .logo { color: var(--text); }
 .logo-icon { font-size: 22px; }
 .main-nav-links {
   display: flex;
-  gap: 28px;
-  margin-left: 20px;
+  gap: 32px;
+  margin-left: 24px;
   flex: 1;
 }
 .main-nav-links a {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 21px;
+  font-weight: 800;
   color: rgba(255,255,255,.9);
   transition: color .2s;
+  text-shadow: 0 1px 2px rgba(0,0,0,.15);
 }
 .site-header.scrolled .main-nav-links a { color: var(--text-sub); }
 .main-nav-links a:hover { color: var(--green-light); }
@@ -211,8 +217,8 @@ img, video { display: block; max-width: 100%; }
 .mobile-menu.open { display: flex; }
 .mobile-menu a {
   padding: 10px 0;
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 800;
   color: var(--text);
   border-bottom: 1px solid var(--gray-200);
 }
@@ -245,6 +251,17 @@ img, video { display: block; max-width: 100%; }
   height: 100%;
   object-fit: cover;
 }
+.hero-image {
+  position: absolute;
+  width: 90%;
+  height: 90%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+  object-position: center;
+  z-index: 1;
+}
 .hero-overlay {
   position: absolute;
   inset: 0;
@@ -262,6 +279,40 @@ img, video { display: block; max-width: 100%; }
   margin: 0 auto;
   padding: 0 24px;
   color: #fff;
+}
+/* 밝은 배경용 어두운 텍스트 스타일 */
+.hero-content.dark-text {
+  color: #111827;
+}
+.hero-content.dark-text .hero-badge {
+  background: rgba(0,0,0,.05);
+  border-color: rgba(0,0,0,.15);
+  color: #374151;
+}
+.hero-content.dark-text .hero-accent {
+  color: #15803d;
+}
+.hero-content.dark-text .hero-desc {
+  color: #374151;
+  font-weight: 500;
+}
+.hero-content.dark-text .hero-btns .btn-primary-lg {
+  background: #15803d;
+  color: white;
+}
+.hero-content.dark-text .hero-btns .btn-outline-lg {
+  border-color: #15803d;
+  color: #15803d;
+}
+.hero-content.dark-text .hero-btns .btn-outline-lg:hover {
+  background: #15803d;
+  color: white;
+}
+.hero-content.dark-text .hero-scroll-hint {
+  color: #6b7280;
+}
+.hero-content.dark-text .scroll-arrow {
+  border-color: #6b7280;
 }
 .hero-badge {
   display: inline-block;
@@ -636,6 +687,107 @@ img, video { display: block; max-width: 100%; }
 }
 .btn-submit:hover { background: var(--green-dark); transform: translateY(-1px); }
 
+/* ─── 흘러가는 배너 ─── */
+.scrolling-banner {
+  background: var(--green);
+  color: white;
+  padding: 1rem 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.banner-track {
+  display: flex;
+  animation: scroll 30s linear infinite;
+}
+
+.banner-content {
+  display: flex;
+  padding-right: 2rem;
+}
+
+.banner-item {
+  white-space: nowrap;
+  padding: 0 2rem;
+  font-size: 0.938rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.banner-item::after {
+  content: '•';
+  position: absolute;
+  right: 0;
+  opacity: 0.5;
+}
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ─── 유관기관 링크 ─── */
+.partners-section {
+  padding: 3rem 0;
+  background: #f8f9fa;
+  border-top: 1px solid var(--border);
+}
+
+.partners-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.partners-grid {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+}
+
+.partner-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-sub);
+  transition: all 0.3s;
+  text-decoration: none;
+}
+
+.partner-link:hover {
+  color: var(--green);
+  transform: translateY(-3px);
+}
+
+.partner-logo {
+  width: 60px;
+  height: 60px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  transition: all 0.3s;
+}
+
+.partner-link:hover .partner-logo {
+  border-color: var(--green);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.partner-link span {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
 /* ─── FOOTER ─── */
 .site-footer {
   background: #0d1f15;
@@ -652,6 +804,7 @@ img, video { display: block; max-width: 100%; }
   flex-wrap: wrap;
 }
 .footer-brand { flex: 1; min-width: 200px; }
+.footer-brand .logo-image { height: 50px; width: auto; object-fit: contain; margin-bottom: 10px; }
 .footer-brand .logo-text { font-size: 18px; font-weight: 800; color: #fff; margin-left: 6px; }
 .footer-brand p { font-size: 13px; margin-top: 10px; opacity: .6; }
 .footer-links { display: flex; gap: 48px; flex-wrap: wrap; }
@@ -664,10 +817,26 @@ img, video { display: block; max-width: 100%; }
   margin: 0 auto;
   padding: 20px 0;
   display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 12px;
+}
+.footer-bottom p {
+  opacity: .5;
+}
+.footer-legal-links {
+  display: flex;
   gap: 20px;
   flex-wrap: wrap;
-  font-size: 12px;
-  opacity: .5;
+  margin-top: 8px;
+}
+.footer-legal-links a {
+  color: rgba(255,255,255,.4);
+  transition: color .2s;
+  font-size: 11px;
+}
+.footer-legal-links a:hover {
+  color: rgba(255,255,255,.8);
 }
 
 /* ─── 애니메이션 ─── */

@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>문의 - 주식회사 이든푸드</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/public/assets/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/css/global.css?v=2.0" />
+  <style>
+    /* 헤더 공간 확보 */
+    body {
+      padding-top: 60px;
+    }
+    
+    /* 활성 메뉴 스타일 */
+    .main-nav-links a.active {
+      color: var(--primary) !important;
+      font-weight: 600;
+    }
+    
+    .mobile-menu a.active {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+    
+    /* 문의 페이지 스타일 */
+    .page-header {
+      background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+      color: white;
+      padding: 4rem 0;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: rotate 30s linear infinite;
+    }
+    
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    .page-header .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .page-header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    
+    .page-header p {
+      font-size: 1.125rem;
+      opacity: 0.9;
+      margin-bottom: 2rem;
+    }
+    
+    .breadcrumb {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      opacity: 0.8;
+    }
+    
+    .breadcrumb a {
+      color: white;
+      text-decoration: none;
+    }
+    
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+    
+    .contact-wrapper {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4rem 1rem;
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 4rem;
+    }
+    
+    /* 연락처 정보 */
+    .contact-info-section {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    .contact-info-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 2rem;
+    }
+    
+    .contact-info-item {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .contact-info-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--green-light);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+    
+    .contact-info-content h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    
+    .contact-info-content p {
+      color: var(--text-sub);
+      line-height: 1.6;
+    }
+    
+    /* 지도 섹션 */
+    .map-section {
+      margin-top: 2rem;
+    }
+    
+    .map-container {
+      width: 100%;
+      height: 300px;
+      background: #f3f4f6;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .map-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      flex-direction: column;
+      gap: 1rem;
+      color: var(--text-sub);
+    }
+    
+    .map-placeholder-icon {
+      font-size: 3rem;
+    }
+    
+    /* 문의 폼 */
+    .contact-form-section {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    .form-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    
+    .form-subtitle {
+      color: var(--text-sub);
+      margin-bottom: 2rem;
+    }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .form-label .required {
+      color: #dc2626;
+    }
+    
+    .form-input,
+    .form-textarea,
+    .form-select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 0.5rem;
+      font-size: 0.938rem;
+      font-family: var(--font);
+      color: var(--text);
+      background: white;
+      transition: all 0.2s;
+    }
+    
+    .form-input:focus,
+    .form-textarea:focus,
+    .form-select:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    }
+    
+    .form-textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    
+    .checkbox-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    
+    .checkbox-input {
+      margin-top: 0.25rem;
+    }
+    
+    .checkbox-label {
+      font-size: 0.875rem;
+      color: var(--text-sub);
+      line-height: 1.5;
+    }
+    
+    .form-submit {
+      width: 100%;
+      padding: 1rem;
+      background: var(--green);
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 1rem;
+    }
+    
+    .form-submit:hover {
+      background: var(--green-dark);
+      transform: translateY(-1px);
+    }
+    
+    .form-submit:active {
+      transform: translateY(0);
+    }
+    
+    /* 자주 묻는 질문 */
+    .faq-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4rem 1rem;
+    }
+    
+    .faq-title {
+      font-size: 2rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    
+    .faq-list {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .faq-item {
+      background: white;
+      margin-bottom: 1rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+    }
+    
+    .faq-question {
+      width: 100%;
+      padding: 1.5rem;
+      background: none;
+      border: none;
+      text-align: left;
+      font-size: 1.125rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.2s;
+    }
+    
+    .faq-question:hover {
+      background: #f9fafb;
+    }
+    
+    .faq-icon {
+      transition: transform 0.3s;
+    }
+    
+    .faq-item.active .faq-icon {
+      transform: rotate(180deg);
+    }
+    
+    .faq-answer {
+      padding: 0 1.5rem;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s, padding 0.3s;
+    }
+    
+    .faq-item.active .faq-answer {
+      padding: 0 1.5rem 1.5rem;
+      max-height: 500px;
+    }
+    
+    .faq-answer p {
+      color: var(--text-sub);
+      line-height: 1.6;
+    }
+    
+    @media (max-width: 768px) {
+      .contact-wrapper {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+      
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="site-header scrolled" id="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+    </a>
+    <nav class="main-nav-links">
+      <a href="/about">회사소개</a>
+      <a href="/products">메뉴</a>
+      <a href="/brands">브랜드소개</a>
+      <a href="/gallery">갤러리</a>
+      <a href="/documents">서식자료실</a>
+      <a href="/contact" class="active">문의</a>
+    </nav>
+    <div class="header-actions">
+      <a href="/intranet" class="btn-login">인트라넷</a>
+    </div>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="메뉴">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <!-- 모바일 드롭다운 -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="/about">회사소개</a>
+    <a href="/products">메뉴</a>
+    <a href="/brands">브랜드소개</a>
+    <a href="/gallery">갤러리</a>
+    <a href="/documents">서식자료실</a>
+    <a href="/contact" class="active">문의</a>
+    <a href="/intranet" class="mobile-login-btn">인트라넷 →</a>
+  </div>
+</header>
+
+<!-- ===== PAGE HEADER ===== -->
+<div class="page-header">
+  <div class="header-inner">
+    <h1>문의하기</h1>
+    <p>이든푸드에 대한 궁금한 사항을 문의해 주세요</p>
+    <div class="breadcrumb">
+      <a href="/">홈</a>
+      <span>›</span>
+      <span>문의</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONTACT ===== -->
+<section class="contact-section">
+  <div class="contact-wrapper">
+    
+    <!-- 연락처 정보 -->
+    <div class="contact-info-section">
+      <h3 class="contact-info-title">연락처 정보</h3>
+      
+      <div class="contact-info-item">
+        <div class="contact-info-icon">📍</div>
+        <div class="contact-info-content">
+          <h4>본사 / 공장</h4>
+          <p><strong>본사/유통:</strong> 인천광역시 서구 서곶길 314번길 9</p>
+          <p style="margin-top: 0.5rem;"><strong>제2공장:</strong> 인천광역시 서구 염곡로 722-1</p>
+          <p style="margin-top: 0.5rem;"><strong>제3공장:</strong> 경기도 시흥시 죽율로 209번길 7-1</p>
+        </div>
+      </div>
+      
+      <div class="contact-info-item">
+        <div class="contact-info-icon">📞</div>
+        <div class="contact-info-content">
+          <h4>전화번호</h4>
+          <p>032-567-0111</p>
+          <p>평일 08:00 ~ 18:00</p>
+        </div>
+      </div>
+      
+      <div class="contact-info-item">
+        <div class="contact-info-icon">📧</div>
+        <div class="contact-info-content">
+          <h4>이메일</h4>
+          <p>noidid@hanmail.net</p>
+        </div>
+      </div>
+      
+      <div class="contact-info-item">
+        <div class="contact-info-icon">📠</div>
+        <div class="contact-info-content">
+          <h4>팩스</h4>
+          <p>032-567-0133</p>
+        </div>
+      </div>
+      
+      <!-- 지도 섹션 -->
+      <div class="map-section">
+        <h4 style="font-size: 1.125rem; margin-bottom: 1rem;">오시는 길</h4>
+        <div class="map-container">
+          <iframe src="https://map.naver.com/p/search/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C%20%EC%84%9C%EA%B5%AC%20%EC%84%9C%EA%B3%B6%EB%A1%9C314%EB%B2%88%EA%B8%B8%209/address/14130105.6965439,4505988.7307829,%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C%20%EC%84%9C%EA%B5%AC%20%EC%84%9C%EA%B3%B6%EB%A1%9C314%EB%B2%88%EA%B8%B8%209,new?c=17.00,0,0,0,dh" width="100%" height="300" frameborder="0" style="border:0; border-radius: 0.75rem;" allowfullscreen="" loading="lazy"></iframe>
+        </div>
+        <a href="https://map.naver.com/p/search/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C%20%EC%84%9C%EA%B5%AC%20%EC%84%9C%EA%B3%B6%EB%A1%9C314%EB%B2%88%EA%B8%B8%209/address/14130105.6965439,4505988.7307829,%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C%20%EC%84%9C%EA%B5%AC%20%EC%84%9C%EA%B3%B6%EB%A1%9C314%EB%B2%88%EA%B8%B8%209,new?c=17.00,0,0,0,dh" target="_blank" class="btn-primary-lg" style="margin-top: 1rem; font-size: 0.875rem; padding: 0.5rem 1.5rem; display: inline-block; width: 100%; text-align: center;">
+          네이버 지도로 크게 보기
+        </a>
+      </div>
+    </div>
+    
+    <!-- 문의 폼 -->
+    <div class="contact-form-section">
+      <h3 class="form-title">문의하기</h3>
+      <p class="form-subtitle">문의 내용을 남겨주시면 빠른 시일 내에 답변드리겠습니다.</p>
+      
+      <form id="contact-form" onsubmit="handleSubmit(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">
+              성함 <span class="required">*</span>
+            </label>
+            <input type="text" class="form-input" name="name" required />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              회사명
+            </label>
+            <input type="text" class="form-input" name="company" />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              연락처 <span class="required">*</span>
+            </label>
+            <input type="tel" class="form-input" name="phone" placeholder="010-1234-5678" required />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              이메일
+            </label>
+            <input type="email" class="form-input" name="email" placeholder="example@email.com" />
+          </div>
+          
+          <div class="form-group full-width">
+            <label class="form-label">
+              문의 유형 <span class="required">*</span>
+            </label>
+            <select class="form-select" name="type" id="inquiry-type" required>
+              <option value="">선택해 주세요</option>
+              <option value="제품문의">제품 문의</option>
+              <option value="대량주문">대량 주문 문의</option>
+              <option value="가맹문의">가맹점 문의</option>
+              <option value="기타">기타 문의</option>
+            </select>
+          </div>
+          
+          <div class="form-group full-width">
+            <label class="form-label">
+              문의 내용 <span class="required">*</span>
+            </label>
+            <textarea class="form-textarea" name="message" id="inquiry-message" required
+              placeholder="문의하실 내용을 자세히 작성해 주세요.
+
+예시:
+• 감자탕 창업 상담을 원합니다. 초기 투자비용과 수익률이 궁금합니다.
+• 짬뽕/중국요리 프랜차이즈 창업 조건과 가맹비가 궁금합니다.
+• 찜닭 창업을 준비 중입니다. 메뉴 구성과 원가율을 알고 싶습니다.
+• 현재 운영 중인 음식점에 이든푸드 제품 공급을 문의합니다.
+• 대량 구매 시 할인율과 배송 주기를 알고 싶습니다.
+• 창업 지역과 상권 분석 상담을 받고 싶습니다."></textarea>
+          </div>
+          
+          <div class="form-group full-width">
+            <div class="checkbox-group">
+              <input type="checkbox" id="privacy-agree" class="checkbox-input" required />
+              <label for="privacy-agree" class="checkbox-label">
+                개인정보 수집 및 이용에 동의합니다. 
+                <a href="/privacy" style="color: var(--green);">자세히 보기</a>
+              </label>
+            </div>
+          </div>
+        </div>
+        
+        <button type="submit" class="form-submit">문의 접수하기</button>
+      </form>
+    </div>
+    
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="faq-section">
+  <h2 class="faq-title">자주 묻는 질문</h2>
+  
+  <div class="faq-list">
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        <span>대량 주문은 어떻게 하나요?</span>
+        <span class="faq-icon">▼</span>
+      </button>
+      <div class="faq-answer">
+        <p>
+          대량 주문은 전화(032-567-0111) 또는 이메일(noidid@hanmail.net)로 문의해 주시면 
+          전담 상담사가 맞춤 견적을 제공해 드립니다. 최소 주문 수량은 제품별로 상이하며,
+          정기 주문 시 추가 할인 혜택이 제공됩니다.
+        </p>
+      </div>
+    </div>
+    
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        <span>배송 지역과 시간은 어떻게 되나요?</span>
+        <span class="faq-icon">▼</span>
+      </button>
+      <div class="faq-answer">
+        <p>
+          현재 서울, 경기, 인천 지역에 배송 서비스를 제공하고 있습니다.
+          오전 10시 이전 주문 시 당일 배송이 가능하며, 
+          배송 시간은 오후 2시부터 6시 사이입니다.
+          그 외 지역은 별도 문의 부탁드립니다.
+        </p>
+      </div>
+    </div>
+    
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        <span>가맹점 창업은 어떻게 하나요?</span>
+        <span class="faq-icon">▼</span>
+      </button>
+      <div class="faq-answer">
+        <p>
+          이든푸드 가맹점 창업을 희망하시는 경우, 본사로 문의 주시면
+          창업 설명회 일정과 자세한 안내를 받으실 수 있습니다.
+          초기 투자 비용, 인테리어, 교육 프로그램 등 
+          체계적인 창업 지원 시스템을 제공하고 있습니다.
+        </p>
+      </div>
+    </div>
+    
+    <div class="faq-item">
+      <button class="faq-question" onclick="toggleFaq(this)">
+        <span>제품의 유통기한은 얼마나 되나요?</span>
+        <span class="faq-icon">▼</span>
+      </button>
+      <div class="faq-answer">
+        <p>
+          모든 제품은 당일 조리를 원칙으로 하며, 
+          냉장 보관 시 제조일로부터 3일, 냉동 보관 시 1개월까지 
+          신선하게 드실 수 있습니다. 각 제품별 상세한 보관 방법은
+          제품 포장에 표기되어 있습니다.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+// 모바일 메뉴
+document.getElementById('nav-hamburger').addEventListener('click', () => {
+  document.getElementById('mobile-menu').classList.toggle('open');
+});
+
+// URL 파라미터에서 문의 유형 자동 선택
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const type = urlParams.get('type');
+  
+  if (type === 'franchise') {
+    const selectElement = document.getElementById('inquiry-type');
+    selectElement.value = '가맹문의';
+    
+    const messageElement = document.getElementById('inquiry-message');
+    messageElement.value = `안녕하세요, 이든푸드 프랜차이즈 가맹점 창업에 관심이 있어 문의드립니다.
+
+희망 창업 지역: 
+예상 투자 규모: 
+창업 희망 시기: 
+기타 문의사항: `;
+  }
+});
+
+// FAQ 토글
+function toggleFaq(button) {
+  const faqItem = button.closest('.faq-item');
+  faqItem.classList.toggle('active');
+}
+
+
+// 폼 제출
+function handleSubmit(event) {
+  event.preventDefault();
+  
+  // 폼 데이터 수집
+  const formData = new FormData(event.target);
+  const data = {};
+  for (let [key, value] of formData.entries()) {
+    data[key] = value;
+  }
+  
+  // 여기서 실제로는 서버로 데이터를 전송하겠지만,
+  // 지금은 간단히 알림만 표시
+  alert('문의가 접수되었습니다. 빠른 시일 내에 답변드리겠습니다.');
+  
+  // 폼 리셋
+  event.target.reset();
+}
+</script>
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+      <p>신선함을 잇는 가치, 이든푸드</p>
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <strong>회사</strong>
+        <a href="/about">회사소개</a>
+        <a href="/products">메뉴</a>
+        <a href="/contact">문의</a>
+      </div>
+      <div class="footer-col">
+        <strong>자료실</strong>
+        <a href="/documents">서식 다운로드</a>
+        <a href="/gallery">갤러리</a>
+      </div>
+      <div class="footer-col">
+        <strong>인트라넷</strong>
+        <a href="/intranet">직원 전용</a>
+        <a href="/login">로그인</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p><strong>㈜이든푸드</strong></p>
+    <p>본사/유통 : 인천광역시 서구 서곶길 314번길 9</p>
+    <p>제2공장 : 인천광역시 서구 염곡로 722-1 | 제3공장 : 경기도 시흥시 죽율로 209번길 7-1</p>
+    <p>TEL : 032-567-0111 | FAX : 032-567-0133</p>
+    <p>사업자등록번호: 222-87-02900 | 대표: 노진훈</p>
+    <p style="margin-top: 0.5rem;">© 2026 주식회사 이든푸드. All rights reserved.</p>
+    <div class="footer-legal-links" style="margin-top: 1rem;">
+      <a href="/privacy">개인정보취급방침</a>
+      <a href="/terms">이용약관</a>
+      <a href="/email-policy">이메일무단수집거부</a>
+      <a href="/location">오시는길</a>
+      <a href="/admin">관리자</a>
+    </div>
+  </div>
+  </div>
+</footer>
+
+</body>
+</html>

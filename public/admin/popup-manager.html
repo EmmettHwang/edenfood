@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>팝업 관리 - 이든푸드</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/global.css" />
+  <style>
+    :root {
+      --green: var(--primary);
+      --green-dark: var(--primary-dark);
+      --green-light: var(--primary-light);
+      --text: var(--gray-800);
+      --text-sub: var(--gray-500);
+      --border: var(--gray-200);
+      --bg: var(--gray-50);
+      --font: var(--font-family);
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    
+    .header {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .btn-primary {
+      background: var(--green);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--green-dark);
+    }
+    
+    .btn-secondary {
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-secondary:hover {
+      background: #f3f4f6;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    
+    .filter-section {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .filter-group {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .filter-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-sub);
+    }
+    
+    .filter-pills {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .filter-pill {
+      padding: 0.375rem 0.875rem;
+      border: 1px solid var(--border);
+      border-radius: 2rem;
+      background: white;
+      font-size: 0.813rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .filter-pill.active {
+      background: var(--green);
+      color: white;
+      border-color: var(--green);
+    }
+    
+    .popup-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .popup-card {
+      background: white;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    
+    .popup-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+    
+    .popup-preview {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      background: #f3f4f6;
+      overflow: hidden;
+    }
+    
+    .popup-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .popup-preview-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1rem;
+    }
+    
+    .popup-info {
+      padding: 1rem;
+    }
+    
+    .popup-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .status-badge {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      border-radius: 0.25rem;
+      font-weight: 500;
+    }
+    
+    .status-active {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .status-scheduled {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    
+    .status-expired {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    
+    .popup-date {
+      font-size: 0.813rem;
+      color: var(--text-sub);
+      margin-bottom: 0.5rem;
+    }
+    
+    .popup-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-sub);
+    }
+    
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+    
+    @media (max-width: 640px) {
+      .popup-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-inner">
+      <h1>팝업 공지사항 관리</h1>
+      <div class="header-actions">
+        <a href="/admin/notices" class="btn btn-secondary">공지사항 관리</a>
+        <button class="btn btn-secondary" onclick="goBack()">← 돌아가기</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="filter-section">
+      <div class="filter-group">
+        <span class="filter-label">표시 상태:</span>
+        <div class="filter-pills">
+          <button class="filter-pill active" onclick="filterPopups('all')" data-filter="all">전체</button>
+          <button class="filter-pill" onclick="filterPopups('active')" data-filter="active">활성</button>
+          <button class="filter-pill" onclick="filterPopups('scheduled')" data-filter="scheduled">예약</button>
+          <button class="filter-pill" onclick="filterPopups('expired')" data-filter="expired">종료</button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="popup-grid" class="popup-grid">
+      <div class="empty-state">
+        <div class="empty-state-icon">📋</div>
+        <p>팝업 공지사항을 불러오는 중...</p>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    let allPopups = [];
+    let currentFilter = 'all';
+    
+    // 페이지 초기화
+    async function init() {
+      const token = localStorage.getItem('eden_token');
+      if (!token) {
+        location.href = '/login';
+        return;
+      }
+      
+      // 권한 확인
+      try {
+        const res = await fetch('/api/auth/verify', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        
+        if (!data.ok || data.user.role !== 'admin') {
+          alert('관리자 권한이 필요합니다.');
+          location.href = '/intranet';
+          return;
+        }
+      } catch (error) {
+        console.error('권한 확인 실패:', error);
+        location.href = '/login';
+        return;
+      }
+      
+      loadPopups();
+    }
+    
+    // 팝업 목록 불러오기
+    async function loadPopups() {
+      try {
+        const response = await fetch('/api/notices', {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+          }
+        });
+        const data = await response.json();
+        
+        if (data.ok) {
+          // 팝업 공지사항만 필터링
+          allPopups = data.notices.filter(notice => notice.is_popup);
+          renderPopups();
+        }
+      } catch (error) {
+        console.error('팝업 로드 실패:', error);
+      }
+    }
+    
+    // 팝업 상태 확인
+    function getPopupStatus(popup) {
+      const now = new Date();
+      const startDate = popup.popup_start_date ? new Date(popup.popup_start_date) : null;
+      const endDate = popup.popup_end_date ? new Date(popup.popup_end_date) : null;
+      
+      if (startDate && startDate > now) return 'scheduled';
+      if (endDate && endDate < now) return 'expired';
+      return 'active';
+    }
+    
+    // 팝업 필터링
+    function filterPopups(filter) {
+      currentFilter = filter;
+      
+      // 필터 버튼 업데이트
+      document.querySelectorAll('.filter-pill').forEach(pill => {
+        pill.classList.toggle('active', pill.dataset.filter === filter);
+      });
+      
+      renderPopups();
+    }
+    
+    // 팝업 렌더링
+    function renderPopups() {
+      const gridEl = document.getElementById('popup-grid');
+      
+      // 필터링
+      let filteredPopups = allPopups;
+      if (currentFilter !== 'all') {
+        filteredPopups = allPopups.filter(popup => getPopupStatus(popup) === currentFilter);
+      }
+      
+      if (filteredPopups.length === 0) {
+        gridEl.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">📋</div>
+            <p>${currentFilter === 'all' ? '등록된 팝업 공지사항이 없습니다.' : '해당하는 팝업이 없습니다.'}</p>
+          </div>
+        `;
+        return;
+      }
+      
+      gridEl.innerHTML = filteredPopups.map(popup => {
+        const status = getPopupStatus(popup);
+        const statusText = status === 'active' ? '활성' : status === 'scheduled' ? '예약' : '종료';
+        const statusClass = `status-${status}`;
+        
+        // 날짜 포맷
+        let dateText = '항상 표시';
+        if (popup.popup_start_date || popup.popup_end_date) {
+          const start = popup.popup_start_date ? new Date(popup.popup_start_date).toLocaleDateString() : '시작일 없음';
+          const end = popup.popup_end_date ? new Date(popup.popup_end_date).toLocaleDateString() : '종료일 없음';
+          dateText = `${start} ~ ${end}`;
+        }
+        
+        return `
+          <div class="popup-card">
+            <div class="popup-preview">
+              ${popup.popup_image ? `
+                <img src="${popup.popup_image}" alt="${escapeHtml(popup.title)}">
+                <div class="popup-preview-overlay" style="
+                  align-items: ${popup.text_align || 'center'};
+                  justify-content: ${popup.text_position === 'top' ? 'flex-start' : popup.text_position === 'bottom' ? 'flex-end' : 'center'};
+                  text-align: ${popup.text_align || 'center'};
+                ">
+                  ${popup.show_title !== false ? `
+                    <h1 style="
+                      font-size: 1.25rem;
+                      font-weight: 700;
+                      color: ${popup.title_color || '#FFFFFF'};
+                      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+                      margin-bottom: 0.5rem;
+                    ">${escapeHtml(popup.title)}</h1>
+                  ` : ''}
+                  ${popup.show_content !== false && popup.content ? `
+                    <p style="
+                      font-size: 0.875rem;
+                      color: ${popup.content_color || '#FFFFFF'};
+                      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+                      line-height: 1.4;
+                    ">${escapeHtml(popup.content)}</p>
+                  ` : ''}
+                </div>
+              ` : `
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af;">
+                  이미지 없음
+                </div>
+              `}
+            </div>
+            <div class="popup-info">
+              <div class="popup-title">
+                <span>${escapeHtml(popup.title)}</span>
+                <span class="status-badge ${statusClass}">${statusText}</span>
+              </div>
+              <div class="popup-date">${dateText}</div>
+              <div class="popup-actions">
+                <button class="btn btn-sm btn-secondary" onclick="editPopup(${popup.id})">수정</button>
+                <button class="btn btn-sm btn-secondary" onclick="deletePopup(${popup.id})">삭제</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // 팝업 수정
+    function editPopup(id) {
+      location.href = `/admin/notices#edit-${id}`;
+    }
+    
+    // 팝업 삭제
+    async function deletePopup(id) {
+      if (!confirm('이 팝업을 삭제하시겠습니까?')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/notices/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+          }
+        });
+        
+        const result = await response.json();
+        
+        if (result.ok) {
+          loadPopups();
+          alert(result.message || '삭제되었습니다.');
+        } else {
+          alert(result.message || '삭제에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('삭제 실패:', error);
+        alert('삭제에 실패했습니다.');
+      }
+    }
+    
+    // HTML 이스케이프
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // 돌아가기
+    function goBack() {
+      location.href = '/intranet';
+    }
+    
+    // 초기화
+    init();
+  </script>
+</body>
+</html>

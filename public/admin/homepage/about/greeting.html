@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CEO 인사말 관리 - 관리자</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/public/assets/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/public/admin/admin-layout.css?v=1.0" />
+  <script src="/public/admin/admin-auth.js"></script>
+  <style>
+    .preview-section {
+      background: #f3f4f6;
+      border-radius: 0.75rem;
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .preview-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    
+    .preview-content {
+      background: white;
+      border-radius: 0.5rem;
+      padding: 2rem;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .image-upload-area {
+      border: 2px dashed #d1d5db;
+      border-radius: 0.5rem;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .image-upload-area:hover {
+      border-color: #9ca3af;
+      background: #f9fafb;
+    }
+    
+    .image-upload-area.has-image {
+      padding: 0;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .uploaded-image {
+      width: 100%;
+      max-width: 300px;
+      height: auto;
+      border-radius: 0.5rem;
+    }
+    
+    .image-actions {
+      margin-top: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    
+    .btn-small {
+      padding: 0.375rem 0.875rem;
+      font-size: 0.813rem;
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header scrolled" id="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+    </a>
+    <div class="header-actions">
+      <span style="color: #6b7280; font-size: 0.875rem; margin-right: 1rem;">관리자 모드</span>
+      <button class="btn-login" onclick="logout()">로그아웃</button>
+    </div>
+  </div>
+</header>
+
+<div class="admin-wrapper">
+  <!-- 사이드바 -->
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">관리자 대시보드</div>
+      <div class="sidebar-subtitle">홈페이지 통합 관리</div>
+    </div>
+    
+    <nav class="sidebar-menu">
+      <div class="menu-group">
+        <div class="menu-group-title">대시보드</div>
+        <a href="/admin" class="menu-item" data-menu="dashboard">
+          <span class="menu-item-icon">📊</span>
+          <span>대시보드</span>
+        </a>
+      </div>
+      
+      <div class="menu-group">
+        <div class="menu-group-title">홈페이지 관리</div>
+        
+        <a href="#" class="menu-item has-submenu expanded" data-menu="about" onclick="toggleSubmenu('about', event)">
+          <span class="menu-item-icon">🏢</span>
+          <span>회사소개 관리</span>
+        </a>
+        <div class="submenu active" id="submenu-about">
+          <a href="/admin/homepage/about/greeting" class="menu-item active" data-menu="about-greeting">
+            <span>CEO 인사말</span>
+          </a>
+          <a href="/admin/homepage/about/history" class="menu-item" data-menu="about-history">
+            <span>연혁</span>
+          </a>
+          <a href="/admin/homepage/about/organization" class="menu-item" data-menu="about-organization">
+            <span>조직도</span>
+          </a>
+          <a href="/admin/homepage/about/executives" class="menu-item" data-menu="about-executives">
+            <span>임원진</span>
+          </a>
+        </div>
+        
+        <a href="/admin/homepage/notices" class="menu-item" data-menu="notices">
+          <span class="menu-item-icon">📢</span>
+          <span>공지사항 관리</span>
+        </a>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="menu" onclick="toggleSubmenu('menu', event)">
+          <span class="menu-item-icon">🍽️</span>
+          <span>메뉴 관리</span>
+        </a>
+        <div class="submenu" id="submenu-menu">
+          <a href="/admin/homepage/menu/categories" class="menu-item" data-menu="menu-categories">
+            <span>카테고리 관리</span>
+          </a>
+          <a href="/admin/homepage/menu/items" class="menu-item" data-menu="menu-items">
+            <span>메뉴 아이템</span>
+          </a>
+          <a href="/admin/homepage/menu/prices" class="menu-item" data-menu="menu-prices">
+            <span>가격/옵션 설정</span>
+          </a>
+        </div>
+        
+        <a href="/admin/homepage/brands" class="menu-item" data-menu="brands">
+          <span class="menu-item-icon">🏷️</span>
+          <span>브랜드소개 관리</span>
+        </a>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="gallery" onclick="toggleSubmenu('gallery', event)">
+          <span class="menu-item-icon">🖼️</span>
+          <span>갤러리 관리</span>
+        </a>
+        <div class="submenu" id="submenu-gallery">
+          <a href="/admin/homepage/gallery/upload" class="menu-item" data-menu="gallery-upload">
+            <span>이미지 업로드</span>
+          </a>
+          <a href="/admin/homepage/gallery/manage" class="menu-item" data-menu="gallery-manage">
+            <span>이미지 관리</span>
+          </a>
+        </div>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="documents" onclick="toggleSubmenu('documents', event)">
+          <span class="menu-item-icon">📄</span>
+          <span>서식자료실 관리</span>
+        </a>
+        <div class="submenu" id="submenu-documents">
+          <a href="/admin/homepage/documents/upload" class="menu-item" data-menu="documents-upload">
+            <span>문서 업로드</span>
+          </a>
+          <a href="/admin/homepage/documents/categories" class="menu-item" data-menu="documents-categories">
+            <span>카테고리 관리</span>
+          </a>
+          <a href="/admin/homepage/documents/stats" class="menu-item" data-menu="documents-stats">
+            <span>다운로드 통계</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="menu-group">
+        <div class="menu-group-title">시스템 관리</div>
+        <a href="/admin/users" class="menu-item" data-menu="users">
+          <span class="menu-item-icon">👥</span>
+          <span>사용자 관리</span>
+        </a>
+        <a href="/admin/logs" class="menu-item" data-menu="logs">
+          <span class="menu-item-icon">📝</span>
+          <span>활동 로그</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+  
+  <!-- 메인 콘텐츠 -->
+  <main class="admin-main">
+    <div class="admin-content">
+      <div class="page-header">
+        <div class="page-header-flex">
+          <div>
+            <h1 class="page-title">CEO 인사말 관리</h1>
+            <p class="page-desc">홈페이지에 표시될 CEO 인사말을 관리합니다</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-secondary" onclick="previewGreeting()">미리보기</button>
+            <button class="btn btn-primary" onclick="saveGreeting()">저장하기</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <form id="greeting-form">
+          <div class="form-group">
+            <label class="form-label">인사말 제목</label>
+            <input type="text" class="form-input" id="greeting-title" value="CEO 인사말" />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">인사말 내용</label>
+            <textarea class="form-textarea" id="greeting-content" style="min-height: 400px;">안녕하십니까.
+주식회사 이든푸드 대표이사 노진훈입니다.
+
+저희 이든푸드는 "감자탕 전문 유통사 + 브랜드 백엔드"로서
+케이지푸드처럼 설비·물류·공급 신뢰를 보여주며,
+삼삼감자탕처럼 메뉴·브랜드를 전면에 내세우고 있습니다.
+
+저희는 3개의 최첨단 공장을 보유하고 있으며,
+엄격한 품질 관리와 체계적인 물류 시스템을 통해
+신선하고 건강한 먹거리를 공급하고 있습니다.
+
+홍안에와 차이나감자탕 등 저희만의 특별한 브랜드로
+고객님들께 최고의 맛과 서비스를 제공하고 있습니다.
+
+"신선함을 잇는 가치"라는 모토 아래,
+이든푸드는 오늘도 고객님들의 건강한 식탁을 위해
+최선을 다하겠습니다.
+
+감사합니다.</textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">서명</label>
+            <input type="text" class="form-input" id="greeting-signature" value="대표이사 노진훈" />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">CEO 사진</label>
+            <div class="image-upload-area" id="ceo-image-upload" onclick="selectImage()">
+              <div id="upload-placeholder">
+                <p style="font-size: 1.5rem; margin-bottom: 0.5rem;">📷</p>
+                <p>클릭하여 이미지 업로드</p>
+                <p style="font-size: 0.813rem; color: #9ca3af;">권장 크기: 400x500px</p>
+              </div>
+            </div>
+            <input type="file" id="ceo-image-input" accept="image/*" style="display: none;" onchange="handleImageSelect(event)" />
+          </div>
+        </form>
+      </div>
+      
+      <!-- 미리보기 섹션 -->
+      <div class="preview-section" id="preview-section" style="display: none;">
+        <h2 class="preview-title">미리보기</h2>
+        <div class="preview-content" id="preview-content">
+          <!-- 미리보기 내용이 여기 표시됩니다 -->
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- 모바일 메뉴 토글 -->
+  <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+    <span>☰</span>
+  </button>
+  
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileMenu()"></div>
+</div>
+
+<script>
+let greetingData = {
+  title: 'CEO 인사말',
+  content: '',
+  signature: '대표이사 노진훈',
+  image: null
+};
+
+// 데이터 로드
+async function loadGreetingData() {
+  try {
+    const response = await authFetch('/api/about');
+    const data = await response.json();
+    
+    if (data.ok && data.content) {
+      greetingData = {
+        title: data.content.greeting_title || 'CEO 인사말',
+        content: data.content.greeting_text || '',
+        signature: data.content.greeting_author || '대표이사 노진훈',
+        image: data.content.greeting_image || null
+      };
+      
+      // 폼에 데이터 설정
+      document.getElementById('greeting-title').value = greetingData.title;
+      document.getElementById('greeting-content').value = greetingData.content;
+      document.getElementById('greeting-signature').value = greetingData.signature;
+      
+      if (greetingData.image) {
+        showUploadedImage(greetingData.image);
+      }
+    }
+  } catch (error) {
+    console.error('데이터 로드 실패:', error);
+  }
+}
+
+// 이미지 선택
+function selectImage() {
+  document.getElementById('ceo-image-input').click();
+}
+
+// 이미지 처리
+function handleImageSelect(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      greetingData.image = e.target.result;
+      showUploadedImage(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+// 업로드된 이미지 표시
+function showUploadedImage(imageSrc) {
+  const uploadArea = document.getElementById('ceo-image-upload');
+  uploadArea.classList.add('has-image');
+  uploadArea.innerHTML = `
+    <img src="${imageSrc}" class="uploaded-image" alt="CEO" />
+    <div class="image-actions">
+      <button type="button" class="btn btn-secondary btn-small" onclick="selectImage()">변경</button>
+      <button type="button" class="btn btn-secondary btn-small" onclick="removeImage()">삭제</button>
+    </div>
+  `;
+}
+
+// 이미지 삭제
+function removeImage() {
+  greetingData.image = null;
+  const uploadArea = document.getElementById('ceo-image-upload');
+  uploadArea.classList.remove('has-image');
+  uploadArea.innerHTML = `
+    <div id="upload-placeholder">
+      <p style="font-size: 1.5rem; margin-bottom: 0.5rem;">📷</p>
+      <p>클릭하여 이미지 업로드</p>
+      <p style="font-size: 0.813rem; color: #9ca3af;">권장 크기: 400x500px</p>
+    </div>
+  `;
+}
+
+// 미리보기
+function previewGreeting() {
+  greetingData.title = document.getElementById('greeting-title').value;
+  greetingData.content = document.getElementById('greeting-content').value;
+  greetingData.signature = document.getElementById('greeting-signature').value;
+  
+  const previewContent = `
+    <div style="display: grid; grid-template-columns: 1fr 300px; gap: 3rem; align-items: start;">
+      <div>
+        <h2 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 2rem;">${greetingData.title}</h2>
+        <div style="white-space: pre-wrap; line-height: 1.8; color: #4b5563;">${greetingData.content}</div>
+        <p style="margin-top: 2rem; font-weight: 600;">${greetingData.signature}</p>
+      </div>
+      ${greetingData.image ? `
+        <div>
+          <img src="${greetingData.image}" style="width: 100%; border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
+        </div>
+      ` : ''}
+    </div>
+  `;
+  
+  document.getElementById('preview-content').innerHTML = previewContent;
+  document.getElementById('preview-section').style.display = 'block';
+  
+  // 미리보기 섹션으로 스크롤
+  document.getElementById('preview-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// 저장
+async function saveGreeting() {
+  greetingData.title = document.getElementById('greeting-title').value;
+  greetingData.content = document.getElementById('greeting-content').value;
+  greetingData.signature = document.getElementById('greeting-signature').value;
+  
+  try {
+    const response = await authFetch('/api/about/greeting', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        greeting_title: greetingData.title,
+        greeting_text: greetingData.content,
+        greeting_author: greetingData.signature,
+        greeting_image: greetingData.image
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok) {
+      alert('CEO 인사말이 저장되었습니다.');
+    } else {
+      alert('저장 실패: ' + (data.message || '알 수 없는 오류'));
+    }
+  } catch (error) {
+    console.error('저장 오류:', error);
+    alert('저장 중 오류가 발생했습니다.');
+  }
+}
+
+// 사이드바 관련 함수들
+function toggleSubmenu(menuId, event) {
+  event.preventDefault();
+  const submenu = document.getElementById(`submenu-${menuId}`);
+  const menuItem = event.currentTarget;
+  
+  submenu.classList.toggle('active');
+  menuItem.classList.toggle('expanded');
+}
+
+function toggleMobileMenu() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  
+  sidebar.classList.toggle('mobile-open');
+  overlay.classList.toggle('active');
+}
+
+function closeMobileMenu() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  
+  sidebar.classList.remove('mobile-open');
+  overlay.classList.remove('active');
+}
+
+async function logout() {
+  try {
+    const response = await fetch('/api/auth/logout', { method: 'POST' });
+    const data = await response.json();
+    
+    if (data.ok) {
+      alert('로그아웃되었습니다.');
+      location.href = '/login';
+    }
+  } catch (error) {
+    console.error('로그아웃 실패:', error);
+  }
+}
+
+async function checkAuth() {
+  try {
+    const response = await fetch('/api/auth/me');
+    const data = await response.json();
+    
+    if (!data.ok || data.user.role !== 'admin') {
+      alert('관리자 권한이 필요합니다.');
+      location.href = '/login';
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('인증 확인 실패:', error);
+    location.href = '/login';
+    return false;
+  }
+}
+
+// 페이지 초기화
+checkAuth().then(isAuth => {
+  if (isAuth) {
+    loadGreetingData();
+  }
+});
+</script>
+
+</body>
+</html>

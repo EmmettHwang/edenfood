@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>이미지 업로드 테스트</title>
+</head>
+<body>
+  <h1>이미지 업로드 테스트</h1>
+  
+  <input type="file" id="fileInput" accept="image/*">
+  <button onclick="uploadImage()">업로드</button>
+  
+  <div id="result"></div>
+  
+  <script>
+  async function uploadImage() {
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+      alert('파일을 선택하세요');
+      return;
+    }
+    
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    try {
+      const token = localStorage.getItem('eden_token');
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+      
+      const data = await response.json();
+      console.log('Response:', data);
+      
+      document.getElementById('result').innerHTML = `
+        <p>Status: ${response.status}</p>
+        <p>Result: ${JSON.stringify(data, null, 2)}</p>
+        ${data.url ? `<img src="${data.url}" style="max-width: 300px;">` : ''}
+      `;
+    } catch (error) {
+      console.error('Error:', error);
+      document.getElementById('result').innerHTML = `Error: ${error.message}`;
+    }
+  }
+  </script>
+</body>
+</html>

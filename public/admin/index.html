@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>관리자 - 주식회사 이든푸드</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/public/assets/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/css/global.css?v=2.0" />
+  <script src="/public/admin/admin-auth.js"></script>
+  <style>
+    /* 헤더 공간 확보 */
+    body {
+      padding-top: 60px;
+      background: #f9fafb;
+    }
+    
+    /* 관리자 네비게이션 */
+    .admin-nav {
+      background: #1f2937;
+      border-bottom: 1px solid #374151;
+      position: sticky;
+      top: 60px;
+      z-index: 40;
+    }
+    
+    .admin-nav-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    
+    .admin-nav-inner::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .admin-nav-item {
+      padding: 1rem 1.5rem;
+      color: #9ca3af;
+      text-decoration: none;
+      white-space: nowrap;
+      font-weight: 500;
+      font-size: 0.875rem;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      position: relative;
+    }
+    
+    .admin-nav-item:hover {
+      color: #e5e7eb;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .admin-nav-item.active {
+      color: #fff;
+      border-bottom-color: #10b981;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* 시스템 모니터링 스타일 */
+    .monitoring-section {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+    
+    .monitoring-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .monitoring-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    
+    .monitor-card {
+      background: #f9fafb;
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+      position: relative;
+    }
+    
+    .monitor-label {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-bottom: 0.25rem;
+    }
+    
+    .monitor-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    
+    .monitor-chart {
+      height: 40px;
+      position: relative;
+      background: #e5e7eb;
+      border-radius: 0.25rem;
+      overflow: hidden;
+    }
+    
+    .monitor-chart-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #16a34a;
+      transition: height 0.3s ease;
+    }
+    
+    .monitor-chart-grid {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .monitor-chart-line {
+      flex: 1;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .monitor-status {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #10b981;
+      animation: pulse 2s infinite;
+    }
+    
+    .monitor-status.warning {
+      background: #f59e0b;
+    }
+    
+    .monitor-status.danger {
+      background: #ef4444;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+    
+    .monitor-cpu .monitor-chart-fill { background: #3b82f6; }
+    .monitor-memory .monitor-chart-fill { background: #8b5cf6; }
+    .monitor-disk .monitor-chart-fill { background: #f59e0b; }
+    
+    /* 활성 메뉴 스타일 */
+    .main-nav-links a.active {
+      color: var(--primary) !important;
+      font-weight: 600;
+    }
+    
+    /* 관리자 페이지 스타일 */
+    .admin-header {
+      background: #111827;
+      color: white;
+      padding: 2rem 0;
+      margin-bottom: 2rem;
+    }
+    
+    .admin-header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .admin-header h1 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    
+    .admin-header p {
+      color: #9ca3af;
+      font-size: 0.875rem;
+    }
+    
+    .admin-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem 3rem;
+    }
+    
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+    
+    .admin-card {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+    
+    .admin-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .admin-card-icon {
+      width: 48px;
+      height: 48px;
+      background: #f3f4f6;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .admin-card-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .admin-card-desc {
+      color: #6b7280;
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+    
+    /* 색상별 아이콘 배경 */
+    .icon-blue { background: #dbeafe; color: #2563eb; }
+    .icon-green { background: #d1fae5; color: #059669; }
+    .icon-yellow { background: #fef3c7; color: #d97706; }
+    .icon-purple { background: #e9d5ff; color: #9333ea; }
+    .icon-red { background: #fee2e2; color: #dc2626; }
+    .icon-indigo { background: #e0e7ff; color: #4f46e5; }
+    
+    /* 통계 섹션 */
+    .stats-section {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+    
+    .stats-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #16a34a;
+      margin-bottom: 0.25rem;
+    }
+    
+    .stat-label {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+    
+    /* 빠른 액션 */
+    .quick-actions {
+      background: #f3f4f6;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .quick-actions-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #4b5563;
+    }
+    
+    .quick-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    
+    .quick-btn {
+      padding: 0.75rem 1rem;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .quick-btn:hover {
+      background: #f9fafb;
+      border-color: #d1d5db;
+    }
+    
+    /* 로그아웃 버튼 */
+    .btn-logout {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.5rem 1rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-logout:hover {
+      background: #dc2626;
+    }
+    
+    /* 버전 정보 */
+    .version-info {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      font-size: 0.813rem;
+      color: #9ca3af;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    
+    .version-info:hover {
+      color: #6b7280;
+      text-decoration: underline;
+    }
+    
+    /* README 모달 */
+    .readme-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+    
+    .readme-modal.active {
+      display: flex;
+    }
+    
+    .readme-content {
+      background: white;
+      border-radius: 1rem;
+      width: 100%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .readme-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .readme-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    
+    .readme-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.5rem;
+      transition: background 0.2s;
+    }
+    
+    .readme-close:hover {
+      background: #f3f4f6;
+    }
+    
+    .readme-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+    
+    @media (max-width: 768px) {
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="site-header scrolled" id="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+    </a>
+    <nav class="main-nav-links">
+      <a href="/about">회사소개</a>
+      <a href="/products">메뉴</a>
+      <a href="/brands">브랜드소개</a>
+      <a href="/gallery">갤러리</a>
+      <a href="/documents">서식자료실</a>
+      <a href="/contact">문의</a>
+    </nav>
+    <div class="header-actions">
+      <a href="/intranet" class="btn-login">인트라넷</a>
+    </div>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="메뉴">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <!-- 모바일 드롭다운 -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="/about">회사소개</a>
+    <a href="/products">메뉴</a>
+    <a href="/brands">브랜드소개</a>
+    <a href="/gallery">갤러리</a>
+    <a href="/documents">서식자료실</a>
+    <a href="/contact">문의</a>
+    <a href="/intranet" class="mobile-login-btn">인트라넷 →</a>
+  </div>
+</header>
+
+<!-- ===== ADMIN HEADER ===== -->
+<div class="admin-header">
+  <div class="admin-header-inner">
+    <button class="btn-logout" onclick="logout()">로그아웃</button>
+    <h1>관리자 대시보드</h1>
+    <p>주식회사 이든푸드 관리 시스템</p>
+    <span class="version-info" onclick="showReadme()">v2.0.0</span>
+  </div>
+</div>
+
+<!-- ===== ADMIN NAVIGATION ===== -->
+<nav class="admin-nav">
+  <div class="admin-nav-inner">
+    <a href="/admin" class="admin-nav-item active">대시보드</a>
+    <a href="/admin/notices" class="admin-nav-item">공지사항 관리</a>
+    <a href="/admin/about" class="admin-nav-item">회사소개 관리</a>
+    <a href="/admin/products" class="admin-nav-item">메뉴(제품) 관리</a>
+    <a href="/admin/brands" class="admin-nav-item">브랜드소개 관리</a>
+    <a href="/admin/gallery" class="admin-nav-item">갤러리 관리</a>
+    <a href="/admin/documents" class="admin-nav-item">서식자료실 관리</a>
+    <a href="/admin/faq" class="admin-nav-item">FAQ&문의 관리</a>
+  </div>
+</nav>
+
+<!-- ===== ADMIN CONTENT ===== -->
+<div class="admin-container">
+  <!-- 시스템 모니터링 섹션 -->
+  <div class="monitoring-section">
+    <h2 class="monitoring-title">🖥️ 시스템 모니터링</h2>
+    <div class="monitoring-grid">
+      <div class="monitor-card monitor-cpu">
+        <div class="monitor-status" id="cpu-status"></div>
+        <div class="monitor-label">CPU 사용률</div>
+        <div class="monitor-value" id="cpu-value">0%</div>
+        <div class="monitor-detail" id="cpu-detail" style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">-</div>
+        <div class="monitor-chart">
+          <div class="monitor-chart-fill" id="cpu-chart" style="height: 0%;"></div>
+          <div class="monitor-chart-grid">
+            <div class="monitor-chart-line"></div>
+            <div class="monitor-chart-line"></div>
+            <div class="monitor-chart-line"></div>
+            <div class="monitor-chart-line"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="monitor-card monitor-memory">
+        <div class="monitor-status" id="memory-status"></div>
+        <div class="monitor-label">메모리 사용률</div>
+        <div class="monitor-value" id="memory-value">0%</div>
+        <div class="monitor-detail" id="memory-detail" style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">-</div>
+        <div class="monitor-chart">
+          <div class="monitor-chart-fill" id="memory-chart" style="height: 0%;"></div>
+          <div class="monitor-chart-grid">
+            <div class="monitor-chart-line"></div>
+            <div class="monitor-chart-line"></div>
+            <div class="monitor-chart-line"></div>
+            <div class="monitor-chart-line"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="monitor-card monitor-disk">
+        <div class="monitor-status" id="disk-status"></div>
+        <div class="monitor-label">디스크 사용률</div>
+        <div class="monitor-value" id="disk-value">0%</div>
+        <div class="monitor-detail" id="disk-detail" style="font-size: 0.7rem; color: #9ca3af; margin-bottom: 0.25rem;">-</div>
+        <div class="monitor-chart">
+          <div class="monitor-chart-fill" id="disk-chart" style="height: 0%;"></div>
+          <div class="monitor-chart-grid">
+            <div class="monitor-chart-line"></div>
+            <div class="monitor-chart-line"></div>
+            <div class="monitor-chart-line"></div>
+            <div class="monitor-chart-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
+</div>
+
+<!-- README 모달 -->
+<div class="readme-modal" id="readme-modal">
+  <div class="readme-content">
+    <div class="readme-header">
+      <h2 class="readme-title">이든푸드 관리 시스템 v2.0.0</h2>
+      <button class="readme-close" onclick="closeReadme()">×</button>
+    </div>
+    <div class="readme-body">
+# 이든푸드 홈페이지 관리 시스템
+
+## 버전 정보
+- 현재 버전: v2.0.0
+- 릴리즈 날짜: 2024-01-15
+- 개발팀: 이든푸드 IT팀
+
+## 주요 기능
+
+### 1. 홈페이지 통합 관리
+- 공지사항 관리 (팝업/고정 공지 설정)
+- 사용자 관리 (직원 계정 생성 및 권한 관리)
+- 서식다운로드 관리 (문서 업로드/카테고리 관리)
+- 사진갤러리 관리 (이미지 업로드/분류)
+- 제품 관리 (제품 정보 수정 및 이미지 관리)
+
+### 2. 시스템 모니터링
+- 실시간 CPU 사용률 모니터링
+- 메모리 사용량 추적
+- 디스크 공간 관리
+- 시스템 상태 알림
+
+### 3. 사용자 관리
+- 직원 계정 생성 및 권한 설정
+- 활동 로그 기록
+- 접속 통계
+
+## 최근 업데이트
+
+### v2.0.0 (2024-01-15)
+- 좌측 사이드바 네비게이션 추가
+- 홈페이지 통합 관리 시스템 구축
+- 시스템 모니터링 대시보드 추가
+- 반응형 디자인 개선
+
+### v1.5.0 (2023-12-01)
+- 갤러리 드래그 앤 드롭 업로드
+- 일괄 편집 기능 추가
+- 성능 최적화
+
+## 시스템 요구사항
+- Node.js 14.0 이상
+- MySQL 5.7 이상
+- 최신 웹 브라우저 (Chrome, Firefox, Safari, Edge)
+
+## 문의사항
+- 기술 지원: it@edenfood.com
+- 전화: 032-123-4567
+
+---
+© 2024 주식회사 이든푸드. All rights reserved.
+    </div>
+  </div>
+</div>
+
+<script>
+// 모바일 메뉴
+document.getElementById('nav-hamburger').addEventListener('click', () => {
+  document.getElementById('mobile-menu').classList.toggle('open');
+});
+
+// 페이지별 초기화 함수
+async function initAdminDashboard() {
+  const isAuth = await checkAuth();
+  if (isAuth) {
+    // 시스템 모니터링 시작
+    updateMonitoring();
+    // 5초마다 업데이트
+    setInterval(updateMonitoring, 5000);
+  }
+}
+
+
+
+// 시스템 모니터링 데이터 업데이트
+async function updateMonitoring() {
+  try {
+    console.log('시스템 정보 요청 시작');
+    const token = localStorage.getItem('eden_token');
+    console.log('토큰 존재:', !!token);
+    
+    const response = await fetch('/api/system-info', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      console.error('시스템 정보 조회 실패:', response.status, response.statusText);
+      const text = await response.text();
+      console.error('응답 내용:', text);
+      return;
+    }
+    
+    const data = await response.json();
+    
+    if (!data || !data.ok) {
+      console.error('시스템 정보 데이터 오류:', data);
+      return;
+    }
+    
+    const systemInfo = data.data || data;
+    
+    // CPU 사용률
+    document.getElementById('cpu-value').textContent = systemInfo.cpu.usage + '%';
+    document.getElementById('cpu-chart').style.height = systemInfo.cpu.usage + '%';
+    document.getElementById('cpu-detail').textContent = `${systemInfo.cpu.cores}코어`;
+    updateStatus('cpu-status', systemInfo.cpu.usage, 70, 90);
+    
+    // 메모리 사용률
+    document.getElementById('memory-value').textContent = systemInfo.memory.usage + '%';
+    document.getElementById('memory-chart').style.height = systemInfo.memory.usage + '%';
+    document.getElementById('memory-detail').textContent = `${systemInfo.memory.used}GB / ${systemInfo.memory.total}GB`;
+    updateStatus('memory-status', systemInfo.memory.usage, 80, 95);
+    
+    // 디스크 사용률
+    document.getElementById('disk-value').textContent = systemInfo.disk.usage + '%';
+    document.getElementById('disk-chart').style.height = systemInfo.disk.usage + '%';
+    document.getElementById('disk-detail').textContent = `${systemInfo.disk.used}GB / ${systemInfo.disk.total}GB`;
+    updateStatus('disk-status', systemInfo.disk.usage, 85, 95);
+    
+    // 추가 정보를 툴팁으로 표시
+    const cpuCard = document.querySelector('.monitor-cpu');
+    cpuCard.title = `CPU: ${systemInfo.cpu.model}\n코어: ${systemInfo.cpu.cores}개\nLoad Average: ${systemInfo.loadavg[0].toFixed(2)}`;
+    
+    const memoryCard = document.querySelector('.monitor-memory');
+    memoryCard.title = `전체: ${systemInfo.memory.total}GB\n사용: ${systemInfo.memory.used}GB\n여유: ${systemInfo.memory.free}GB`;
+    
+    const diskCard = document.querySelector('.monitor-disk');
+    diskCard.title = `전체: ${systemInfo.disk.total}GB\n사용: ${systemInfo.disk.used}GB\n여유: ${systemInfo.disk.free}GB\n호스트: ${systemInfo.hostname}`;
+    
+  } catch (error) {
+    console.error('시스템 모니터링 업데이트 실패:', error);
+  }
+}
+
+// 상태 표시 업데이트
+function updateStatus(elementId, value, warningThreshold, dangerThreshold) {
+  const element = document.getElementById(elementId);
+  element.classList.remove('warning', 'danger');
+  
+  if (value >= dangerThreshold) {
+    element.classList.add('danger');
+  } else if (value >= warningThreshold) {
+    element.classList.add('warning');
+  }
+}
+
+// README 모달 표시
+function showReadme() {
+  document.getElementById('readme-modal').classList.add('active');
+}
+
+// README 모달 닫기
+function closeReadme() {
+  document.getElementById('readme-modal').classList.remove('active');
+}
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeReadme();
+  }
+});
+
+// README 모달 외부 클릭시 닫기
+document.getElementById('readme-modal').addEventListener('click', (e) => {
+  if (e.target.id === 'readme-modal') {
+    closeReadme();
+  }
+});
+
+// 페이지 초기화
+initAdminDashboard();
+</script>
+
+<!-- ===== FOOTER ===== -->
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+      <p>신선함을 잇는 가치, 이든푸드</p>
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <strong>회사</strong>
+        <a href="/about">회사소개</a>
+        <a href="/products">메뉴</a>
+        <a href="/brands">브랜드소개</a>
+        <a href="/contact">문의</a>
+      </div>
+      <div class="footer-col">
+        <strong>인트라넷</strong>
+        <a href="/intranet">직원 전용</a>
+        <a href="/login">로그인</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p><strong>㈜이든푸드</strong></p>
+    <p>본사/유통 : 인천광역시 서구 서곶길 314번길 9</p>
+    <p>제2공장 : 인천광역시 서구 염곡로 722-1 | 제3공장 : 경기도 시흥시 죽율로 209번길 7-1</p>
+    <p>TEL : 032-567-0111 | FAX : 032-567-0133</p>
+    <p>사업자등록번호: 222-87-02900 | 대표: 노진훈</p>
+    <p style="margin-top: 0.5rem;">© 2026 주식회사 이든푸드. All rights reserved.</p>
+    <div class="footer-legal-links" style="margin-top: 1rem;">
+      <a href="/privacy">개인정보취급방침</a>
+      <a href="/terms">이용약관</a>
+      <a href="/email-policy">이메일무단수집거부</a>
+      <a href="/location">오시는길</a>
+      <a href="/admin" class="active">관리자</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

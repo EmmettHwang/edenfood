@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>메뉴 아이템 관리 - 관리자</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/public/assets/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/public/admin/admin-layout.css?v=1.0" />
+  <style>
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    
+    .menu-card {
+      background: white;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s;
+    }
+    
+    .menu-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .menu-image {
+      position: relative;
+      height: 180px;
+      background: #f3f4f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    
+    .menu-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .menu-badge {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      background: #dc2626;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 1rem;
+    }
+    
+    .badge-new {
+      background: #059669;
+    }
+    
+    .menu-content {
+      padding: 1rem;
+    }
+    
+    .menu-name {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .menu-category {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: #f3f4f6;
+      color: #6b7280;
+      font-size: 0.813rem;
+      border-radius: 0.25rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .menu-desc {
+      font-size: 0.875rem;
+      color: #6b7280;
+      line-height: 1.5;
+      margin-bottom: 1rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .menu-price {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #16a34a;
+      margin-bottom: 1rem;
+    }
+    
+    .menu-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .menu-actions button {
+      flex: 1;
+    }
+    
+    /* 모달 스타일 */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 1rem;
+      width: 100%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.5rem;
+      transition: background 0.2s;
+    }
+    
+    .modal-close:hover {
+      background: #f3f4f6;
+    }
+    
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+    
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    
+    .image-preview {
+      width: 100%;
+      height: 200px;
+      background: #f3f4f6;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .image-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .nutrition-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      background: #f9fafb;
+      padding: 1rem;
+      border-radius: 0.5rem;
+    }
+    
+    .tab-nav {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .tab-btn {
+      padding: 0.75rem 1rem;
+      background: none;
+      border: none;
+      font-size: 0.938rem;
+      font-weight: 500;
+      color: #6b7280;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+    
+    .tab-btn.active {
+      color: #16a34a;
+    }
+    
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #16a34a;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .price-list {
+      background: #f9fafb;
+      border-radius: 0.5rem;
+      padding: 1rem;
+    }
+    
+    .price-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .price-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .filters {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    @media (max-width: 640px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .menu-actions {
+        flex-direction: column;
+      }
+      
+      .modal-footer {
+        flex-direction: column;
+      }
+      
+      .modal-footer button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header scrolled" id="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+    </a>
+    <div class="header-actions">
+      <span style="color: #6b7280; font-size: 0.875rem; margin-right: 1rem;">관리자 모드</span>
+      <button class="btn-login" onclick="logout()">로그아웃</button>
+    </div>
+  </div>
+</header>
+
+<div class="admin-wrapper">
+  <!-- 사이드바 -->
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">관리자 대시보드</div>
+      <div class="sidebar-subtitle">홈페이지 통합 관리</div>
+    </div>
+    
+    <nav class="sidebar-menu">
+      <div class="menu-group">
+        <div class="menu-group-title">대시보드</div>
+        <a href="/admin" class="menu-item" data-menu="dashboard">
+          <span class="menu-item-icon">📊</span>
+          <span>대시보드</span>
+        </a>
+      </div>
+      
+      <div class="menu-group">
+        <div class="menu-group-title">홈페이지 관리</div>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="about" onclick="toggleSubmenu('about', event)">
+          <span class="menu-item-icon">🏢</span>
+          <span>회사소개 관리</span>
+        </a>
+        <div class="submenu" id="submenu-about">
+          <a href="/admin/homepage/about/greeting" class="menu-item" data-menu="about-greeting">
+            <span>CEO 인사말</span>
+          </a>
+          <a href="/admin/homepage/about/history" class="menu-item" data-menu="about-history">
+            <span>연혁</span>
+          </a>
+          <a href="/admin/homepage/about/organization" class="menu-item" data-menu="about-organization">
+            <span>조직도</span>
+          </a>
+          <a href="/admin/homepage/about/executives" class="menu-item" data-menu="about-executives">
+            <span>임원진</span>
+          </a>
+        </div>
+        
+        <a href="/admin/homepage/notices" class="menu-item" data-menu="notices">
+          <span class="menu-item-icon">📢</span>
+          <span>공지사항 관리</span>
+        </a>
+        
+        <a href="#" class="menu-item has-submenu expanded" data-menu="menu" onclick="toggleSubmenu('menu', event)">
+          <span class="menu-item-icon">🍽️</span>
+          <span>메뉴 관리</span>
+        </a>
+        <div class="submenu active" id="submenu-menu">
+          <a href="/admin/homepage/menu/categories" class="menu-item" data-menu="menu-categories">
+            <span>카테고리 관리</span>
+          </a>
+          <a href="/admin/homepage/menu/items" class="menu-item active" data-menu="menu-items">
+            <span>메뉴 아이템</span>
+          </a>
+          <a href="/admin/homepage/menu/prices" class="menu-item" data-menu="menu-prices">
+            <span>가격/옵션 설정</span>
+          </a>
+        </div>
+        
+        <a href="/admin/homepage/brands" class="menu-item" data-menu="brands">
+          <span class="menu-item-icon">🏷️</span>
+          <span>브랜드소개 관리</span>
+        </a>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="gallery" onclick="toggleSubmenu('gallery', event)">
+          <span class="menu-item-icon">🖼️</span>
+          <span>갤러리 관리</span>
+        </a>
+        <div class="submenu" id="submenu-gallery">
+          <a href="/admin/homepage/gallery/upload" class="menu-item" data-menu="gallery-upload">
+            <span>이미지 업로드</span>
+          </a>
+          <a href="/admin/homepage/gallery/manage" class="menu-item" data-menu="gallery-manage">
+            <span>이미지 관리</span>
+          </a>
+        </div>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="documents" onclick="toggleSubmenu('documents', event)">
+          <span class="menu-item-icon">📄</span>
+          <span>서식자료실 관리</span>
+        </a>
+        <div class="submenu" id="submenu-documents">
+          <a href="/admin/homepage/documents/upload" class="menu-item" data-menu="documents-upload">
+            <span>문서 업로드</span>
+          </a>
+          <a href="/admin/homepage/documents/categories" class="menu-item" data-menu="documents-categories">
+            <span>카테고리 관리</span>
+          </a>
+          <a href="/admin/homepage/documents/stats" class="menu-item" data-menu="documents-stats">
+            <span>다운로드 통계</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="menu-group">
+        <div class="menu-group-title">시스템 관리</div>
+        <a href="/admin/users" class="menu-item" data-menu="users">
+          <span class="menu-item-icon">👥</span>
+          <span>사용자 관리</span>
+        </a>
+        <a href="/admin/logs" class="menu-item" data-menu="logs">
+          <span class="menu-item-icon">📝</span>
+          <span>활동 로그</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+  
+  <!-- 메인 콘텐츠 -->
+  <main class="admin-main">
+    <div class="admin-content">
+      <div class="page-header">
+        <div class="page-header-flex">
+          <div>
+            <h1 class="page-title">메뉴 아이템 관리</h1>
+            <p class="page-desc">홈페이지에 표시될 메뉴를 관리합니다</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="openMenuModal()">+ 새 메뉴 추가</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 필터 -->
+      <div class="filters">
+        <div class="filter-group">
+          <label class="form-label" style="margin: 0;">카테고리</label>
+          <select class="form-select" style="width: 200px;" onchange="filterByCategory(this.value)">
+            <option value="">전체</option>
+            <option value="signature">시그니처</option>
+            <option value="tang">감자탕</option>
+            <option value="jjim">뼈찜</option>
+            <option value="side">사이드메뉴</option>
+            <option value="beverage">음료</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label class="form-label" style="margin: 0;">상태</label>
+          <select class="form-select" style="width: 150px;" onchange="filterByStatus(this.value)">
+            <option value="">전체</option>
+            <option value="active">활성</option>
+            <option value="inactive">비활성</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- 메뉴 그리드 -->
+      <div class="menu-grid" id="menu-grid">
+        <!-- 메뉴 카드가 여기 표시됩니다 -->
+      </div>
+    </div>
+  </main>
+  
+  <!-- 모바일 메뉴 토글 -->
+  <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+    <span>☰</span>
+  </button>
+  
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileMenu()"></div>
+</div>
+
+<!-- 메뉴 편집 모달 -->
+<div class="modal" id="menu-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">새 메뉴 추가</h2>
+      <button class="modal-close" onclick="closeMenuModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('basic')">기본 정보</button>
+        <button class="tab-btn" onclick="switchTab('nutrition')">영양 정보</button>
+        <button class="tab-btn" onclick="switchTab('prices')">가격 설정</button>
+      </div>
+      
+      <!-- 기본 정보 탭 -->
+      <div class="tab-content active" id="tab-basic">
+        <form id="menu-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">메뉴명 *</label>
+              <input type="text" class="form-input" id="menu-name" required />
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">카테고리 *</label>
+              <select class="form-select" id="menu-category" required>
+                <option value="">선택하세요</option>
+                <option value="signature">시그니처</option>
+                <option value="tang">감자탕</option>
+                <option value="jjim">뼈찜</option>
+                <option value="side">사이드메뉴</option>
+                <option value="beverage">음료</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">설명</label>
+            <textarea class="form-textarea" id="menu-description" rows="3"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">상세 설명</label>
+            <textarea class="form-textarea" id="menu-detail" rows="5"></textarea>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">배지</label>
+              <select class="form-select" id="menu-badge">
+                <option value="">없음</option>
+                <option value="NEW">NEW</option>
+                <option value="BEST">BEST</option>
+                <option value="HOT">HOT</option>
+                <option value="SALE">SALE</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">상태</label>
+              <select class="form-select" id="menu-status">
+                <option value="active">활성</option>
+                <option value="inactive">비활성</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">메뉴 이미지</label>
+            <div class="image-preview" id="menu-image-preview" onclick="selectMenuImage()">
+              <p style="color: #9ca3af;">클릭하여 이미지 업로드</p>
+            </div>
+            <input type="file" id="menu-image-input" accept="image/*" style="display: none;" onchange="handleMenuImage(event)" />
+          </div>
+        </form>
+      </div>
+      
+      <!-- 영양 정보 탭 -->
+      <div class="tab-content" id="tab-nutrition">
+        <div class="nutrition-grid">
+          <div class="form-group">
+            <label class="form-label">칼로리</label>
+            <input type="text" class="form-input" id="nutrition-calories" placeholder="예: 680kcal" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">단백질</label>
+            <input type="text" class="form-input" id="nutrition-protein" placeholder="예: 42g" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">나트륨</label>
+            <input type="text" class="form-input" id="nutrition-sodium" placeholder="예: 1,200mg" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">지방</label>
+            <input type="text" class="form-input" id="nutrition-fat" placeholder="예: 28g" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">탄수화물</label>
+            <input type="text" class="form-input" id="nutrition-carbs" placeholder="예: 52g" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">당류</label>
+            <input type="text" class="form-input" id="nutrition-sugar" placeholder="예: 12g" />
+          </div>
+        </div>
+      </div>
+      
+      <!-- 가격 설정 탭 -->
+      <div class="tab-content" id="tab-prices">
+        <div class="price-list" id="price-list">
+          <div class="price-item">
+            <input type="text" class="form-input" placeholder="옵션명 (예: 1인분)" style="flex: 1;" />
+            <input type="number" class="form-input" placeholder="가격" style="width: 150px;" />
+            <button class="btn btn-secondary" onclick="removePriceOption(this)">삭제</button>
+          </div>
+        </div>
+        <button class="btn btn-secondary" onclick="addPriceOption()" style="margin-top: 1rem;">+ 가격 옵션 추가</button>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeMenuModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveMenu()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let menuList = [];
+let currentEditId = null;
+let currentCategory = '';
+let currentStatus = '';
+
+// 메뉴 데이터 샘플
+const sampleMenus = [
+  {
+    id: 1,
+    name: '감자탕',
+    category: 'tang',
+    description: '12시간 푹 끓인 진한 사골육수와 큼직한 등뼈',
+    detail: '12시간 이상 푹 고아낸 진한 사골 육수에 큼직한 등뼈와 감자, 우거지를 넣고 끓인 이든푸드의 대표 메뉴입니다.',
+    image: '/public/assets/tang.jpg',
+    badge: 'BEST',
+    status: 'active',
+    nutrition: {
+      calories: '680kcal',
+      protein: '42g',
+      sodium: '1,200mg',
+      fat: '28g',
+      carbs: '52g',
+      sugar: '12g'
+    },
+    prices: [
+      { option: '소 (2인분)', price: 25000 },
+      { option: '중 (3인분)', price: 35000 },
+      { option: '대 (4인분)', price: 45000 }
+    ]
+  },
+  {
+    id: 2,
+    name: '매운 뼈찜',
+    category: 'jjim',
+    description: '부드럽게 익힌 등뼈에 특제 매콤 양념',
+    detail: '부드럽게 삶은 등뼈에 특제 매콤 양념을 더한 인기 메뉴입니다.',
+    image: '/public/assets/jjim.jpg',
+    badge: 'NEW',
+    status: 'active',
+    nutrition: {
+      calories: '720kcal',
+      protein: '45g',
+      sodium: '1,100mg',
+      fat: '32g'
+    },
+    prices: [
+      { option: '보통 (2~3인분)', price: 38000 },
+      { option: '많이 (4~5인분)', price: 55000 }
+    ]
+  },
+  {
+    id: 3,
+    name: '뼈해장국',
+    category: 'tang',
+    description: '시원한 국물과 부드러운 고기가 일품',
+    image: '/public/assets/guk.jpg',
+    status: 'active',
+    prices: [
+      { option: '1인분', price: 9000 },
+      { option: '곱빼기', price: 11000 }
+    ]
+  }
+];
+
+// 페이지 로드 시 초기화
+function loadMenuData() {
+  // 실제로는 API에서 로드
+  menuList = sampleMenus;
+  renderMenuGrid();
+}
+
+// 메뉴 그리드 렌더링
+function renderMenuGrid() {
+  const grid = document.getElementById('menu-grid');
+  let filteredMenus = menuList;
+  
+  // 필터 적용
+  if (currentCategory) {
+    filteredMenus = filteredMenus.filter(m => m.category === currentCategory);
+  }
+  if (currentStatus) {
+    filteredMenus = filteredMenus.filter(m => m.status === currentStatus);
+  }
+  
+  if (filteredMenus.length === 0) {
+    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #9ca3af;">등록된 메뉴가 없습니다.</p>';
+    return;
+  }
+  
+  grid.innerHTML = filteredMenus.map(menu => `
+    <div class="menu-card">
+      <div class="menu-image">
+        ${menu.image ? `<img src="${menu.image}" alt="${menu.name}" />` : '<span style="font-size: 3rem;">🍽️</span>'}
+        ${menu.badge ? `<span class="menu-badge ${menu.badge === 'NEW' ? 'badge-new' : ''}">${menu.badge}</span>` : ''}
+      </div>
+      <div class="menu-content">
+        <h3 class="menu-name">${menu.name}</h3>
+        <span class="menu-category">${getCategoryName(menu.category)}</span>
+        <p class="menu-desc">${menu.description || ''}</p>
+        <p class="menu-price">${menu.prices && menu.prices[0] ? '₩' + menu.prices[0].price.toLocaleString() + '~' : '가격 미정'}</p>
+        <div class="menu-actions">
+          <button class="btn btn-secondary" onclick="editMenu(${menu.id})">수정</button>
+          <button class="btn btn-secondary" onclick="deleteMenu(${menu.id})">삭제</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 카테고리명 변환
+function getCategoryName(category) {
+  const names = {
+    signature: '시그니처',
+    tang: '감자탕',
+    jjim: '뼈찜',
+    side: '사이드메뉴',
+    beverage: '음료'
+  };
+  return names[category] || category;
+}
+
+// 필터
+function filterByCategory(category) {
+  currentCategory = category;
+  renderMenuGrid();
+}
+
+function filterByStatus(status) {
+  currentStatus = status;
+  renderMenuGrid();
+}
+
+// 모달 열기/닫기
+function openMenuModal(menuId = null) {
+  currentEditId = menuId;
+  const modal = document.getElementById('menu-modal');
+  const title = document.getElementById('modal-title');
+  
+  if (menuId) {
+    title.textContent = '메뉴 수정';
+    const menu = menuList.find(m => m.id === menuId);
+    if (menu) {
+      loadMenuToForm(menu);
+    }
+  } else {
+    title.textContent = '새 메뉴 추가';
+    resetMenuForm();
+  }
+  
+  modal.classList.add('active');
+  switchTab('basic');
+}
+
+function closeMenuModal() {
+  document.getElementById('menu-modal').classList.remove('active');
+  resetMenuForm();
+}
+
+// 폼 리셋
+function resetMenuForm() {
+  document.getElementById('menu-form').reset();
+  document.getElementById('menu-image-preview').innerHTML = '<p style="color: #9ca3af;">클릭하여 이미지 업로드</p>';
+  document.getElementById('price-list').innerHTML = `
+    <div class="price-item">
+      <input type="text" class="form-input" placeholder="옵션명 (예: 1인분)" style="flex: 1;" />
+      <input type="number" class="form-input" placeholder="가격" style="width: 150px;" />
+      <button class="btn btn-secondary" onclick="removePriceOption(this)">삭제</button>
+    </div>
+  `;
+  
+  // 영양정보 리셋
+  ['calories', 'protein', 'sodium', 'fat', 'carbs', 'sugar'].forEach(field => {
+    document.getElementById(`nutrition-${field}`).value = '';
+  });
+}
+
+// 메뉴 데이터 폼에 로드
+function loadMenuToForm(menu) {
+  document.getElementById('menu-name').value = menu.name || '';
+  document.getElementById('menu-category').value = menu.category || '';
+  document.getElementById('menu-description').value = menu.description || '';
+  document.getElementById('menu-detail').value = menu.detail || '';
+  document.getElementById('menu-badge').value = menu.badge || '';
+  document.getElementById('menu-status').value = menu.status || 'active';
+  
+  // 이미지
+  if (menu.image) {
+    document.getElementById('menu-image-preview').innerHTML = `<img src="${menu.image}" style="width: 100%; height: 100%; object-fit: cover;" />`;
+  }
+  
+  // 영양정보
+  if (menu.nutrition) {
+    Object.keys(menu.nutrition).forEach(key => {
+      const elem = document.getElementById(`nutrition-${key}`);
+      if (elem) elem.value = menu.nutrition[key];
+    });
+  }
+  
+  // 가격
+  if (menu.prices && menu.prices.length > 0) {
+    const priceList = document.getElementById('price-list');
+    priceList.innerHTML = menu.prices.map(price => `
+      <div class="price-item">
+        <input type="text" class="form-input" placeholder="옵션명" value="${price.option}" style="flex: 1;" />
+        <input type="number" class="form-input" placeholder="가격" value="${price.price}" style="width: 150px;" />
+        <button class="btn btn-secondary" onclick="removePriceOption(this)">삭제</button>
+      </div>
+    `).join('');
+  }
+}
+
+// 탭 전환
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+  
+  event.target.classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+}
+
+// 이미지 선택
+function selectMenuImage() {
+  document.getElementById('menu-image-input').click();
+}
+
+function handleMenuImage(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('menu-image-preview').innerHTML = 
+        `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;" />`;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+// 가격 옵션 추가/삭제
+function addPriceOption() {
+  const priceList = document.getElementById('price-list');
+  const newItem = document.createElement('div');
+  newItem.className = 'price-item';
+  newItem.innerHTML = `
+    <input type="text" class="form-input" placeholder="옵션명 (예: 1인분)" style="flex: 1;" />
+    <input type="number" class="form-input" placeholder="가격" style="width: 150px;" />
+    <button class="btn btn-secondary" onclick="removePriceOption(this)">삭제</button>
+  `;
+  priceList.appendChild(newItem);
+}
+
+function removePriceOption(btn) {
+  if (document.querySelectorAll('.price-item').length > 1) {
+    btn.parentElement.remove();
+  } else {
+    alert('최소 하나의 가격 옵션이 필요합니다.');
+  }
+}
+
+// 메뉴 저장
+async function saveMenu() {
+  // 폼 데이터 수집
+  const menuData = {
+    name: document.getElementById('menu-name').value,
+    category: document.getElementById('menu-category').value,
+    description: document.getElementById('menu-description').value,
+    detail: document.getElementById('menu-detail').value,
+    badge: document.getElementById('menu-badge').value,
+    status: document.getElementById('menu-status').value,
+    image: '', // 실제로는 이미지 업로드 처리 필요
+    nutrition: {
+      calories: document.getElementById('nutrition-calories').value,
+      protein: document.getElementById('nutrition-protein').value,
+      sodium: document.getElementById('nutrition-sodium').value,
+      fat: document.getElementById('nutrition-fat').value,
+      carbs: document.getElementById('nutrition-carbs').value,
+      sugar: document.getElementById('nutrition-sugar').value
+    },
+    prices: []
+  };
+  
+  // 가격 데이터 수집
+  document.querySelectorAll('.price-item').forEach(item => {
+    const option = item.querySelector('input[type="text"]').value;
+    const price = parseInt(item.querySelector('input[type="number"]').value) || 0;
+    if (option && price > 0) {
+      menuData.prices.push({ option, price });
+    }
+  });
+  
+  // 유효성 검사
+  if (!menuData.name || !menuData.category) {
+    alert('메뉴명과 카테고리는 필수 항목입니다.');
+    return;
+  }
+  
+  // API 호출 (실제 구현 시)
+  console.log('저장할 메뉴 데이터:', menuData);
+  alert('메뉴가 저장되었습니다.');
+  
+  closeMenuModal();
+  renderMenuGrid();
+}
+
+// 메뉴 수정
+function editMenu(menuId) {
+  openMenuModal(menuId);
+}
+
+// 메뉴 삭제
+async function deleteMenu(menuId) {
+  if (!confirm('정말로 이 메뉴를 삭제하시겠습니까?')) {
+    return;
+  }
+  
+  // 실제로는 API 호출
+  menuList = menuList.filter(m => m.id !== menuId);
+  renderMenuGrid();
+  alert('메뉴가 삭제되었습니다.');
+}
+
+// 사이드바 관련 함수들
+function toggleSubmenu(menuId, event) {
+  event.preventDefault();
+  const submenu = document.getElementById(`submenu-${menuId}`);
+  const menuItem = event.currentTarget;
+  
+  submenu.classList.toggle('active');
+  menuItem.classList.toggle('expanded');
+}
+
+function toggleMobileMenu() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  
+  sidebar.classList.toggle('mobile-open');
+  overlay.classList.toggle('active');
+}
+
+function closeMobileMenu() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  
+  sidebar.classList.remove('mobile-open');
+  overlay.classList.remove('active');
+}
+
+async function logout() {
+  try {
+    const response = await fetch('/api/auth/logout', { method: 'POST' });
+    const data = await response.json();
+    
+    if (data.ok) {
+      alert('로그아웃되었습니다.');
+      location.href = '/login';
+    }
+  } catch (error) {
+    console.error('로그아웃 실패:', error);
+  }
+}
+
+async function checkAuth() {
+  try {
+    const response = await fetch('/api/auth/me');
+    const data = await response.json();
+    
+    if (!data.ok || data.user.role !== 'admin') {
+      alert('관리자 권한이 필요합니다.');
+      location.href = '/login';
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('인증 확인 실패:', error);
+    location.href = '/login';
+    return false;
+  }
+}
+
+// 페이지 초기화
+checkAuth().then(isAuth => {
+  if (isAuth) {
+    loadMenuData();
+  }
+});
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeMenuModal();
+  }
+});
+</script>
+
+</body>
+</html>

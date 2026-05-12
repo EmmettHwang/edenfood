@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>갤러리 관리 - 관리자</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/public/assets/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/public/admin/admin-layout.css?v=1.0" />
+  <style>
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    
+    .gallery-item {
+      background: white;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s;
+      position: relative;
+      cursor: move;
+    }
+    
+    .gallery-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .gallery-item.selected {
+      box-shadow: 0 0 0 3px #16a34a;
+    }
+    
+    .gallery-image {
+      position: relative;
+      padding-bottom: 75%;
+      overflow: hidden;
+      background: #f3f4f6;
+    }
+    
+    .gallery-image img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .gallery-checkbox {
+      position: absolute;
+      top: 0.75rem;
+      left: 0.75rem;
+      width: 1.5rem;
+      height: 1.5rem;
+      background: white;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    
+    .gallery-item:hover .gallery-checkbox,
+    .gallery-checkbox.checked {
+      opacity: 1;
+    }
+    
+    .gallery-checkbox input {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+    
+    .gallery-checkbox.checked {
+      background: #16a34a;
+      border-color: #16a34a;
+    }
+    
+    .gallery-checkbox.checked::after {
+      content: '✓';
+      color: white;
+      font-weight: bold;
+    }
+    
+    .gallery-info {
+      padding: 1rem;
+    }
+    
+    .gallery-title {
+      font-size: 0.938rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .gallery-category {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: #f3f4f6;
+      color: #6b7280;
+      font-size: 0.75rem;
+      border-radius: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .gallery-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.813rem;
+      color: #9ca3af;
+    }
+    
+    .gallery-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    
+    .gallery-actions button {
+      flex: 1;
+    }
+    
+    /* 업로드 영역 */
+    .upload-zone {
+      background: #f9fafb;
+      border: 2px dashed #d1d5db;
+      border-radius: 0.75rem;
+      padding: 3rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 2rem;
+    }
+    
+    .upload-zone:hover {
+      border-color: #9ca3af;
+      background: #f3f4f6;
+    }
+    
+    .upload-zone.dragover {
+      border-color: #16a34a;
+      background: #f0fdf4;
+    }
+    
+    .upload-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    .upload-text {
+      font-size: 1.125rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    
+    .upload-hint {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    
+    /* 필터 및 액션 */
+    .toolbar {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .bulk-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-left: auto;
+    }
+    
+    .selected-count {
+      padding: 0.5rem 1rem;
+      background: #f3f4f6;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    
+    /* 모달 스타일 */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 1rem;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.5rem;
+      transition: background 0.2s;
+    }
+    
+    .modal-close:hover {
+      background: #f3f4f6;
+    }
+    
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+    
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+    
+    .image-preview {
+      width: 100%;
+      margin-bottom: 1rem;
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+    
+    .image-preview img {
+      width: 100%;
+      height: auto;
+    }
+    
+    .progress-bar {
+      background: #e5e7eb;
+      border-radius: 0.25rem;
+      height: 0.5rem;
+      margin-top: 1rem;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      background: #16a34a;
+      height: 100%;
+      width: 0;
+      transition: width 0.3s;
+    }
+    
+    .upload-list {
+      margin-top: 1.5rem;
+    }
+    
+    .upload-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem;
+      background: #f9fafb;
+      border-radius: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .upload-item-name {
+      flex: 1;
+      font-size: 0.875rem;
+    }
+    
+    .upload-item-status {
+      font-size: 0.813rem;
+      color: #6b7280;
+    }
+    
+    @media (max-width: 768px) {
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .bulk-actions {
+        margin-left: 0;
+      }
+      
+      .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header scrolled" id="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+    </a>
+    <div class="header-actions">
+      <span style="color: #6b7280; font-size: 0.875rem; margin-right: 1rem;">관리자 모드</span>
+      <button class="btn-login" onclick="logout()">로그아웃</button>
+    </div>
+  </div>
+</header>
+
+<div class="admin-wrapper">
+  <!-- 사이드바 -->
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">관리자 대시보드</div>
+      <div class="sidebar-subtitle">홈페이지 통합 관리</div>
+    </div>
+    
+    <nav class="sidebar-menu">
+      <div class="menu-group">
+        <div class="menu-group-title">대시보드</div>
+        <a href="/admin" class="menu-item" data-menu="dashboard">
+          <span class="menu-item-icon">📊</span>
+          <span>대시보드</span>
+        </a>
+      </div>
+      
+      <div class="menu-group">
+        <div class="menu-group-title">홈페이지 관리</div>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="about" onclick="toggleSubmenu('about', event)">
+          <span class="menu-item-icon">🏢</span>
+          <span>회사소개 관리</span>
+        </a>
+        <div class="submenu" id="submenu-about">
+          <a href="/admin/homepage/about/greeting" class="menu-item" data-menu="about-greeting">
+            <span>CEO 인사말</span>
+          </a>
+          <a href="/admin/homepage/about/history" class="menu-item" data-menu="about-history">
+            <span>연혁</span>
+          </a>
+          <a href="/admin/homepage/about/organization" class="menu-item" data-menu="about-organization">
+            <span>조직도</span>
+          </a>
+          <a href="/admin/homepage/about/executives" class="menu-item" data-menu="about-executives">
+            <span>임원진</span>
+          </a>
+        </div>
+        
+        <a href="/admin/homepage/notices" class="menu-item" data-menu="notices">
+          <span class="menu-item-icon">📢</span>
+          <span>공지사항 관리</span>
+        </a>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="menu" onclick="toggleSubmenu('menu', event)">
+          <span class="menu-item-icon">🍽️</span>
+          <span>메뉴 관리</span>
+        </a>
+        <div class="submenu" id="submenu-menu">
+          <a href="/admin/homepage/menu/categories" class="menu-item" data-menu="menu-categories">
+            <span>카테고리 관리</span>
+          </a>
+          <a href="/admin/homepage/menu/items" class="menu-item" data-menu="menu-items">
+            <span>메뉴 아이템</span>
+          </a>
+          <a href="/admin/homepage/menu/prices" class="menu-item" data-menu="menu-prices">
+            <span>가격/옵션 설정</span>
+          </a>
+        </div>
+        
+        <a href="/admin/homepage/brands" class="menu-item" data-menu="brands">
+          <span class="menu-item-icon">🏷️</span>
+          <span>브랜드소개 관리</span>
+        </a>
+        
+        <a href="#" class="menu-item has-submenu expanded" data-menu="gallery" onclick="toggleSubmenu('gallery', event)">
+          <span class="menu-item-icon">🖼️</span>
+          <span>갤러리 관리</span>
+        </a>
+        <div class="submenu active" id="submenu-gallery">
+          <a href="/admin/homepage/gallery/upload" class="menu-item" data-menu="gallery-upload">
+            <span>이미지 업로드</span>
+          </a>
+          <a href="/admin/homepage/gallery/manage" class="menu-item active" data-menu="gallery-manage">
+            <span>이미지 관리</span>
+          </a>
+        </div>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="documents" onclick="toggleSubmenu('documents', event)">
+          <span class="menu-item-icon">📄</span>
+          <span>서식자료실 관리</span>
+        </a>
+        <div class="submenu" id="submenu-documents">
+          <a href="/admin/homepage/documents/upload" class="menu-item" data-menu="documents-upload">
+            <span>문서 업로드</span>
+          </a>
+          <a href="/admin/homepage/documents/categories" class="menu-item" data-menu="documents-categories">
+            <span>카테고리 관리</span>
+          </a>
+          <a href="/admin/homepage/documents/stats" class="menu-item" data-menu="documents-stats">
+            <span>다운로드 통계</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="menu-group">
+        <div class="menu-group-title">시스템 관리</div>
+        <a href="/admin/users" class="menu-item" data-menu="users">
+          <span class="menu-item-icon">👥</span>
+          <span>사용자 관리</span>
+        </a>
+        <a href="/admin/logs" class="menu-item" data-menu="logs">
+          <span class="menu-item-icon">📝</span>
+          <span>활동 로그</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+  
+  <!-- 메인 콘텐츠 -->
+  <main class="admin-main">
+    <div class="admin-content">
+      <div class="page-header">
+        <div class="page-header-flex">
+          <div>
+            <h1 class="page-title">갤러리 관리</h1>
+            <p class="page-desc">홈페이지 갤러리의 이미지를 관리합니다</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">
+              + 이미지 업로드
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 업로드 영역 -->
+      <div class="upload-zone" id="upload-zone">
+        <div class="upload-icon">📸</div>
+        <div class="upload-text">이미지를 드래그하여 업로드하세요</div>
+        <div class="upload-hint">또는 클릭하여 파일을 선택하세요 (JPG, PNG, GIF)</div>
+      </div>
+      <input type="file" id="file-input" multiple accept="image/*" style="display: none;" />
+      
+      <!-- 필터 및 액션 -->
+      <div class="toolbar">
+        <div class="filter-group">
+          <label class="form-label" style="margin: 0;">카테고리</label>
+          <select class="form-select" style="width: 150px;" onchange="filterByCategory(this.value)">
+            <option value="">전체</option>
+            <option value="store">매장</option>
+            <option value="food">음식</option>
+            <option value="event">이벤트</option>
+            <option value="etc">기타</option>
+          </select>
+        </div>
+        
+        <div class="filter-group">
+          <label class="form-label" style="margin: 0;">정렬</label>
+          <select class="form-select" style="width: 150px;" onchange="sortGallery(this.value)">
+            <option value="newest">최신순</option>
+            <option value="oldest">오래된순</option>
+            <option value="name">이름순</option>
+          </select>
+        </div>
+        
+        <div class="bulk-actions" id="bulk-actions" style="display: none;">
+          <span class="selected-count" id="selected-count">0개 선택됨</span>
+          <button class="btn btn-secondary" onclick="bulkChangeCategory()">카테고리 변경</button>
+          <button class="btn btn-secondary" onclick="bulkDelete()">선택 삭제</button>
+        </div>
+      </div>
+      
+      <!-- 갤러리 그리드 -->
+      <div class="gallery-grid" id="gallery-grid">
+        <!-- 갤러리 아이템이 여기 표시됩니다 -->
+      </div>
+    </div>
+  </main>
+  
+  <!-- 모바일 메뉴 토글 -->
+  <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+    <span>☰</span>
+  </button>
+  
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileMenu()"></div>
+</div>
+
+<!-- 이미지 편집 모달 -->
+<div class="modal" id="edit-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">이미지 편집</h2>
+      <button class="modal-close" onclick="closeEditModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="image-preview" id="edit-image-preview">
+        <!-- 이미지 미리보기 -->
+      </div>
+      
+      <form id="edit-form">
+        <div class="form-group">
+          <label class="form-label">제목</label>
+          <input type="text" class="form-input" id="edit-title" />
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">설명</label>
+          <textarea class="form-textarea" id="edit-description" rows="3"></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">카테고리</label>
+          <select class="form-select" id="edit-category">
+            <option value="store">매장</option>
+            <option value="food">음식</option>
+            <option value="event">이벤트</option>
+            <option value="etc">기타</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">태그 (쉼표로 구분)</label>
+          <input type="text" class="form-input" id="edit-tags" placeholder="예: 감자탕, 매장, 인테리어" />
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeEditModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveImageEdit()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let galleryImages = [];
+let selectedImages = new Set();
+let currentEditId = null;
+let currentCategory = '';
+let currentSort = 'newest';
+
+// 샘플 갤러리 데이터
+const sampleGallery = [
+  {
+    id: 1,
+    title: '감자탕 메인',
+    url: '/public/assets/tang.jpg',
+    thumbnail: '/public/assets/thumbnails/thumb_tang.jpg',
+    category: 'food',
+    description: '이든푸드 대표 메뉴 감자탕',
+    tags: ['감자탕', '메인메뉴'],
+    date: '2024-01-15',
+    size: '2.3MB'
+  },
+  {
+    id: 2,
+    title: '뼈찜',
+    url: '/public/assets/jjim.jpg',
+    thumbnail: '/public/assets/thumbnails/thumb_jjim.jpg',
+    category: 'food',
+    description: '매콤한 뼈찜',
+    tags: ['뼈찜', '매운맛'],
+    date: '2024-01-16',
+    size: '1.8MB'
+  },
+  {
+    id: 3,
+    title: '매장 전경',
+    url: '/public/assets/store1.jpg',
+    category: 'store',
+    description: '이든푸드 본점 매장',
+    tags: ['매장', '인테리어'],
+    date: '2024-01-10',
+    size: '3.1MB'
+  }
+];
+
+// 갤러리 로드
+function loadGallery() {
+  // 실제로는 API에서 로드
+  galleryImages = sampleGallery;
+  renderGallery();
+}
+
+// 갤러리 렌더링
+function renderGallery() {
+  let images = [...galleryImages];
+  
+  // 필터 적용
+  if (currentCategory) {
+    images = images.filter(img => img.category === currentCategory);
+  }
+  
+  // 정렬
+  switch(currentSort) {
+    case 'newest':
+      images.sort((a, b) => new Date(b.date) - new Date(a.date));
+      break;
+    case 'oldest':
+      images.sort((a, b) => new Date(a.date) - new Date(b.date));
+      break;
+    case 'name':
+      images.sort((a, b) => a.title.localeCompare(b.title));
+      break;
+  }
+  
+  const grid = document.getElementById('gallery-grid');
+  
+  if (images.length === 0) {
+    grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #9ca3af;">등록된 이미지가 없습니다.</p>';
+    return;
+  }
+  
+  grid.innerHTML = images.map(img => `
+    <div class="gallery-item" data-id="${img.id}">
+      <div class="gallery-checkbox ${selectedImages.has(img.id) ? 'checked' : ''}">
+        <input type="checkbox" ${selectedImages.has(img.id) ? 'checked' : ''} onchange="toggleSelection(${img.id})" />
+      </div>
+      <div class="gallery-image">
+        <img src="${img.thumbnail || img.url}" alt="${img.title}" loading="lazy" />
+      </div>
+      <div class="gallery-info">
+        <h4 class="gallery-title">${img.title}</h4>
+        <span class="gallery-category">${getCategoryName(img.category)}</span>
+        <div class="gallery-meta">
+          <span>${img.size}</span>
+          <span>${formatDate(img.date)}</span>
+        </div>
+        <div class="gallery-actions">
+          <button class="btn btn-secondary btn-small" onclick="editImage(${img.id})">수정</button>
+          <button class="btn btn-secondary btn-small" onclick="deleteImage(${img.id})">삭제</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 카테고리명 변환
+function getCategoryName(category) {
+  const names = {
+    store: '매장',
+    food: '음식',
+    event: '이벤트',
+    etc: '기타'
+  };
+  return names[category] || category;
+}
+
+// 날짜 포맷
+function formatDate(dateStr) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('ko-KR');
+}
+
+// 필터 및 정렬
+function filterByCategory(category) {
+  currentCategory = category;
+  renderGallery();
+}
+
+function sortGallery(sortBy) {
+  currentSort = sortBy;
+  renderGallery();
+}
+
+// 선택 토글
+function toggleSelection(imageId) {
+  if (selectedImages.has(imageId)) {
+    selectedImages.delete(imageId);
+  } else {
+    selectedImages.add(imageId);
+  }
+  
+  updateBulkActions();
+  renderGallery();
+}
+
+// 일괄 액션 업데이트
+function updateBulkActions() {
+  const bulkActions = document.getElementById('bulk-actions');
+  const selectedCount = document.getElementById('selected-count');
+  
+  if (selectedImages.size > 0) {
+    bulkActions.style.display = 'flex';
+    selectedCount.textContent = `${selectedImages.size}개 선택됨`;
+  } else {
+    bulkActions.style.display = 'none';
+  }
+}
+
+// 드래그 앤 드롭
+const uploadZone = document.getElementById('upload-zone');
+const fileInput = document.getElementById('file-input');
+
+uploadZone.addEventListener('click', () => {
+  fileInput.click();
+});
+
+uploadZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  uploadZone.classList.add('dragover');
+});
+
+uploadZone.addEventListener('dragleave', () => {
+  uploadZone.classList.remove('dragover');
+});
+
+uploadZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadZone.classList.remove('dragover');
+  
+  const files = Array.from(e.dataTransfer.files).filter(file => 
+    file.type.startsWith('image/')
+  );
+  
+  if (files.length > 0) {
+    uploadImages(files);
+  }
+});
+
+fileInput.addEventListener('change', (e) => {
+  const files = Array.from(e.target.files);
+  if (files.length > 0) {
+    uploadImages(files);
+  }
+});
+
+// 이미지 업로드
+function uploadImages(files) {
+  // 실제로는 서버에 업로드
+  console.log('업로드할 파일:', files);
+  
+  // 데모용 - 업로드 완료 메시지
+  alert(`${files.length}개의 이미지가 업로드되었습니다.`);
+  
+  // 갤러리 새로고침
+  loadGallery();
+}
+
+// 이미지 편집
+function editImage(imageId) {
+  currentEditId = imageId;
+  const image = galleryImages.find(img => img.id === imageId);
+  
+  if (image) {
+    // 미리보기
+    document.getElementById('edit-image-preview').innerHTML = 
+      `<img src="${image.url}" alt="${image.title}" />`;
+    
+    // 폼 데이터 설정
+    document.getElementById('edit-title').value = image.title || '';
+    document.getElementById('edit-description').value = image.description || '';
+    document.getElementById('edit-category').value = image.category || 'etc';
+    document.getElementById('edit-tags').value = image.tags ? image.tags.join(', ') : '';
+    
+    // 모달 열기
+    document.getElementById('edit-modal').classList.add('active');
+  }
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('active');
+  currentEditId = null;
+}
+
+// 이미지 편집 저장
+function saveImageEdit() {
+  const imageData = {
+    title: document.getElementById('edit-title').value,
+    description: document.getElementById('edit-description').value,
+    category: document.getElementById('edit-category').value,
+    tags: document.getElementById('edit-tags').value.split(',').map(tag => tag.trim()).filter(tag => tag)
+  };
+  
+  // 실제로는 API 호출
+  console.log('저장할 이미지 데이터:', imageData);
+  alert('이미지 정보가 수정되었습니다.');
+  
+  closeEditModal();
+  renderGallery();
+}
+
+// 이미지 삭제
+async function deleteImage(imageId) {
+  if (!confirm('정말로 이 이미지를 삭제하시겠습니까?')) {
+    return;
+  }
+  
+  // 실제로는 API 호출
+  galleryImages = galleryImages.filter(img => img.id !== imageId);
+  selectedImages.delete(imageId);
+  updateBulkActions();
+  renderGallery();
+  alert('이미지가 삭제되었습니다.');
+}
+
+// 일괄 카테고리 변경
+function bulkChangeCategory() {
+  const newCategory = prompt('변경할 카테고리를 선택하세요:\n1. store (매장)\n2. food (음식)\n3. event (이벤트)\n4. etc (기타)');
+  
+  if (newCategory && ['store', 'food', 'event', 'etc'].includes(newCategory)) {
+    // 실제로는 API 호출
+    galleryImages.forEach(img => {
+      if (selectedImages.has(img.id)) {
+        img.category = newCategory;
+      }
+    });
+    
+    alert(`${selectedImages.size}개의 이미지 카테고리가 변경되었습니다.`);
+    selectedImages.clear();
+    updateBulkActions();
+    renderGallery();
+  }
+}
+
+// 일괄 삭제
+async function bulkDelete() {
+  if (!confirm(`선택한 ${selectedImages.size}개의 이미지를 삭제하시겠습니까?`)) {
+    return;
+  }
+  
+  // 실제로는 API 호출
+  galleryImages = galleryImages.filter(img => !selectedImages.has(img.id));
+  
+  alert(`${selectedImages.size}개의 이미지가 삭제되었습니다.`);
+  selectedImages.clear();
+  updateBulkActions();
+  renderGallery();
+}
+
+// 사이드바 관련 함수들
+function toggleSubmenu(menuId, event) {
+  event.preventDefault();
+  const submenu = document.getElementById(`submenu-${menuId}`);
+  const menuItem = event.currentTarget;
+  
+  submenu.classList.toggle('active');
+  menuItem.classList.toggle('expanded');
+}
+
+function toggleMobileMenu() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  
+  sidebar.classList.toggle('mobile-open');
+  overlay.classList.toggle('active');
+}
+
+function closeMobileMenu() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  
+  sidebar.classList.remove('mobile-open');
+  overlay.classList.remove('active');
+}
+
+async function logout() {
+  try {
+    const response = await fetch('/api/auth/logout', { method: 'POST' });
+    const data = await response.json();
+    
+    if (data.ok) {
+      alert('로그아웃되었습니다.');
+      location.href = '/login';
+    }
+  } catch (error) {
+    console.error('로그아웃 실패:', error);
+  }
+}
+
+async function checkAuth() {
+  try {
+    const response = await fetch('/api/auth/me');
+    const data = await response.json();
+    
+    if (!data.ok || data.user.role !== 'admin') {
+      alert('관리자 권한이 필요합니다.');
+      location.href = '/login';
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('인증 확인 실패:', error);
+    location.href = '/login';
+    return false;
+  }
+}
+
+// 페이지 초기화
+checkAuth().then(isAuth => {
+  if (isAuth) {
+    loadGallery();
+  }
+});
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeEditModal();
+  }
+});
+</script>
+
+</body>
+</html>

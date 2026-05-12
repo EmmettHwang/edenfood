@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>회사소개 관리 - 관리자</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/public/assets/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/css/global.css?v=2.0" />
+  <style>
+    /* 헤더 공간 확보 */
+    body {
+      padding-top: 60px;
+      background: #f9fafb;
+    }
+    
+    /* 프로그레스바 스타일 */
+    .progress-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .progress-overlay.active {
+      display: flex;
+    }
+    
+    .progress-container {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      min-width: 300px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .progress-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    
+    .progress-bar-wrapper {
+      width: 100%;
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: #16a34a;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+      text-align: center;
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    
+    /* 관리자 페이지 스타일 */
+    .admin-header {
+      background: #111827;
+      color: white;
+      padding: 1.5rem 0;
+      margin-bottom: 2rem;
+    }
+    
+    .admin-header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .admin-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    
+    .btn-back {
+      padding: 0.5rem 1rem;
+      background: #374151;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-back:hover {
+      background: #4b5563;
+    }
+    
+    .admin-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem 3rem;
+    }
+    
+    /* 탭 네비게이션 */
+    .tabs {
+      display: flex;
+      gap: 2rem;
+      border-bottom: 2px solid #e5e7eb;
+      margin-bottom: 2rem;
+    }
+    
+    .tab {
+      padding: 0.75rem 0;
+      border: none;
+      background: none;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #6b7280;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+    
+    .tab:hover {
+      color: #374151;
+    }
+    
+    .tab.active {
+      color: #16a34a;
+    }
+    
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #16a34a;
+    }
+    
+    .tab-content {
+      display: none;
+      background: white;
+      padding: 2rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    /* 폼 스타일 */
+    .form-section {
+      margin-bottom: 2rem;
+    }
+    
+    .form-section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+    
+    .form-input,
+    .form-textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 0.938rem;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    
+    .form-input:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    }
+    
+    .form-textarea {
+      min-height: 200px;
+      resize: vertical;
+    }
+    
+    .form-hint {
+      font-size: 0.813rem;
+      color: #6b7280;
+      margin-top: 0.25rem;
+    }
+    
+    /* 이미지 업로드 */
+    .image-upload {
+      border: 2px dashed #d1d5db;
+      border-radius: 0.5rem;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .image-upload:hover {
+      border-color: #16a34a;
+      background: #f0fdf4;
+    }
+    
+    .image-upload.drag-over {
+      border-color: #16a34a;
+      background: #f0fdf4;
+      transform: scale(1.02);
+    }
+    
+    .image-upload.has-image {
+      padding: 0;
+      border: none;
+      position: relative;
+      display: inline-block;
+    }
+    
+    .image-preview {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 0.5rem;
+    }
+    
+    /* 작은 이미지 업로드 */
+    .image-upload-small {
+      border: 2px dashed #d1d5db;
+      border-radius: 0.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #f9fafb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .image-upload-small:hover {
+      border-color: #16a34a;
+      background: #f0fdf4;
+    }
+    
+    .image-upload-small p {
+      color: #6b7280;
+      margin: 0;
+      font-weight: 500;
+      padding: 0.5rem;
+      background: white;
+      border-radius: 0.375rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* 작은 버튼 */
+    .btn-small {
+      padding: 0.375rem 0.75rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 0.813rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-small:hover {
+      background: #dc2626;
+    }
+    
+    /* 버튼 스타일 */
+    .btn-primary {
+      padding: 0.75rem 1.5rem;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 0.938rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary:hover {
+      background: #15803d;
+    }
+    
+    .btn-secondary {
+      padding: 0.75rem 1.5rem;
+      background: white;
+      color: #374151;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 0.938rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-secondary:hover {
+      background: #f9fafb;
+    }
+    
+    /* 연혁 관리 */
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .history-item {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+      background: #f9fafb;
+      border-radius: 0.5rem;
+      align-items: center;
+    }
+    
+    .history-item input {
+      flex: 1;
+    }
+    
+    .btn-remove {
+      padding: 0.5rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    
+    .btn-remove:hover {
+      background: #dc2626;
+    }
+    
+    .btn-add {
+      padding: 0.5rem 1rem;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+    
+    .btn-add:hover {
+      background: #2563eb;
+    }
+    
+    /* 부서/임원진 그리드 */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .card-item {
+      padding: 1rem;
+      background: #f9fafb;
+      border-radius: 0.5rem;
+      position: relative;
+    }
+    
+    .card-item .btn-remove {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    
+    /* 성공/에러 메시지 */
+    .alert {
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .alert-success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .alert-error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    
+    @media (max-width: 768px) {
+      .tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 프로그레스바 오버레이 -->
+<div class="progress-overlay" id="progress-overlay">
+  <div class="progress-container">
+    <div class="progress-title">처리 중...</div>
+    <div class="progress-bar-wrapper">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+    <div class="progress-text" id="progress-text">0%</div>
+  </div>
+</div>
+
+<!-- ===== HEADER ===== -->
+<header class="site-header scrolled" id="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+    </a>
+    <nav class="main-nav-links">
+      <a href="/about">회사소개</a>
+      <a href="/products">메뉴</a>
+      <a href="/brands">브랜드소개</a>
+      <a href="/gallery">갤러리</a>
+      <a href="/documents">서식자료실</a>
+      <a href="/contact">문의</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== ADMIN HEADER ===== -->
+<div class="admin-header">
+  <div class="admin-header-inner">
+    <h1>회사소개 관리</h1>
+    <button class="btn-back" onclick="location.href='/admin'">← 대시보드</button>
+  </div>
+</div>
+
+<!-- ===== ADMIN CONTENT ===== -->
+<div class="admin-container">
+  <div id="alert-container"></div>
+  
+  <!-- 탭 네비게이션 -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('greeting')">CEO 인사말</button>
+    <button class="tab" onclick="showTab('history')">연혁</button>
+    <button class="tab" onclick="showTab('executives')">임원진</button>
+  </div>
+  
+  <!-- CEO 인사말 탭 -->
+  <div id="greeting-tab" class="tab-content active">
+    <div class="form-section">
+      <h2 class="form-section-title">CEO 인사말</h2>
+      
+      <div class="form-group">
+        <label class="form-label">인사말 내용</label>
+        <textarea id="greeting-text" class="form-textarea" placeholder="CEO 인사말을 입력하세요...">안녕하십니까.
+주식회사 이든푸드 대표이사 노진훈입니다.
+
+저희 이든푸드는 "감자탕 전문 유통사 + 브랜드 백엔드"로서
+케이지푸드처럼 설비·물류·공급 신뢰를 보여주며,
+삼삼감자탕처럼 메뉴·브랜드를 전면에 내세우고 있습니다.
+
+저희는 3개의 최첨단 공장을 보유하고 있으며,
+엄격한 품질 관리와 체계적인 물류 시스템을 통해
+신선하고 건강한 먹거리를 공급하고 있습니다.
+
+홍안에와 차이나감자탕 등 저희만의 특별한 브랜드로
+고객님들께 최고의 맛과 서비스를 제공하고 있습니다.
+
+"신선함을 잇는 가치"라는 모토 아래,
+이든푸드는 오늘도 고객님들의 건강한 식탁을 위해
+최선을 다하겠습니다.
+
+감사합니다.</textarea>
+        <p class="form-hint">줄바꿈은 Enter키로 입력하세요.</p>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">서명</label>
+        <input type="text" id="greeting-author" class="form-input" value="대표이사 노진훈" />
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">CEO 사진</label>
+        <div class="image-upload" id="ceo-image-upload" onclick="selectCeoImage()" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+          <p>클릭하거나 드래그하여 이미지 업로드</p>
+          <p class="form-hint">권장 크기: 300x300px (JPG, PNG)</p>
+        </div>
+        <input type="file" id="ceo-image-input" accept="image/*" style="display: none;" onchange="handleCeoImageSelect(event)" />
+      </div>
+      
+      <button class="btn-primary" onclick="saveGreeting()">저장하기</button>
+    </div>
+  </div>
+  
+  <!-- 연혁 탭 -->
+  <div id="history-tab" class="tab-content">
+    <div class="form-section">
+      <h2 class="form-section-title">회사 연혁</h2>
+      
+      <div class="history-list" id="history-list">
+        <!-- 연혁 항목들이 여기 추가됩니다 -->
+      </div>
+      
+      <button class="btn-add" onclick="addHistoryItem()">+ 연혁 추가</button>
+      
+      <div style="margin-top: 2rem;">
+        <button class="btn-primary" onclick="saveHistory()">저장하기</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 조직 현황 탭 -->
+  <div id="organization-tab" class="tab-content">
+    <div class="form-section">
+      <h2 class="form-section-title">부서 관리</h2>
+      
+      <div class="card-grid" id="department-list">
+        <!-- 부서 카드들이 여기 추가됩니다 -->
+      </div>
+      
+      <button class="btn-add" onclick="addDepartment()">+ 부서 추가</button>
+      
+      <div style="margin-top: 2rem;">
+        <button class="btn-primary" onclick="saveDepartments()">저장하기</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 임원진 탭 -->
+  <div id="executives-tab" class="tab-content">
+    <div class="form-section">
+      <h2 class="form-section-title">임원진 정보</h2>
+      
+      <div class="card-grid" id="executives-list">
+        <!-- 임원진 카드들이 여기 추가됩니다 -->
+      </div>
+      
+      <button class="btn-add" onclick="addExecutive()">+ 임원 추가</button>
+      
+      <div style="margin-top: 2rem;">
+        <button class="btn-primary" onclick="saveExecutives()">저장하기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let aboutData = {
+  content: {
+    greeting_text: '',
+    greeting_author: '대표이사 노진훈',
+    greeting_image: null
+  },
+  history: [],
+  departments: [],
+  executives: []
+};
+
+// 페이지 초기화
+async function init() {
+  console.log('=== About Admin Page Init ===');
+  await checkAuth();
+  await loadAboutData();
+  
+  // URL 해시에 따른 탭 활성화
+  const hash = window.location.hash.substring(1);
+  if (hash) {
+    showTab(hash);
+  }
+}
+
+// 관리자 권한 확인
+async function checkAuth() {
+  try {
+    const token = localStorage.getItem('eden_token');
+    const userStr = localStorage.getItem('eden_user');
+    
+    console.log('Stored token:', token ? 'exists' : 'missing');
+    console.log('Stored user:', userStr);
+    
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      window.location.href = '/login';
+      return;
+    }
+    
+    const response = await fetch('/api/auth/me', {
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    });
+    const data = await response.json();
+    
+    console.log('Auth response:', data);
+    console.log('User:', data.user);
+    console.log('Role:', data.user?.role);
+    
+    if (response.status === 401) {
+      localStorage.removeItem('eden_token');
+      localStorage.removeItem('eden_user');
+      alert('인증이 만료되었습니다. 다시 로그인해주세요.');
+      location.href = '/login';
+      return;
+    }
+    
+    if (!data.ok) {
+      alert('인증 실패');
+      location.href = '/login';
+      return;
+    }
+    
+    if (!data.user || data.user.role !== 'admin') {
+      alert('관리자 권한이 필요합니다. 현재 권한: ' + (data.user?.role || 'none'));
+      location.href = '/login';
+    }
+  } catch (error) {
+    console.error('인증 확인 실패:', error);
+    location.href = '/login';
+  }
+}
+
+// About 데이터 로드
+async function loadAboutData() {
+  try {
+    const response = await fetch('/api/about');
+    const data = await response.json();
+    
+    if (data.ok || data.success) {
+      // 데이터 구조 확인 및 병합
+      aboutData = {
+        content: data.content || {},
+        history: data.history || [],
+        departments: data.departments || [],
+        executives: data.executives || []
+      };
+      
+      // 인사말 로드
+      if (aboutData.content.greeting_text) {
+        document.getElementById('greeting-text').value = aboutData.content.greeting_text;
+      }
+      if (aboutData.content.greeting_author) {
+        document.getElementById('greeting-author').value = aboutData.content.greeting_author;
+      }
+      if (aboutData.content.greeting_image) {
+        showCeoImage(aboutData.content.greeting_image);
+      }
+      
+      // 연혁 로드
+      loadHistoryList(data.history || []);
+      
+      // 부서 로드
+      loadDepartmentList(data.departments || []);
+      
+      // 임원진 로드
+      loadExecutivesList(data.executives || []);
+    }
+  } catch (error) {
+    console.error('데이터 로드 실패:', error);
+  }
+}
+
+// 탭 전환
+function showTab(tabName) {
+  // 모든 탭과 컨텐츠 숨기기
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+  
+  // 선택한 탭 활성화
+  const tabIndex = ['greeting', 'history', 'executives'].indexOf(tabName);
+  if (tabIndex !== -1) {
+    document.querySelectorAll('.tab')[tabIndex].classList.add('active');
+    document.getElementById(tabName + '-tab').classList.add('active');
+  }
+}
+
+// 알림 표시
+function showAlert(message, type = 'success') {
+  const alertContainer = document.getElementById('alert-container');
+  const alert = document.createElement('div');
+  alert.className = `alert alert-${type}`;
+  alert.textContent = message;
+  
+  alertContainer.innerHTML = '';
+  alertContainer.appendChild(alert);
+  
+  setTimeout(() => {
+    alert.remove();
+  }, 3000);
+}
+
+// CEO 이미지 선택
+function selectCeoImage() {
+  document.getElementById('ceo-image-input').click();
+}
+
+// 드래그앤드롭 핸들러
+function handleDragOver(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  event.currentTarget.classList.add('drag-over');
+}
+
+function handleDragLeave(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  event.currentTarget.classList.remove('drag-over');
+}
+
+function handleDrop(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  event.currentTarget.classList.remove('drag-over');
+  
+  const files = event.dataTransfer.files;
+  if (files.length > 0 && files[0].type.startsWith('image/')) {
+    handleImageFile(files[0]);
+  } else {
+    showAlert('이미지 파일만 업로드 가능합니다.', 'error');
+  }
+}
+
+// 프로그레스바 표시
+function showProgress(title = '처리 중...', progress = 0) {
+  const overlay = document.getElementById('progress-overlay');
+  const progressBar = document.getElementById('progress-bar');
+  const progressText = document.getElementById('progress-text');
+  const progressTitle = overlay.querySelector('.progress-title');
+  
+  progressTitle.textContent = title;
+  progressBar.style.width = progress + '%';
+  progressText.textContent = progress + '%';
+  overlay.classList.add('active');
+}
+
+// 프로그레스바 숨기기
+function hideProgress() {
+  setTimeout(() => {
+    document.getElementById('progress-overlay').classList.remove('active');
+  }, 300);
+}
+
+async function handleCeoImageSelect(event) {
+  const file = event.target.files[0];
+  if (file) {
+    await uploadCeoImage(file);
+  }
+}
+
+// CEO 이미지 업로드
+async function uploadCeoImage(file) {
+  // 파일 크기 체크 (5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    showAlert('이미지 파일은 5MB 이하만 가능합니다.', 'error');
+    return;
+  }
+  
+  try {
+    showProgress('이미지 업로드 중...', 10);
+    
+    // FormData 생성
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('type', 'ceo');
+    
+    showProgress('이미지 업로드 중...', 30);
+    
+    // 서버에 업로드
+    const token = localStorage.getItem('eden_token');
+    
+    if (!token) {
+      hideProgress();
+      showAlert('로그인이 필요합니다. 다시 로그인해주세요.', 'error');
+      setTimeout(() => location.href = '/login', 2000);
+      return;
+    }
+    
+    const response = await fetch('/api/about/upload-image', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      body: formData
+    });
+    
+    showProgress('이미지 업로드 중...', 80);
+    
+    if (!response.ok) {
+      hideProgress();
+      if (response.status === 401) {
+        showAlert('인증이 만료되었습니다. 다시 로그인해주세요.', 'error');
+        setTimeout(() => location.href = '/login', 2000);
+        return;
+      }
+      const errorData = await response.json();
+      showAlert('업로드 실패: ' + (errorData.error || errorData.message || '알 수 없는 오류'), 'error');
+      return;
+    }
+    
+    const data = await response.json();
+    console.log('Upload response:', data);
+    
+    if (data.ok || data.success) {
+      // 업로드 성공 - 이미지 경로 표시
+      const imagePath = data.path || (data.data && data.data.path);
+      if (imagePath) {
+        showCeoImage(imagePath);
+      }
+      showProgress('업로드 완료!', 100);
+      setTimeout(() => {
+        hideProgress();
+        showAlert('이미지가 업로드되었습니다.', 'success');
+      }, 500);
+    } else {
+      hideProgress();
+      showAlert('이미지 업로드 실패: ' + (data.message || '알 수 없는 오류'), 'error');
+    }
+  } catch (error) {
+    hideProgress();
+    console.error('이미지 업로드 에러:', error);
+    showAlert('이미지 업로드 중 오류가 발생했습니다.', 'error');
+  }
+}
+
+// 이미지 파일 처리 (공통) - 더 이상 사용 안함
+function handleImageFile(file) {
+  // 파일 크기 체크 (5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    showAlert('이미지 파일은 5MB 이하만 가능합니다.', 'error');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // 캔버스를 사용하여 이미지 크기 조정
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // 최대 크기 설정
+      const maxSize = 800;
+      let width = img.width;
+      let height = img.height;
+      
+      if (width > height) {
+        if (width > maxSize) {
+          height = (height * maxSize) / width;
+          width = maxSize;
+        }
+      } else {
+        if (height > maxSize) {
+          width = (width * maxSize) / height;
+          height = maxSize;
+        }
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+      
+      // JPEG로 압축 (품질 80%)
+      const compressedImage = canvas.toDataURL('image/jpeg', 0.8);
+      
+      // content 객체가 없는 경우 생성
+      if (!aboutData.content) {
+        aboutData.content = {};
+      }
+      
+      showCeoImage(compressedImage);
+      aboutData.content.greeting_image = compressedImage;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function showCeoImage(imagePath) {
+  const uploadDiv = document.getElementById('ceo-image-upload');
+  uploadDiv.classList.add('has-image');
+  uploadDiv.innerHTML = `
+    <img src="${imagePath}" class="image-preview" alt="CEO" />
+    <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px;">
+      클릭하여 변경
+    </div>
+  `;
+  // 파일 경로만 저장 (base64가 아닌)
+  aboutData.content.greeting_image = imagePath;
+}
+
+// 인사말 저장
+async function saveGreeting() {
+  // content 객체가 없는 경우 생성
+  if (!aboutData.content) {
+    aboutData.content = {};
+  }
+  
+  aboutData.content.greeting_text = document.getElementById('greeting-text').value;
+  aboutData.content.greeting_author = document.getElementById('greeting-author').value;
+  
+  const token = localStorage.getItem('eden_token');
+  
+  try {
+    showProgress('인사말 저장 중...', 20);
+    const response = await fetch('/api/about/greeting', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        greeting_text: aboutData.content.greeting_text,
+        greeting_author: aboutData.content.greeting_author,
+        greeting_image: aboutData.content.greeting_image
+      })
+    });
+    
+    showProgress('인사말 저장 중...', 60);
+    
+    const data = await response.json();
+    
+    showProgress('저장 완료!', 100);
+    
+    if (data.ok || data.success) {
+      setTimeout(() => {
+        hideProgress();
+        showAlert('CEO 인사말이 저장되었습니다.');
+      }, 500);
+    } else {
+      hideProgress();
+      showAlert('저장 실패: ' + (data.message || '알 수 없는 오류'), 'error');
+    }
+  } catch (error) {
+    hideProgress();
+    console.error('저장 오류:', error);
+    showAlert('저장 중 오류가 발생했습니다.', 'error');
+  }
+}
+
+// 연혁 관리
+function loadHistoryList(history) {
+  const listEl = document.getElementById('history-list');
+  listEl.innerHTML = '';
+  
+  history.forEach((item, index) => {
+    addHistoryItem(item.year, item.content, item.image || '');
+  });
+  
+  if (history.length === 0) {
+    addHistoryItem();
+  }
+}
+
+function addHistoryItem(year = '', content = '', image = '') {
+  const listEl = document.getElementById('history-list');
+  const item = document.createElement('div');
+  item.className = 'history-item';
+  const itemId = 'history-' + Date.now();
+  item.innerHTML = `
+    <div style="display: flex; gap: 1rem; align-items: flex-start;">
+      <div style="flex: 1;">
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <input type="text" class="form-input" placeholder="연도 (예: 2023)" value="${year}" style="width: 120px;" />
+          <input type="text" class="form-input" placeholder="내용을 입력하세요" value="${content}" style="flex: 1;" />
+          <button class="btn-remove" onclick="this.closest('.history-item').remove()">삭제</button>
+        </div>
+        <div class="image-upload-small" id="${itemId}-upload" onclick="selectHistoryImage('${itemId}')" style="width: 150px; height: 100px; ${image ? 'display:none;' : ''}">
+          <p>사진 추가</p>
+        </div>
+        <div id="${itemId}-preview" style="${image ? '' : 'display:none;'}">
+          <img src="${image}" style="width: 150px; height: 100px; object-fit: cover; border-radius: 0.5rem;" />
+          <button class="btn-small" onclick="removeHistoryImage('${itemId}')" style="margin-top: 0.25rem;">사진 제거</button>
+        </div>
+        <input type="hidden" id="${itemId}-image" value="${image}" />
+        <input type="file" id="${itemId}-input" accept="image/*" style="display: none;" onchange="handleHistoryImageSelect(event, '${itemId}')" />
+      </div>
+    </div>
+  `;
+  listEl.appendChild(item);
+}
+
+// 연혁 이미지 함수들
+function selectHistoryImage(itemId) {
+  document.getElementById(itemId + '-input').click();
+}
+
+async function handleHistoryImageSelect(event, itemId) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  if (file.size > 5 * 1024 * 1024) {
+    showAlert('이미지 파일은 5MB 이하만 가능합니다.', 'error');
+    return;
+  }
+  
+  try {
+    showProgress('이미지 업로드 중...', 10);
+    
+    // FormData 생성
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('type', 'history');
+    
+    showProgress('이미지 업로드 중...', 30);
+    
+    // 서버에 업로드
+    const token = localStorage.getItem('eden_token');
+    
+    if (!token) {
+      hideProgress();
+      showAlert('로그인이 필요합니다. 다시 로그인해주세요.', 'error');
+      setTimeout(() => location.href = '/login', 2000);
+      return;
+    }
+    
+    const response = await fetch('/api/about/upload-image', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      body: formData
+    });
+    
+    showProgress('이미지 업로드 중...', 80);
+    
+    if (!response.ok) {
+      hideProgress();
+      if (response.status === 401) {
+        showAlert('인증이 만료되었습니다. 다시 로그인해주세요.', 'error');
+        setTimeout(() => location.href = '/login', 2000);
+        return;
+      }
+      const errorData = await response.json();
+      showAlert('업로드 실패: ' + (errorData.error || errorData.message || '알 수 없는 오류'), 'error');
+      return;
+    }
+    
+    const data = await response.json();
+    
+    if (data.ok || data.success) {
+      // 업로드 성공 - 이미지 경로 표시
+      const imagePath = data.path || (data.data && data.data.path);
+      if (imagePath) {
+        document.getElementById(`${itemId}-upload`).style.display = 'none';
+        const preview = document.getElementById(`${itemId}-preview`);
+        preview.style.display = 'block';
+        preview.querySelector('img').src = imagePath;
+        document.getElementById(`${itemId}-image`).value = imagePath;
+      } else {
+        hideProgress();
+        showAlert('이미지 경로를 받지 못했습니다.', 'error');
+        return;
+      }
+      
+      showProgress('업로드 완료!', 100);
+      setTimeout(() => {
+        hideProgress();
+        showAlert('이미지가 업로드되었습니다.', 'success');
+      }, 500);
+    } else {
+      hideProgress();
+      showAlert('이미지 업로드 실패: ' + (data.message || '알 수 없는 오류'), 'error');
+    }
+  } catch (error) {
+    hideProgress();
+    console.error('이미지 업로드 에러:', error);
+    showAlert('이미지 업로드 중 오류가 발생했습니다.', 'error');
+  }
+}
+
+// 기존 함수 유지 (사용 안함)
+function handleHistoryImageSelectOld(event, itemId) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        // 이미지 압축
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const maxSize = 600;
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        const compressedImage = canvas.toDataURL('image/jpeg', 0.7);
+        document.getElementById(itemId + '-image').value = compressedImage;
+        document.getElementById(itemId + '-upload').style.display = 'none';
+        document.getElementById(itemId + '-preview').style.display = 'block';
+        document.getElementById(itemId + '-preview').querySelector('img').src = compressedImage;
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function removeHistoryImage(itemId) {
+  document.getElementById(itemId + '-image').value = '';
+  document.getElementById(itemId + '-upload').style.display = 'block';
+  document.getElementById(itemId + '-preview').style.display = 'none';
+}
+
+async function saveHistory() {
+  const items = document.querySelectorAll('#history-list .history-item');
+  aboutData.history = Array.from(items).map(item => {
+    const inputs = item.querySelectorAll('input[type="text"]');
+    const imageInput = item.querySelector('input[type="hidden"]');
+    return {
+      year: inputs[0].value,
+      content: inputs[1].value,
+      image: imageInput ? imageInput.value : ''
+    };
+  }).filter(item => item.year && item.content);
+  
+  const token = localStorage.getItem('eden_token');
+  
+  if (!token) {
+    showAlert('로그인이 필요합니다. 다시 로그인해주세요.', 'error');
+    setTimeout(() => location.href = '/login', 2000);
+    return;
+  }
+  
+  try {
+    showProgress('연혁 저장 중...', 20);
+    
+    const response = await fetch('/api/about', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(aboutData)
+    });
+    
+    showProgress('연혁 저장 중...', 60);
+    
+    if (!response.ok) {
+      hideProgress();
+      if (response.status === 401) {
+        showAlert('인증이 만료되었습니다. 다시 로그인해주세요.', 'error');
+        setTimeout(() => location.href = '/login', 2000);
+        return;
+      }
+      const errorData = await response.json();
+      showAlert('저장 실패: ' + (errorData.error || errorData.message || '알 수 없는 오류'), 'error');
+      return;
+    }
+    
+    const data = await response.json();
+    
+    showProgress('저장 완료!', 100);
+    
+    if (data.ok || data.success) {
+      setTimeout(() => {
+        hideProgress();
+        showAlert('연혁이 저장되었습니다.');
+      }, 500);
+    } else {
+      hideProgress();
+      showAlert('저장 실패: ' + (data.message || '알 수 없는 오류'), 'error');
+    }
+  } catch (error) {
+    hideProgress();
+    console.error('저장 오류:', error);
+    showAlert('저장 중 오류가 발생했습니다.', 'error');
+  }
+}
+
+// 부서 관리
+function loadDepartmentList(departments) {
+  const listEl = document.getElementById('department-list');
+  listEl.innerHTML = '';
+  
+  departments.forEach(dept => {
+    addDepartment(dept);
+  });
+}
+
+function addDepartment(dept = {}) {
+  const listEl = document.getElementById('department-list');
+  const item = document.createElement('div');
+  item.className = 'card-item';
+  item.innerHTML = `
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕</button>
+    <div class="form-group">
+      <label class="form-label">부서명</label>
+      <input type="text" class="form-input" placeholder="예: 영업부" value="${dept.name || ''}" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">부서장</label>
+      <input type="text" class="form-input" placeholder="예: 홍길동 부장" value="${dept.head || ''}" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">인원수</label>
+      <input type="number" class="form-input" placeholder="예: 10" value="${dept.members || ''}" />
+    </div>
+  `;
+  listEl.appendChild(item);
+}
+
+async function saveDepartments() {
+  const items = document.querySelectorAll('#department-list .card-item');
+  aboutData.departments = Array.from(items).map(item => {
+    const inputs = item.querySelectorAll('input');
+    return {
+      name: inputs[0].value,
+      head: inputs[1].value,
+      members: parseInt(inputs[2].value) || 0
+    };
+  }).filter(item => item.name);
+  
+  const token = localStorage.getItem('eden_token');
+  
+  try {
+    const response = await fetch('/api/about', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(aboutData)
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok || data.success) {
+      showAlert('부서 정보가 저장되었습니다.');
+    } else {
+      showAlert('저장 실패: ' + (data.message || '알 수 없는 오류'), 'error');
+    }
+  } catch (error) {
+    console.error('저장 오류:', error);
+    showAlert('저장 중 오류가 발생했습니다.', 'error');
+  }
+}
+
+// 임원진 관리
+function loadExecutivesList(executives) {
+  const listEl = document.getElementById('executives-list');
+  listEl.innerHTML = '';
+  
+  executives.forEach(exec => {
+    addExecutive(exec);
+  });
+}
+
+function addExecutive(exec = {}) {
+  const listEl = document.getElementById('executives-list');
+  const item = document.createElement('div');
+  item.className = 'card-item';
+  const execId = 'exec-' + Date.now();
+  item.innerHTML = `
+    <button class="btn-remove" onclick="this.parentElement.remove()">✕</button>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">이름</label>
+        <input type="text" class="form-input" placeholder="예: 노진훈" value="${exec.name || ''}" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">직책</label>
+        <input type="text" class="form-input" placeholder="예: 대표이사" value="${exec.position || ''}" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">약력</label>
+      <textarea class="form-textarea" placeholder="주요 경력을 입력하세요" style="min-height: 100px;">${exec.bio || ''}</textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">사진</label>
+      <div class="image-upload-small" id="${execId}-upload" onclick="selectExecutiveImage('${execId}')" style="width: 150px; height: 150px; ${exec.image ? 'display:none;' : ''}">
+        <p>사진 추가</p>
+      </div>
+      <div id="${execId}-preview" style="${exec.image ? '' : 'display:none;'}">
+        <img src="${exec.image || ''}" style="width: 150px; height: 150px; object-fit: cover; border-radius: 0.5rem;" />
+        <button class="btn-small" onclick="removeExecutiveImage('${execId}')" style="margin-top: 0.25rem;">사진 제거</button>
+      </div>
+      <input type="hidden" id="${execId}-image" value="${exec.image || ''}" />
+      <input type="file" id="${execId}-input" accept="image/*" style="display: none;" onchange="handleExecutiveImageSelect(event, '${execId}')" />
+    </div>
+  `;
+  listEl.appendChild(item);
+}
+
+// 임원 사진 선택
+function selectExecutiveImage(execId) {
+  document.getElementById(`${execId}-input`).click();
+}
+
+// 임원 사진 파일 선택 처리
+async function handleExecutiveImageSelect(event, execId) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  if (file.size > 5 * 1024 * 1024) {
+    showAlert('이미지 파일은 5MB 이하만 가능합니다.', 'error');
+    return;
+  }
+  
+  try {
+    showProgress('이미지 업로드 중...', 10);
+    
+    // FormData 생성
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('type', 'executive');
+    
+    showProgress('이미지 업로드 중...', 30);
+    
+    // 서버에 업로드
+    const token = localStorage.getItem('eden_token');
+    
+    if (!token) {
+      hideProgress();
+      showAlert('로그인이 필요합니다. 다시 로그인해주세요.', 'error');
+      setTimeout(() => location.href = '/login', 2000);
+      return;
+    }
+    
+    const response = await fetch('/api/about/upload-image', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      body: formData
+    });
+    
+    showProgress('이미지 업로드 중...', 80);
+    
+    if (!response.ok) {
+      hideProgress();
+      if (response.status === 401) {
+        showAlert('인증이 만료되었습니다. 다시 로그인해주세요.', 'error');
+        setTimeout(() => location.href = '/login', 2000);
+        return;
+      }
+      const errorData = await response.json();
+      showAlert('업로드 실패: ' + (errorData.error || errorData.message || '알 수 없는 오류'), 'error');
+      return;
+    }
+    
+    const data = await response.json();
+    
+    if (data.ok || data.success) {
+      // 업로드 성공 - 이미지 경로 표시
+      const imagePath = data.path || (data.data && data.data.path);
+      if (imagePath) {
+        document.getElementById(`${execId}-upload`).style.display = 'none';
+        const preview = document.getElementById(`${execId}-preview`);
+        preview.style.display = 'block';
+        preview.querySelector('img').src = imagePath;
+        document.getElementById(`${execId}-image`).value = imagePath;
+      } else {
+        hideProgress();
+        showAlert('이미지 경로를 받지 못했습니다.', 'error');
+        return;
+      }
+      
+      showProgress('업로드 완료!', 100);
+      setTimeout(() => {
+        hideProgress();
+        showAlert('이미지가 업로드되었습니다.', 'success');
+      }, 500);
+    } else {
+      hideProgress();
+      showAlert('이미지 업로드 실패: ' + (data.message || '알 수 없는 오류'), 'error');
+    }
+  } catch (error) {
+    hideProgress();
+    console.error('이미지 업로드 에러:', error);
+    showAlert('이미지 업로드 중 오류가 발생했습니다.', 'error');
+  }
+}
+
+// 임원 사진 제거
+function removeExecutiveImage(execId) {
+  document.getElementById(`${execId}-upload`).style.display = 'block';
+  document.getElementById(`${execId}-preview`).style.display = 'none';
+  document.getElementById(`${execId}-image`).value = '';
+  document.getElementById(`${execId}-input`).value = '';
+}
+
+async function saveExecutives() {
+  const items = document.querySelectorAll('#executives-list .card-item');
+  aboutData.executives = Array.from(items).map(item => {
+    const inputs = item.querySelectorAll('input[type="text"]');
+    const textarea = item.querySelector('textarea');
+    const imageInput = item.querySelector('input[type="hidden"]');
+    return {
+      name: inputs[0].value,
+      position: inputs[1].value,
+      bio: textarea.value,
+      image: imageInput?.value || ''
+    };
+  }).filter(item => item.name && item.position);
+  
+  const token = localStorage.getItem('eden_token');
+  
+  try {
+    showProgress('임원진 정보 저장 중...', 20);
+    
+    const response = await fetch('/api/about', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(aboutData)
+    });
+    
+    showProgress('임원진 정보 저장 중...', 60);
+    
+    if (!response.ok) {
+      hideProgress();
+      if (response.status === 401) {
+        showAlert('인증이 만료되었습니다. 다시 로그인해주세요.', 'error');
+        setTimeout(() => location.href = '/login', 2000);
+        return;
+      }
+      const errorData = await response.json();
+      showAlert('저장 실패: ' + (errorData.error || errorData.message || '알 수 없는 오류'), 'error');
+      return;
+    }
+    
+    const data = await response.json();
+    
+    showProgress('저장 완료!', 100);
+    
+    if (data.ok || data.success) {
+      setTimeout(() => {
+        hideProgress();
+        showAlert('임원진 정보가 저장되었습니다.');
+      }, 500);
+    } else {
+      hideProgress();
+      showAlert('저장 실패: ' + (data.message || '알 수 없는 오류'), 'error');
+    }
+  } catch (error) {
+    hideProgress();
+    console.error('저장 오류:', error);
+    showAlert('저장 중 오류가 발생했습니다.', 'error');
+  }
+}
+
+// 페이지 초기화
+init();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>공지사항 관리 - 이든푸드</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/global.css" />
+  <style>
+    :root {
+      --green: var(--primary);
+      --green-dark: var(--primary-dark);
+      --green-light: var(--primary-light);
+      --text: var(--gray-800);
+      --text-sub: var(--gray-500);
+      --border: var(--gray-200);
+      --bg: var(--gray-50);
+      --font: var(--font-family);
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    
+    .header {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--green);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--green-dark);
+    }
+    
+    .btn-secondary {
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-secondary:hover {
+      background: #f3f4f6;
+    }
+    
+    .btn-small {
+      padding: 0.375rem 0.75rem;
+      font-size: 0.813rem;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .notice-list {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      overflow: hidden;
+    }
+    
+    .notice-item {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: background 0.2s;
+    }
+    
+    .notice-item:hover {
+      background: #f9fafb;
+    }
+    
+    .notice-item:last-child {
+      border-bottom: none;
+    }
+    
+    .notice-badges {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .badge {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      border-radius: 0.25rem;
+      font-weight: 500;
+    }
+    
+    .badge-important {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+    
+    .badge-popup {
+      background: #eef2ff;
+      color: #4f46e5;
+    }
+    
+    .notice-title {
+      flex: 1;
+      font-weight: 500;
+    }
+    
+    .notice-meta {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      font-size: 0.875rem;
+      color: var(--text-sub);
+    }
+    
+    .notice-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .btn-sm {
+      padding: 0.25rem 0.75rem;
+      font-size: 0.813rem;
+    }
+    
+    /* 모달 */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 1rem;
+      width: calc(100% - 2rem);
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .modal-body {
+      padding: 1.5rem;
+    }
+    
+    .modal-footer {
+      padding: 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-family: var(--font);
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    }
+    
+    textarea.form-control {
+      min-height: 100px;
+      resize: vertical;
+    }
+    
+    .checkbox-group {
+      display: flex;
+      gap: 1.5rem;
+    }
+    
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    
+    .checkbox-label input {
+      width: 1rem;
+      height: 1rem;
+      accent-color: var(--green);
+    }
+    
+    .popup-fields {
+      display: none;
+      padding: 1rem;
+      background: #f3f4f6;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+    }
+    
+    .popup-fields.active {
+      display: block;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-sub);
+    }
+    
+    /* 색상 팔레트 스타일 */
+    .color-picker-wrapper {
+      position: relative;
+    }
+    
+    .color-palette {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      margin-top: 0.25rem;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+    }
+    
+    .palette-row {
+      display: flex;
+      gap: 0.25rem;
+      margin-bottom: 0.25rem;
+    }
+    
+    .palette-row:last-child {
+      margin-bottom: 0;
+    }
+    
+    .color-swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    
+    .color-swatch:hover {
+      border-color: #333;
+      transform: scale(1.1);
+    }
+    
+    /* 날짜 빠른선택 버튼 */
+    .date-quick-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    
+    .date-quick-btn {
+      padding: 0.25rem 0.75rem;
+      font-size: 0.813rem;
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .date-quick-btn:hover {
+      background: var(--green-light);
+      border-color: var(--green);
+    }
+    
+    @media (max-width: 640px) {
+      .toolbar {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+      }
+      
+      .notice-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+      }
+      
+      .notice-meta {
+        flex-wrap: wrap;
+      }
+      
+      .notice-actions {
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-inner">
+      <h1>공지사항 관리</h1>
+      <div style="display: flex; gap: 0.5rem;">
+        <a href="/admin/popup-manager" class="btn btn-secondary">🖼️ 팝업 관리</a>
+        <button class="btn btn-secondary" onclick="goBack()">← 돌아가기</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="toolbar">
+      <h2>공지사항 목록</h2>
+      <button class="btn btn-primary" onclick="showAddModal()">+ 새 공지사항</button>
+    </div>
+    
+    <div id="notice-list" class="notice-list">
+      <div class="empty-state">
+        <p>공지사항을 불러오는 중...</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 공지사항 폼 모달 -->
+  <div id="notice-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title">새 공지사항</h2>
+      </div>
+      <form id="notice-form" onsubmit="saveNotice(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">제목</label>
+            <input type="text" id="title" name="title" class="form-control" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">내용</label>
+            <textarea id="content" name="content" class="form-control" rows="5"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">공지 대상</label>
+            <select id="target" name="target" class="form-control" onchange="handleTargetChange()">
+              <option value="all">전체 (일반 + 인트라넷)</option>
+              <option value="public">일반 사용자</option>
+              <option value="intranet">인트라넷 전용</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="is_important" name="is_important">
+                <span>중요 공지</span>
+              </label>
+              <label class="checkbox-label" id="popup-checkbox-label">
+                <input type="checkbox" id="is_popup" name="is_popup" onchange="togglePopupFields()">
+                <span>팝업 공지</span>
+              </label>
+            </div>
+          </div>
+          
+          <div id="popup-fields" class="popup-fields">
+            <div class="form-group">
+              <label class="form-label">팝업 이미지 업로드</label>
+              <input type="hidden" id="popup_image" name="popup_image">
+              <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('popup-image-file').click()" style="align-self: flex-start; display: flex; align-items: center; gap: 0.5rem;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                  <span id="upload-btn-text">이미지 업로드</span>
+                </button>
+                <input type="file" id="popup-image-file" accept="image/*" style="display: none;" onchange="uploadPopupImage(this)">
+                <div style="font-size: 0.875rem; color: #6b7280;">
+                  ※ 권장 크기: 800x600px, 최대 30MB
+                </div>
+              </div>
+              <div id="upload-progress" style="display: none; margin-top: 0.5rem;">
+                <div style="background: #e5e7eb; border-radius: 0.25rem; height: 0.5rem; overflow: hidden;">
+                  <div id="upload-bar" style="background: #16a34a; height: 100%; width: 0%; transition: width 0.3s;"></div>
+                </div>
+              </div>
+              <div id="image-preview-container" style="display: none; margin-top: 1rem;">
+                <img id="popup-image-preview" style="max-width: 300px; max-height: 200px; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="margin-top: 0.5rem;">
+                  <button type="button" class="btn btn-secondary btn-small" onclick="removePopupImage()">이미지 삭제</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">팝업 표시 기간</label>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                  <label class="form-label" style="font-size: 0.813rem; margin-bottom: 0.25rem;">시작일</label>
+                  <input type="datetime-local" id="popup_start_date" name="popup_start_date" class="form-control">
+                </div>
+                <div>
+                  <label class="form-label" style="font-size: 0.813rem; margin-bottom: 0.25rem;">종료일</label>
+                  <input type="datetime-local" id="popup_end_date" name="popup_end_date" class="form-control">
+                </div>
+              </div>
+              <div class="date-quick-buttons">
+                <button type="button" class="date-quick-btn" onclick="setDateRange(3)">3일</button>
+                <button type="button" class="date-quick-btn" onclick="setDateRange(7)">1주일</button>
+                <button type="button" class="date-quick-btn" onclick="setDateRange(30)">1개월</button>
+                <button type="button" class="date-quick-btn" onclick="clearDateRange()">제한 없음</button>
+              </div>
+              <div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">
+                ※ 설정하지 않으면 항상 표시됩니다
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label class="form-label">텍스트 표시 설정</label>
+              <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                  <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="show_title" name="show_title" checked>
+                    <span>제목 표시</span>
+                  </label>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <label class="form-label" style="margin: 0;">색상:</label>
+                    <div class="color-picker-wrapper">
+                      <input type="color" id="title_color" name="title_color" value="#FFFFFF" style="width: 50px; height: 30px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
+                      <div class="color-palette" id="title-palette" style="display: none;">
+                        <div class="palette-row">
+                          <div class="color-swatch" style="background: #FFFFFF;" data-color="#FFFFFF" title="흰색"></div>
+                          <div class="color-swatch" style="background: #000000;" data-color="#000000" title="검정"></div>
+                          <div class="color-swatch" style="background: #FF0000;" data-color="#FF0000" title="빨강"></div>
+                          <div class="color-swatch" style="background: #00FF00;" data-color="#00FF00" title="초록"></div>
+                        </div>
+                        <div class="palette-row">
+                          <div class="color-swatch" style="background: #0000FF;" data-color="#0000FF" title="파랑"></div>
+                          <div class="color-swatch" style="background: #FFFF00;" data-color="#FFFF00" title="노랑"></div>
+                          <div class="color-swatch" style="background: #FF00FF;" data-color="#FF00FF" title="자홍"></div>
+                          <div class="color-swatch" style="background: #00FFFF;" data-color="#00FFFF" title="청록"></div>
+                        </div>
+                        <div class="palette-row">
+                          <div class="color-swatch" style="background: #FFA500;" data-color="#FFA500" title="주황"></div>
+                          <div class="color-swatch" style="background: #800080;" data-color="#800080" title="보라"></div>
+                          <div class="color-swatch" style="background: #FFC0CB;" data-color="#FFC0CB" title="분홍"></div>
+                          <div class="color-swatch" style="background: #808080;" data-color="#808080" title="회색"></div>
+                        </div>
+                        <div class="palette-row">
+                          <div class="color-swatch" style="background: #8B4513;" data-color="#8B4513" title="갈색"></div>
+                          <div class="color-swatch" style="background: #FFD700;" data-color="#FFD700" title="금색"></div>
+                          <div class="color-swatch" style="background: #C0C0C0;" data-color="#C0C0C0" title="은색"></div>
+                          <div class="color-swatch" style="background: #000080;" data-color="#000080" title="남색"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                  <label style="display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="show_content" name="show_content" checked>
+                    <span>내용 표시</span>
+                  </label>
+                  <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <label class="form-label" style="margin: 0;">색상:</label>
+                    <div class="color-picker-wrapper">
+                      <input type="color" id="content_color" name="content_color" value="#FFFFFF" style="width: 50px; height: 30px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">
+                      <div class="color-palette" id="content-palette" style="display: none;">
+                        <div class="palette-row">
+                          <div class="color-swatch" style="background: #FFFFFF;" data-color="#FFFFFF" title="흰색"></div>
+                          <div class="color-swatch" style="background: #000000;" data-color="#000000" title="검정"></div>
+                          <div class="color-swatch" style="background: #FF0000;" data-color="#FF0000" title="빨강"></div>
+                          <div class="color-swatch" style="background: #00FF00;" data-color="#00FF00" title="초록"></div>
+                        </div>
+                        <div class="palette-row">
+                          <div class="color-swatch" style="background: #0000FF;" data-color="#0000FF" title="파랑"></div>
+                          <div class="color-swatch" style="background: #FFFF00;" data-color="#FFFF00" title="노랑"></div>
+                          <div class="color-swatch" style="background: #FF00FF;" data-color="#FF00FF" title="자홍"></div>
+                          <div class="color-swatch" style="background: #00FFFF;" data-color="#00FFFF" title="청록"></div>
+                        </div>
+                        <div class="palette-row">
+                          <div class="color-swatch" style="background: #FFA500;" data-color="#FFA500" title="주황"></div>
+                          <div class="color-swatch" style="background: #800080;" data-color="#800080" title="보라"></div>
+                          <div class="color-swatch" style="background: #FFC0CB;" data-color="#FFC0CB" title="분홍"></div>
+                          <div class="color-swatch" style="background: #808080;" data-color="#808080" title="회색"></div>
+                        </div>
+                        <div class="palette-row">
+                          <div class="color-swatch" style="background: #8B4513;" data-color="#8B4513" title="갈색"></div>
+                          <div class="color-swatch" style="background: #FFD700;" data-color="#FFD700" title="금색"></div>
+                          <div class="color-swatch" style="background: #C0C0C0;" data-color="#C0C0C0" title="은색"></div>
+                          <div class="color-swatch" style="background: #000080;" data-color="#000080" title="남색"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                  <div>
+                    <label class="form-label">세로 위치</label>
+                    <select id="text_position" name="text_position" class="form-control">
+                      <option value="top">상단</option>
+                      <option value="center" selected>중앙</option>
+                      <option value="bottom">하단</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="form-label">가로 위치</label>
+                    <select id="text_align" name="text_align" class="form-control">
+                      <option value="left">왼쪽</option>
+                      <option value="center" selected>중앙</option>
+                      <option value="right">오른쪽</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- 미리보기 -->
+            <div class="form-group">
+              <label class="form-label">미리보기</label>
+              <div id="popup-preview" style="position: relative; width: 100%; max-width: 500px; background: #f3f4f6; border-radius: 0.5rem; overflow: hidden; min-height: 300px; display: flex; align-items: center; justify-content: center;">
+                <img id="preview-bg-image" style="width: 100%; height: auto; display: none;">
+                <div id="preview-text-overlay" style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
+                  <h1 id="preview-title" style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.8);"></h1>
+                  <h3 id="preview-content" style="font-size: 1.25rem; font-weight: 400; line-height: 1.6; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.8);"></h3>
+                </div>
+                <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #9ca3af;" id="preview-placeholder">
+                  <span>이미지를 업로드하면 미리보기가 표시됩니다</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="hideModal()">취소</button>
+          <button type="submit" class="btn btn-primary">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <script>
+    let currentNoticeId = null;
+    
+    // 페이지 초기화
+    async function init() {
+      const token = localStorage.getItem('eden_token');
+      if (!token) {
+        location.href = '/login';
+        return;
+      }
+      
+      // 권한 확인
+      try {
+        const res = await fetch('/api/auth/verify', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        
+        if (!data.ok || data.user.role !== 'admin') {
+          alert('관리자 권한이 필요합니다.');
+          location.href = '/intranet';
+          return;
+        }
+      } catch (error) {
+        console.error('권한 확인 실패:', error);
+        location.href = '/login';
+        return;
+      }
+      
+      loadNotices();
+      
+      // URL 해시 확인 (popup-manager에서 수정 링크로 온 경우)
+      const hash = window.location.hash;
+      if (hash && hash.startsWith('#edit-')) {
+        const id = hash.replace('#edit-', '');
+        setTimeout(() => showEditModal(parseInt(id)), 500);
+      }
+    }
+    
+    // 공지사항 목록 불러오기
+    async function loadNotices() {
+      try {
+        const response = await fetch('/api/notices', {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+          }
+        });
+        const data = await response.json();
+        
+        if (data.ok) {
+          renderNotices(data.notices);
+        }
+      } catch (error) {
+        console.error('공지사항 로드 실패:', error);
+      }
+    }
+    
+    // 공지사항 목록 렌더링
+    function renderNotices(notices) {
+      const listEl = document.getElementById('notice-list');
+      
+      if (notices.length === 0) {
+        listEl.innerHTML = `
+          <div class="empty-state">
+            <p>등록된 공지사항이 없습니다.</p>
+          </div>
+        `;
+        return;
+      }
+      
+      listEl.innerHTML = notices.map(notice => `
+        <div class="notice-item">
+          <div class="notice-badges">
+            ${notice.is_important ? '<span class="badge badge-important">중요</span>' : ''}
+            ${notice.is_popup ? '<span class="badge badge-popup">팝업</span>' : ''}
+            ${getTargetBadge(notice.target)}
+          </div>
+          <div class="notice-title">${escapeHtml(notice.title)}</div>
+          <div class="notice-meta">
+            <span>${notice.author_name || '관리자'}</span>
+            <span>조회 ${notice.views || 0}</span>
+            <span>${new Date(notice.created_at).toLocaleDateString()}</span>
+          </div>
+          <div class="notice-actions">
+            <button class="btn btn-sm btn-secondary" onclick="showEditModal(${notice.id})">수정</button>
+            <button class="btn btn-sm btn-secondary" onclick="deleteNotice(${notice.id})">삭제</button>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // 추가 모달 표시
+    function showAddModal() {
+      currentNoticeId = null;
+      document.getElementById('modal-title').textContent = '새 공지사항';
+      document.getElementById('notice-form').reset();
+      document.getElementById('popup-fields').classList.remove('active');
+      
+      // 오늘 날짜를 시작일로 설정 (팝업일 경우)
+      const now = new Date();
+      document.getElementById('popup_start_date').value = now.toISOString().slice(0, 16);
+      
+      document.getElementById('notice-modal').classList.add('active');
+    }
+    
+    // 수정 모달 표시
+    async function showEditModal(id) {
+      try {
+        const response = await fetch(`/api/notices/${id}`, {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+          }
+        });
+        const data = await response.json();
+        
+        if (!response.ok) {
+          alert('공지사항을 불러올 수 없습니다: ' + (data.message || '알 수 없는 오류'));
+          return;
+        }
+        
+        if (data.ok && data.notice) {
+          currentNoticeId = id;
+          const notice = data.notice;
+          
+          document.getElementById('modal-title').textContent = '공지사항 수정';
+          document.getElementById('title').value = notice.title || '';
+          document.getElementById('content').value = notice.content || '';
+          document.getElementById('is_important').checked = notice.is_important || false;
+          document.getElementById('is_popup').checked = notice.is_popup || false;
+          document.getElementById('target').value = notice.target || 'all';
+          
+          // target에 따라 팝업 체크박스 표시/숨김
+          handleTargetChange();
+          
+          if (notice.is_popup) {
+            document.getElementById('popup-fields').classList.add('active');
+            document.getElementById('popup_image').value = notice.popup_image || '';
+            // 기존 이미지가 있으면 미리보기 표시
+            if (notice.popup_image) {
+              const preview = document.getElementById('popup-image-preview');
+              const previewContainer = document.getElementById('image-preview-container');
+              preview.src = notice.popup_image;
+              previewContainer.style.display = 'block';
+              document.getElementById('upload-btn-text').textContent = '이미지 변경';
+            }
+            // 날짜 설정
+            if (notice.popup_start_date) {
+              const startDate = new Date(notice.popup_start_date);
+              document.getElementById('popup_start_date').value = startDate.toISOString().slice(0, 16);
+            }
+            if (notice.popup_end_date) {
+              const endDate = new Date(notice.popup_end_date);
+              document.getElementById('popup_end_date').value = endDate.toISOString().slice(0, 16);
+            }
+            // 텍스트 표시 설정
+            document.getElementById('show_title').checked = notice.show_title !== false;
+            document.getElementById('show_content').checked = notice.show_content !== false;
+            document.getElementById('text_position').value = notice.text_position || 'center';
+            document.getElementById('text_align').value = notice.text_align || 'center';
+            document.getElementById('title_color').value = notice.title_color || '#FFFFFF';
+            document.getElementById('content_color').value = notice.content_color || '#FFFFFF';
+          }
+          
+          document.getElementById('notice-modal').classList.add('active');
+          
+          // 미리보기 업데이트
+          setTimeout(updatePreview, 100);
+        } else {
+          alert('공지사항 데이터를 불러올 수 없습니다.');
+        }
+      } catch (error) {
+        console.error('공지사항 로드 실패:', error);
+        alert('공지사항을 불러오는 중 오류가 발생했습니다.');
+      }
+    }
+    
+    // 모달 닫기
+    function hideModal() {
+      document.getElementById('notice-modal').classList.remove('active');
+    }
+    
+    // 팝업 필드 토글
+    function togglePopupFields() {
+      const isPopup = document.getElementById('is_popup').checked;
+      const popupFields = document.getElementById('popup-fields');
+      
+      if (isPopup) {
+        popupFields.classList.add('active');
+      } else {
+        popupFields.classList.remove('active');
+      }
+    }
+    
+    // 대상 변경 처리
+    function handleTargetChange() {
+      const target = document.getElementById('target').value;
+      const popupCheckbox = document.getElementById('popup-checkbox-label');
+      const isPopupCheckbox = document.getElementById('is_popup');
+      
+      if (target === 'intranet') {
+        // 인트라넷 전용일 때는 팝업 옵션 숨기고 체크 해제
+        popupCheckbox.style.display = 'none';
+        isPopupCheckbox.checked = false;
+        togglePopupFields();
+      } else {
+        // 그 외에는 팝업 옵션 표시
+        popupCheckbox.style.display = '';
+      }
+    }
+    
+    // 대상 배지 표시
+    function getTargetBadge(target) {
+      switch(target) {
+        case 'public':
+          return '<span class="badge" style="background: #3b82f6; color: white;">일반</span>';
+        case 'intranet':
+          return '<span class="badge" style="background: #6366f1; color: white;">인트라넷</span>';
+        case 'all':
+        default:
+          return '<span class="badge" style="background: #10b981; color: white;">전체</span>';
+      }
+    }
+    
+    // 공지사항 저장
+    async function saveNotice(event) {
+      event.preventDefault();
+      
+      const formData = new FormData(event.target);
+      const data = {
+        title: formData.get('title'),
+        content: formData.get('content'),
+        is_important: formData.get('is_important') ? 1 : 0,
+        is_popup: formData.get('is_popup') ? 1 : 0,
+        popup_image: formData.get('popup_image'),
+        popup_start: formData.get('popup_start_date') || null,
+        popup_end: formData.get('popup_end_date') || null,
+        show_title: formData.get('show_title') === 'on',
+        show_content: formData.get('show_content') === 'on',
+        text_position: formData.get('text_position'),
+        text_align: formData.get('text_align'),
+        title_color: formData.get('title_color'),
+        content_color: formData.get('content_color'),
+        target: formData.get('target') || 'all'
+      };
+      
+      const url = currentNoticeId 
+        ? `/api/notices/${currentNoticeId}`
+        : '/api/notices';
+      
+      const method = currentNoticeId ? 'PUT' : 'POST';
+      
+      try {
+        const response = await fetch(url, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+          },
+          body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.ok) {
+          hideModal();
+          loadNotices();
+          alert(result.message || '저장되었습니다.');
+        } else {
+          alert(result.message || '저장에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('저장 실패:', error);
+        alert('저장에 실패했습니다.');
+      }
+    }
+    
+    // 공지사항 삭제
+    async function deleteNotice(id) {
+      if (!confirm('이 공지사항을 삭제하시겠습니까?')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/notices/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+          }
+        });
+        
+        const result = await response.json();
+        
+        if (result.ok) {
+          loadNotices();
+          alert(result.message || '삭제되었습니다.');
+        } else {
+          alert(result.message || '삭제에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('삭제 실패:', error);
+        alert('삭제에 실패했습니다.');
+      }
+    }
+    
+    // HTML 이스케이프
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+    
+    // 이미지 업로드 함수
+    async function uploadPopupImage(input) {
+      console.log('uploadPopupImage 시작');
+      if (!input.files || !input.files[0]) {
+        console.log('파일이 선택되지 않았습니다');
+        return;
+      }
+      
+      const file = input.files[0];
+      console.log('선택된 파일:', file.name, file.size, file.type);
+      
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      // 진행 표시
+      const progressDiv = document.getElementById('upload-progress');
+      const progressBar = document.getElementById('upload-bar');
+      progressDiv.style.display = 'block';
+      progressBar.style.width = '0%';
+      
+      try {
+        // 진행률 시뮬레이션
+        progressBar.style.width = '30%';
+        
+        console.log('업로드 요청 시작');
+        const token = localStorage.getItem('eden_token');
+        const response = await fetch('/api/upload/image', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+        
+        progressBar.style.width = '70%';
+        
+        console.log('응답 상태:', response.status, response.ok);
+        const data = await response.json();
+        console.log('응답 데이터:', data);
+        
+        if (data.ok) {
+          // 최적화된 URL이 있으면 사용, 없으면 원본 사용
+          const imageUrl = data.optimizedUrl || data.url;
+          document.getElementById('popup_image').value = imageUrl;
+          console.log('업로드된 이미지 URL:', imageUrl);
+          
+          // 미리보기 표시
+          const preview = document.getElementById('popup-image-preview');
+          const previewContainer = document.getElementById('image-preview-container');
+          preview.src = data.url;
+          previewContainer.style.display = 'block';
+          
+          // 버튼 텍스트 변경
+          document.getElementById('upload-btn-text').textContent = '이미지 변경';
+          
+          progressBar.style.width = '100%';
+          setTimeout(() => {
+            progressDiv.style.display = 'none';
+            alert('이미지가 업로드되었습니다.');
+            updatePreview(); // 미리보기 업데이트
+          }, 500);
+        } else {
+          console.error('업로드 실패:', data);
+          alert('이미지 업로드 실패: ' + (data.error || '알 수 없는 오류'));
+          progressDiv.style.display = 'none';
+        }
+      } catch (error) {
+        console.error('이미지 업로드 오류:', error);
+        alert('이미지 업로드 중 오류가 발생했습니다: ' + error.message);
+        progressDiv.style.display = 'none';
+      }
+      
+      // 파일 입력 초기화
+      input.value = '';
+    }
+    
+    // 팝업 이미지 삭제
+    function removePopupImage() {
+      if (confirm('이미지를 삭제하시겠습니까?')) {
+        document.getElementById('popup_image').value = '';
+        document.getElementById('image-preview-container').style.display = 'none';
+        document.getElementById('upload-btn-text').textContent = '이미지 업로드';
+      }
+    }
+    
+    // 실시간 미리보기 업데이트
+    function updatePreview() {
+      const title = document.getElementById('title').value;
+      const content = document.getElementById('content').value;
+      const showTitle = document.getElementById('show_title').checked;
+      const showContent = document.getElementById('show_content').checked;
+      const textPosition = document.getElementById('text_position').value;
+      const textAlign = document.getElementById('text_align').value;
+      const titleColor = document.getElementById('title_color').value;
+      const contentColor = document.getElementById('content_color').value;
+      const imageUrl = document.getElementById('popup_image').value;
+      
+      // 제목과 내용 업데이트
+      const previewTitle = document.getElementById('preview-title');
+      const previewContent = document.getElementById('preview-content');
+      
+      previewTitle.textContent = showTitle ? title : '';
+      previewTitle.style.display = showTitle ? 'block' : 'none';
+      previewTitle.style.color = titleColor;
+      
+      previewContent.textContent = showContent ? content : '';
+      previewContent.style.display = showContent ? 'block' : 'none';
+      previewContent.style.color = contentColor;
+      
+      // 텍스트 위치 업데이트
+      const textOverlay = document.getElementById('preview-text-overlay');
+      
+      // 세로 위치
+      if (textPosition === 'top') {
+        textOverlay.style.justifyContent = 'flex-start';
+        textOverlay.style.paddingTop = '3rem';
+      } else if (textPosition === 'bottom') {
+        textOverlay.style.justifyContent = 'flex-end';
+        textOverlay.style.paddingBottom = '3rem';
+      } else {
+        textOverlay.style.justifyContent = 'center';
+        textOverlay.style.paddingTop = '2rem';
+        textOverlay.style.paddingBottom = '2rem';
+      }
+      
+      // 가로 정렬
+      textOverlay.style.alignItems = textAlign === 'left' ? 'flex-start' : 
+                                     textAlign === 'right' ? 'flex-end' : 'center';
+      textOverlay.style.textAlign = textAlign;
+      
+      // 이미지 업데이트
+      const previewBgImage = document.getElementById('preview-bg-image');
+      const placeholder = document.getElementById('preview-placeholder');
+      
+      if (imageUrl) {
+        previewBgImage.src = imageUrl;
+        previewBgImage.style.display = 'block';
+        placeholder.style.display = 'none';
+      } else {
+        previewBgImage.style.display = 'none';
+        placeholder.style.display = 'flex';
+      }
+    }
+    
+    // 입력 필드에 이벤트 리스너 추가
+    document.getElementById('title').addEventListener('input', updatePreview);
+    document.getElementById('content').addEventListener('input', updatePreview);
+    document.getElementById('show_title').addEventListener('change', updatePreview);
+    document.getElementById('show_content').addEventListener('change', updatePreview);
+    document.getElementById('text_position').addEventListener('change', updatePreview);
+    document.getElementById('text_align').addEventListener('change', updatePreview);
+    document.getElementById('title_color').addEventListener('change', updatePreview);
+    document.getElementById('content_color').addEventListener('change', updatePreview);
+    
+    // 색상 팔레트 기능
+    function setupColorPalettes() {
+      // 제목 색상
+      const titleColor = document.getElementById('title_color');
+      const titlePalette = document.getElementById('title-palette');
+      
+      titleColor.addEventListener('click', (e) => {
+        e.preventDefault();
+        titlePalette.style.display = titlePalette.style.display === 'none' ? 'block' : 'none';
+        document.getElementById('content-palette').style.display = 'none';
+      });
+      
+      titlePalette.querySelectorAll('.color-swatch').forEach(swatch => {
+        swatch.addEventListener('click', () => {
+          titleColor.value = swatch.dataset.color;
+          titlePalette.style.display = 'none';
+          updatePreview();
+        });
+      });
+      
+      // 내용 색상
+      const contentColor = document.getElementById('content_color');
+      const contentPalette = document.getElementById('content-palette');
+      
+      contentColor.addEventListener('click', (e) => {
+        e.preventDefault();
+        contentPalette.style.display = contentPalette.style.display === 'none' ? 'block' : 'none';
+        document.getElementById('title-palette').style.display = 'none';
+      });
+      
+      contentPalette.querySelectorAll('.color-swatch').forEach(swatch => {
+        swatch.addEventListener('click', () => {
+          contentColor.value = swatch.dataset.color;
+          contentPalette.style.display = 'none';
+          updatePreview();
+        });
+      });
+      
+      // 외부 클릭시 팔레트 닫기
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.color-picker-wrapper')) {
+          document.getElementById('title-palette').style.display = 'none';
+          document.getElementById('content-palette').style.display = 'none';
+        }
+      });
+    }
+    
+    // 날짜 범위 빠른 설정
+    function setDateRange(days) {
+      const now = new Date();
+      const start = new Date(now);
+      const end = new Date(now);
+      end.setDate(end.getDate() + days);
+      
+      document.getElementById('popup_start_date').value = start.toISOString().slice(0, 16);
+      document.getElementById('popup_end_date').value = end.toISOString().slice(0, 16);
+    }
+    
+    // 날짜 제한 해제
+    function clearDateRange() {
+      document.getElementById('popup_start_date').value = '';
+      document.getElementById('popup_end_date').value = '';
+    }
+    
+    // 돌아가기
+    function goBack() {
+      location.href = '/admin';
+    }
+    
+    // 초기화
+    init();
+    setupColorPalettes();
+  </script>
+</body>
+</html>

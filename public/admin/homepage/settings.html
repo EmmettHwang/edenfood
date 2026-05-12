@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>시스템 설정 - 관리자</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/public/assets/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/public/admin/admin-layout.css?v=1.0" />
+  <script src="/public/admin/admin-auth.js"></script>
+  <style>
+    .settings-section {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .settings-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .setting-group {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .setting-group:last-child {
+      border-bottom: none;
+    }
+    
+    .setting-label {
+      flex: 1;
+    }
+    
+    .setting-label h4 {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+    
+    .setting-label p {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    
+    .setting-control {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 24px;
+    }
+    
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .toggle-slider {
+      background-color: #16a34a;
+    }
+    
+    input:checked + .toggle-slider:before {
+      transform: translateX(24px);
+    }
+    
+    .preview-box {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .preview-image {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header scrolled" id="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+    </a>
+    <div class="header-actions">
+      <span style="color: #6b7280; font-size: 0.875rem; margin-right: 1rem;">관리자 모드</span>
+      <button class="btn-login" onclick="logout()">로그아웃</button>
+    </div>
+  </div>
+</header>
+
+<div class="admin-wrapper">
+  <!-- 사이드바 -->
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-title">관리자 대시보드</div>
+      <div class="sidebar-subtitle">홈페이지 통합 관리</div>
+    </div>
+    
+    <nav class="sidebar-menu">
+      <div class="menu-group">
+        <div class="menu-group-title">대시보드</div>
+        <a href="/admin" class="menu-item" data-menu="dashboard">
+          <span class="menu-item-icon">📊</span>
+          <span>대시보드</span>
+        </a>
+      </div>
+      
+      <div class="menu-group">
+        <div class="menu-group-title">홈페이지 관리</div>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="about" onclick="toggleSubmenu('about', event)">
+          <span class="menu-item-icon">🏢</span>
+          <span>회사소개 관리</span>
+        </a>
+        <div class="submenu" id="submenu-about">
+          <a href="/admin/homepage/about/greeting" class="menu-item" data-menu="about-greeting">
+            <span>CEO 인사말</span>
+          </a>
+          <a href="/admin/homepage/about/history" class="menu-item" data-menu="about-history">
+            <span>연혁</span>
+          </a>
+          <a href="/admin/homepage/about/organization" class="menu-item" data-menu="about-organization">
+            <span>조직도</span>
+          </a>
+          <a href="/admin/homepage/about/executives" class="menu-item" data-menu="about-executives">
+            <span>임원진</span>
+          </a>
+        </div>
+        
+        <a href="/admin/homepage/notices" class="menu-item" data-menu="notices">
+          <span class="menu-item-icon">📢</span>
+          <span>공지사항 관리</span>
+        </a>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="menu" onclick="toggleSubmenu('menu', event)">
+          <span class="menu-item-icon">🍽️</span>
+          <span>메뉴 관리</span>
+        </a>
+        <div class="submenu" id="submenu-menu">
+          <a href="/admin/homepage/menu/categories" class="menu-item" data-menu="menu-categories">
+            <span>카테고리 관리</span>
+          </a>
+          <a href="/admin/homepage/menu/items" class="menu-item" data-menu="menu-items">
+            <span>메뉴 아이템</span>
+          </a>
+          <a href="/admin/homepage/menu/prices" class="menu-item" data-menu="menu-prices">
+            <span>가격/옵션 설정</span>
+          </a>
+        </div>
+        
+        <a href="/admin/homepage/brands" class="menu-item" data-menu="brands">
+          <span class="menu-item-icon">🏷️</span>
+          <span>브랜드소개 관리</span>
+        </a>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="gallery" onclick="toggleSubmenu('gallery', event)">
+          <span class="menu-item-icon">🖼️</span>
+          <span>갤러리 관리</span>
+        </a>
+        <div class="submenu" id="submenu-gallery">
+          <a href="/admin/homepage/gallery/upload" class="menu-item" data-menu="gallery-upload">
+            <span>이미지 업로드</span>
+          </a>
+          <a href="/admin/homepage/gallery/manage" class="menu-item" data-menu="gallery-manage">
+            <span>이미지 관리</span>
+          </a>
+        </div>
+        
+        <a href="#" class="menu-item has-submenu" data-menu="documents" onclick="toggleSubmenu('documents', event)">
+          <span class="menu-item-icon">📄</span>
+          <span>서식자료실 관리</span>
+        </a>
+        <div class="submenu" id="submenu-documents">
+          <a href="/admin/homepage/documents/upload" class="menu-item" data-menu="documents-upload">
+            <span>문서 업로드</span>
+          </a>
+          <a href="/admin/homepage/documents/categories" class="menu-item" data-menu="documents-categories">
+            <span>카테고리 관리</span>
+          </a>
+          <a href="/admin/homepage/documents/stats" class="menu-item" data-menu="documents-stats">
+            <span>다운로드 통계</span>
+          </a>
+        </div>
+        
+        <a href="/admin/homepage/settings" class="menu-item active" data-menu="settings">
+          <span class="menu-item-icon">⚙️</span>
+          <span>시스템 설정</span>
+        </a>
+      </div>
+      
+      <div class="menu-group">
+        <div class="menu-group-title">시스템 관리</div>
+        <a href="/admin/users" class="menu-item" data-menu="users">
+          <span class="menu-item-icon">👥</span>
+          <span>사용자 관리</span>
+        </a>
+        <a href="/admin/logs" class="menu-item" data-menu="logs">
+          <span class="menu-item-icon">📝</span>
+          <span>활동 로그</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+  
+  <!-- 메인 콘텐츠 -->
+  <main class="admin-main">
+    <div class="admin-content">
+      <div class="page-header">
+        <div class="page-header-flex">
+          <div>
+            <h1 class="page-title">시스템 설정</h1>
+            <p class="page-desc">홈페이지 전반적인 설정을 관리합니다</p>
+          </div>
+          <div class="page-actions">
+            <button class="btn btn-primary" onclick="saveSettings()">설정 저장</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 히어로 섹션 설정 -->
+      <div class="settings-section">
+        <h2 class="settings-title">히어로 섹션 설정</h2>
+        
+        <div class="setting-group">
+          <div class="setting-label">
+            <h4>히어로 이미지 사용</h4>
+            <p>메인 페이지 상단에 이미지를 표시합니다</p>
+          </div>
+          <div class="setting-control">
+            <label class="toggle-switch">
+              <input type="checkbox" id="hero_use_image" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        
+        <div class="setting-group">
+          <div class="setting-label">
+            <h4>히어로 표시 모드</h4>
+            <p>히어로 섹션에 표시할 콘텐츠를 선택합니다</p>
+          </div>
+          <div class="setting-control">
+            <select class="form-select" id="hero_display_mode" style="width: 200px;">
+              <option value="image">이미지만</option>
+              <option value="video">비디오만</option>
+              <option value="both">이미지 + 비디오</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="setting-group">
+          <div class="setting-label">
+            <h4>히어로 이미지 경로</h4>
+            <p>표시할 이미지의 경로를 입력합니다</p>
+          </div>
+          <div class="setting-control">
+            <input type="text" class="form-input" id="hero_image_url" value="/public/assets/china01.png" style="width: 400px;">
+          </div>
+        </div>
+        
+        <div class="setting-group">
+          <div class="setting-label">
+            <h4>히어로 비디오 경로</h4>
+            <p>표시할 비디오의 경로를 입력합니다</p>
+          </div>
+          <div class="setting-control">
+            <input type="text" class="form-input" id="hero_video_url" value="/public/assets/video/hero.mp4" style="width: 400px;">
+          </div>
+        </div>
+        
+        <!-- 이미지 미리보기 -->
+        <div class="preview-box" id="image-preview" style="text-align: center;">
+          <p style="margin-bottom: 1rem; font-weight: 500;">현재 히어로 이미지</p>
+          <img src="/public/assets/china01.png" alt="히어로 이미지" class="preview-image" id="preview-image">
+        </div>
+      </div>
+      
+    </div>
+  </main>
+  
+  <!-- 모바일 메뉴 토글 -->
+  <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+    <span>☰</span>
+  </button>
+  
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileMenu()"></div>
+</div>
+
+<script>
+let currentSettings = {};
+
+// 설정 로드
+async function loadSettings() {
+  try {
+    const response = await authFetch('/api/settings');
+    const data = await response.json();
+    
+    if (data.ok && data.settings) {
+      currentSettings = data.settings;
+      
+      // 설정 값을 폼에 적용
+      document.getElementById('hero_use_image').checked = currentSettings.hero_use_image || false;
+      document.getElementById('hero_display_mode').value = currentSettings.hero_display_mode || 'image';
+      document.getElementById('hero_image_url').value = currentSettings.hero_image_url || '/public/assets/china01.png';
+      document.getElementById('hero_video_url').value = currentSettings.hero_video_url || '/public/assets/video/hero.mp4';
+      
+      // 이미지 미리보기 업데이트
+      updateImagePreview();
+    }
+  } catch (error) {
+    console.error('설정 로드 실패:', error);
+  }
+}
+
+// 이미지 미리보기 업데이트
+function updateImagePreview() {
+  const imageUrl = document.getElementById('hero_image_url').value;
+  if (imageUrl) {
+    document.getElementById('preview-image').src = imageUrl;
+  }
+}
+
+// 이미지 경로 변경 시 미리보기 업데이트
+document.getElementById('hero_image_url').addEventListener('input', updateImagePreview);
+
+// 설정 저장
+async function saveSettings() {
+  const settings = {
+    hero_use_image: document.getElementById('hero_use_image').checked,
+    hero_display_mode: document.getElementById('hero_display_mode').value,
+    hero_image_url: document.getElementById('hero_image_url').value,
+    hero_video_url: document.getElementById('hero_video_url').value
+  };
+  
+  try {
+    const response = await authFetch('/api/settings', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ settings })
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok) {
+      alert('설정이 저장되었습니다.');
+      loadSettings();
+    } else {
+      alert('설정 저장에 실패했습니다: ' + (data.message || '알 수 없는 오류'));
+    }
+  } catch (error) {
+    console.error('설정 저장 오류:', error);
+    alert('설정 저장 중 오류가 발생했습니다.');
+  }
+}
+
+// 사이드바 관련 함수들
+function toggleSubmenu(menuId, event) {
+  event.preventDefault();
+  const submenu = document.getElementById(`submenu-${menuId}`);
+  const menuItem = event.currentTarget;
+  
+  submenu.classList.toggle('active');
+  menuItem.classList.toggle('expanded');
+}
+
+function toggleMobileMenu() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  
+  sidebar.classList.toggle('mobile-open');
+  overlay.classList.toggle('active');
+}
+
+function closeMobileMenu() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  
+  sidebar.classList.remove('mobile-open');
+  overlay.classList.remove('active');
+}
+
+// 페이지 초기화
+checkAuth().then(isAuth => {
+  if (isAuth) {
+    loadSettings();
+  }
+});
+</script>
+
+</body>
+</html>

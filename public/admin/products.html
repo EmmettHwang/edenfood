@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>메뉴(제품) 관리 - 관리자</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/public/assets/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/css/global.css?v=2.0" />
+  <style>
+    /* 헤더 공간 확보 */
+    body {
+      padding-top: 60px;
+      background: #f9fafb;
+    }
+    
+    /* 관리자 네비게이션 */
+    .admin-nav {
+      background: #1f2937;
+      border-bottom: 1px solid #374151;
+      position: sticky;
+      top: 60px;
+      z-index: 40;
+    }
+    
+    .admin-nav-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    
+    .admin-nav-inner::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .admin-nav-item {
+      padding: 1rem 1.5rem;
+      color: #9ca3af;
+      text-decoration: none;
+      white-space: nowrap;
+      font-weight: 500;
+      font-size: 0.875rem;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      position: relative;
+    }
+    
+    .admin-nav-item:hover {
+      color: #e5e7eb;
+      background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .admin-nav-item.active {
+      color: #fff;
+      border-bottom-color: #10b981;
+      background: rgba(255, 255, 255, 0.1);
+    }
+    
+    /* 관리자 페이지 스타일 */
+    .admin-header {
+      background: #111827;
+      color: white;
+      padding: 1.5rem 0;
+      margin-bottom: 0;
+    }
+    
+    .admin-header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .admin-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    
+    .btn-back {
+      padding: 0.5rem 1rem;
+      background: #374151;
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-back:hover {
+      background: #4b5563;
+    }
+    
+    .admin-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    
+    /* 액션 바 */
+    .action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .search-box {
+      display: flex;
+      gap: 0.5rem;
+      flex: 1;
+      max-width: 400px;
+    }
+    
+    .search-input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+    }
+    
+    .btn-search {
+      padding: 0.75rem 1.5rem;
+      background: #6b7280;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    .btn-add {
+      padding: 0.75rem 1.5rem;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .btn-add:hover {
+      background: #15803d;
+    }
+    
+    /* 카테고리 탭 */
+    .category-tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid #e5e7eb;
+      overflow-x: auto;
+    }
+    
+    .category-tab {
+      padding: 0.75rem 1.5rem;
+      background: none;
+      border: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #6b7280;
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+    }
+    
+    .category-tab:hover {
+      color: #374151;
+    }
+    
+    .category-tab.active {
+      color: #16a34a;
+      border-bottom-color: #16a34a;
+    }
+    
+    /* 제품 리스트 */
+    .product-list {
+      background: white;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .product-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .product-table th {
+      background: #f9fafb;
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: #374151;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .product-table td {
+      padding: 1rem;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .product-table tr:hover {
+      background: #f9fafb;
+    }
+    
+    .product-image {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 0.375rem;
+    }
+    
+    .product-name {
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 0.25rem;
+    }
+    
+    .product-desc {
+      font-size: 0.813rem;
+      color: #6b7280;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 9999px;
+    }
+    
+    .badge-best {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+    
+    .badge-new {
+      background: #dcfce7;
+      color: #16a34a;
+    }
+    
+    .badge-hot {
+      background: #fed7aa;
+      color: #ea580c;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .btn-edit, .btn-delete {
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      font-size: 0.813rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-edit {
+      background: #e5e7eb;
+      color: #374151;
+      border: none;
+    }
+    
+    .btn-edit:hover {
+      background: #d1d5db;
+    }
+    
+    .btn-delete {
+      background: #fee2e2;
+      color: #dc2626;
+      border: none;
+    }
+    
+    .btn-delete:hover {
+      background: #fecaca;
+    }
+    
+    /* 모달 */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+    
+    .modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 1rem;
+      max-width: 600px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #6b7280;
+      cursor: pointer;
+    }
+    
+    .modal-body {
+      padding: 1.5rem;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+    
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+    }
+    
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    
+    .image-upload {
+      border: 2px dashed #d1d5db;
+      border-radius: 0.5rem;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .image-upload:hover {
+      border-color: #9ca3af;
+      background: #f9fafb;
+    }
+    
+    .image-upload.has-image {
+      padding: 0;
+      border: none;
+    }
+    
+    .image-preview {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 0.5rem;
+    }
+    
+    .modal-footer {
+      padding: 1.5rem;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+    
+    .btn-cancel, .btn-save {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.375rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    .btn-cancel {
+      background: #e5e7eb;
+      color: #374151;
+      border: none;
+    }
+    
+    .btn-save {
+      background: #16a34a;
+      color: white;
+      border: none;
+    }
+    
+    .btn-save:hover {
+      background: #15803d;
+    }
+    
+    /* 알림 */
+    .alert-container {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 1100;
+    }
+    
+    .alert {
+      padding: 1rem 1.5rem;
+      border-radius: 0.5rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      min-width: 300px;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    .alert-success {
+      background: #dcfce7;
+      color: #166534;
+    }
+    
+    .alert-error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="site-header scrolled" id="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+    </a>
+    <nav class="main-nav-links">
+      <a href="/about">회사소개</a>
+      <a href="/products">메뉴</a>
+      <a href="/brands">브랜드소개</a>
+      <a href="/gallery">갤러리</a>
+      <a href="/documents">서식자료실</a>
+      <a href="/contact">문의</a>
+    </nav>
+    <div class="header-actions">
+      <a href="/intranet" class="btn-login">인트라넷</a>
+    </div>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="메뉴">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- ===== ADMIN HEADER ===== -->
+<div class="admin-header">
+  <div class="admin-header-inner">
+    <h1>메뉴(제품) 관리</h1>
+    <button class="btn-back" onclick="location.href='/admin'">관리자 홈으로</button>
+  </div>
+</div>
+
+<!-- ===== ADMIN NAVIGATION ===== -->
+<nav class="admin-nav">
+  <div class="admin-nav-inner">
+    <a href="/admin" class="admin-nav-item">대시보드</a>
+    <a href="/admin/notices" class="admin-nav-item">공지사항 관리</a>
+    <a href="/admin/about" class="admin-nav-item">회사소개 관리</a>
+    <a href="/admin/products" class="admin-nav-item active">메뉴(제품) 관리</a>
+    <a href="/admin/brands" class="admin-nav-item">브랜드소개 관리</a>
+    <a href="/admin/gallery" class="admin-nav-item">갤러리 관리</a>
+    <a href="/admin/documents" class="admin-nav-item">서식자료실 관리</a>
+    <a href="/admin/faq" class="admin-nav-item">FAQ&문의 관리</a>
+  </div>
+</nav>
+
+<!-- ===== ADMIN CONTENT ===== -->
+<div class="admin-container">
+  <!-- 알림 컨테이너 -->
+  <div id="alert-container" class="alert-container"></div>
+
+  <!-- 액션 바 -->
+  <div class="action-bar">
+    <div class="search-box">
+      <input type="text" class="search-input" placeholder="제품명으로 검색..." id="searchInput">
+      <button class="btn-search" onclick="searchProducts()">검색</button>
+    </div>
+    <button class="btn-add" onclick="showAddModal()">
+      <span>+</span> 새 제품 추가
+    </button>
+  </div>
+
+  <!-- 카테고리 탭 -->
+  <div class="category-tabs">
+    <button class="category-tab active" data-category="all" onclick="filterByCategory('all')">전체</button>
+    <button class="category-tab" data-category="signature" onclick="filterByCategory('signature')">시그니처</button>
+    <button class="category-tab" data-category="gamjatang" onclick="filterByCategory('gamjatang')">감자탕/해장국</button>
+    <button class="category-tab" data-category="side" onclick="filterByCategory('side')">사이드 메뉴</button>
+    <button class="category-tab" data-category="drink" onclick="filterByCategory('drink')">음료/주류</button>
+  </div>
+
+  <!-- 제품 리스트 -->
+  <div class="product-list">
+    <table class="product-table">
+      <thead>
+        <tr>
+          <th style="width: 80px">이미지</th>
+          <th>제품명</th>
+          <th style="width: 120px">카테고리</th>
+          <th style="width: 120px">가격</th>
+          <th style="width: 100px">배지</th>
+          <th style="width: 150px">작업</th>
+        </tr>
+      </thead>
+      <tbody id="productTableBody">
+        <!-- 제품 목록이 여기에 동적으로 추가됩니다 -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 제품 추가/수정 모달 -->
+<div id="productModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalTitle">새 제품 추가</h2>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <form id="productForm">
+      <div class="modal-body">
+        <input type="hidden" id="productId" />
+        
+        <div class="form-group">
+          <label class="form-label">제품명 *</label>
+          <input type="text" class="form-input" id="productName" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">카테고리 *</label>
+          <select class="form-select" id="productCategory" required>
+            <option value="">선택하세요</option>
+            <option value="signature">시그니처</option>
+            <option value="gamjatang">감자탕/해장국</option>
+            <option value="side">사이드 메뉴</option>
+            <option value="drink">음료/주류</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">가격</label>
+          <input type="text" class="form-input" id="productPrice" placeholder="예: 35,000원">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">설명</label>
+          <textarea class="form-textarea" id="productDesc" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">배지</label>
+          <select class="form-select" id="productBadge">
+            <option value="">없음</option>
+            <option value="new">NEW</option>
+            <option value="best">BEST</option>
+            <option value="hot">HOT</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">제품 이미지</label>
+          <div class="image-upload" id="imageUpload" onclick="document.getElementById('imageInput').click()">
+            <p>클릭하여 이미지 업로드</p>
+            <p style="font-size: 0.813rem; color: #6b7280;">JPG, PNG (최대 5MB)</p>
+          </div>
+          <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">상세 정보</label>
+          <input type="text" class="form-input" id="productCalorie" placeholder="칼로리 (예: 약 800kcal)" style="margin-bottom: 0.5rem;">
+          <input type="text" class="form-input" id="productTime" placeholder="조리시간 (예: 약 15분)" style="margin-bottom: 0.5rem;">
+          <input type="text" class="form-input" id="productServing" placeholder="제공량 (예: 1인분)">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" onclick="closeModal()">취소</button>
+        <button type="submit" class="btn-save">저장</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// 전역 변수
+let products = [];
+let currentCategory = 'all';
+let editingProductId = null;
+
+// 페이지 초기화
+async function init() {
+  await checkAuth();
+  await loadProducts();
+}
+
+// 관리자 권한 확인
+async function checkAuth() {
+  const token = localStorage.getItem('eden_token');
+  if (!token) {
+    alert('로그인이 필요합니다.');
+    location.href = '/login';
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/auth/me', {
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    });
+    const data = await response.json();
+    
+    if (!data.ok || data.user.role !== 'admin') {
+      alert('관리자 권한이 필요합니다.');
+      location.href = '/';
+    }
+  } catch (error) {
+    console.error('인증 확인 실패:', error);
+    location.href = '/login';
+  }
+}
+
+// 제품 목록 불러오기
+async function loadProducts() {
+  try {
+    const response = await fetch('/api/products');
+    const data = await response.json();
+    
+    if (data.ok) {
+      products = data.products || [];
+      renderProducts();
+    }
+  } catch (error) {
+    console.error('제품 로드 실패:', error);
+    showAlert('제품 목록을 불러오는데 실패했습니다.', 'error');
+  }
+}
+
+// 제품 목록 렌더링
+function renderProducts() {
+  const tbody = document.getElementById('productTableBody');
+  const filteredProducts = currentCategory === 'all' 
+    ? products 
+    : products.filter(p => p.category === currentCategory);
+  
+  if (filteredProducts.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 3rem; color: #6b7280;">
+          등록된 제품이 없습니다.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  tbody.innerHTML = filteredProducts.map(product => `
+    <tr>
+      <td>
+        <img src="${product.image || '/assets/placeholder.jpg'}" 
+             alt="${product.name}" 
+             class="product-image">
+      </td>
+      <td>
+        <div class="product-name">${product.name}</div>
+        ${product.description ? `<div class="product-desc">${product.description}</div>` : ''}
+      </td>
+      <td>${getCategoryName(product.category)}</td>
+      <td>${product.price || '-'}</td>
+      <td>
+        ${product.badge ? `<span class="badge badge-${product.badge}">${product.badge.toUpperCase()}</span>` : '-'}
+      </td>
+      <td>
+        <div class="action-buttons">
+          <button class="btn-edit" onclick="editProduct(${product.id})">수정</button>
+          <button class="btn-delete" onclick="deleteProduct(${product.id})">삭제</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// 카테고리명 변환
+function getCategoryName(category) {
+  const names = {
+    'signature': '시그니처',
+    'gamjatang': '감자탕/해장국',
+    'side': '사이드 메뉴',
+    'drink': '음료/주류'
+  };
+  return names[category] || category;
+}
+
+// 카테고리 필터
+function filterByCategory(category) {
+  currentCategory = category;
+  
+  // 탭 활성화 상태 변경
+  document.querySelectorAll('.category-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.category === category);
+  });
+  
+  renderProducts();
+}
+
+// 제품 검색
+function searchProducts() {
+  const keyword = document.getElementById('searchInput').value.toLowerCase();
+  const tbody = document.getElementById('productTableBody');
+  
+  const filtered = products.filter(p => 
+    p.name.toLowerCase().includes(keyword) ||
+    (p.description && p.description.toLowerCase().includes(keyword))
+  );
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" style="text-align: center; padding: 3rem; color: #6b7280;">
+          검색 결과가 없습니다.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+  
+  products = filtered;
+  renderProducts();
+}
+
+// 새 제품 추가 모달 표시
+function showAddModal() {
+  editingProductId = null;
+  document.getElementById('modalTitle').textContent = '새 제품 추가';
+  document.getElementById('productForm').reset();
+  document.getElementById('imageUpload').classList.remove('has-image');
+  document.getElementById('imageUpload').innerHTML = `
+    <p>클릭하여 이미지 업로드</p>
+    <p style="font-size: 0.813rem; color: #6b7280;">JPG, PNG (최대 5MB)</p>
+  `;
+  document.getElementById('productModal').classList.add('active');
+}
+
+// 제품 수정
+async function editProduct(id) {
+  const product = products.find(p => p.id === id);
+  if (!product) return;
+  
+  editingProductId = id;
+  document.getElementById('modalTitle').textContent = '제품 수정';
+  
+  // 폼에 데이터 채우기
+  document.getElementById('productId').value = product.id;
+  document.getElementById('productName').value = product.name || '';
+  document.getElementById('productCategory').value = product.category || '';
+  document.getElementById('productPrice').value = product.price || '';
+  document.getElementById('productDesc').value = product.description || '';
+  document.getElementById('productBadge').value = product.badge || '';
+  document.getElementById('productCalorie').value = product.calorie || '';
+  document.getElementById('productTime').value = product.time || '';
+  document.getElementById('productServing').value = product.serving || '';
+  
+  // 이미지 미리보기
+  if (product.image) {
+    showImagePreview(product.image);
+  }
+  
+  document.getElementById('productModal').classList.add('active');
+}
+
+// 제품 삭제
+async function deleteProduct(id) {
+  if (!confirm('정말로 이 제품을 삭제하시겠습니까?')) return;
+  
+  const token = localStorage.getItem('eden_token');
+  
+  try {
+    const response = await fetch(`/api/products/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok) {
+      showAlert('제품이 삭제되었습니다.');
+      await loadProducts();
+    } else {
+      showAlert('삭제 실패: ' + (data.message || '알 수 없는 오류'), 'error');
+    }
+  } catch (error) {
+    console.error('삭제 오류:', error);
+    showAlert('삭제 중 오류가 발생했습니다.', 'error');
+  }
+}
+
+// 이미지 선택 처리
+async function handleImageSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  // 파일 크기 체크
+  if (file.size > 5 * 1024 * 1024) {
+    showAlert('이미지 파일은 5MB 이하만 가능합니다.', 'error');
+    return;
+  }
+  
+  // 파일 타입 체크
+  if (!file.type.startsWith('image/')) {
+    showAlert('이미지 파일만 업로드 가능합니다.', 'error');
+    return;
+  }
+  
+  try {
+    // FormData 생성
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    // 서버에 업로드
+    const token = localStorage.getItem('eden_token');
+    const response = await fetch('/api/products/upload-image', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      body: formData
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok) {
+      showImagePreview(data.path);
+      showAlert('이미지가 업로드되었습니다.');
+    } else {
+      showAlert('이미지 업로드 실패: ' + (data.message || '알 수 없는 오류'), 'error');
+    }
+  } catch (error) {
+    console.error('이미지 업로드 오류:', error);
+    showAlert('이미지 업로드 중 오류가 발생했습니다.', 'error');
+  }
+}
+
+// 이미지 미리보기 표시
+function showImagePreview(imagePath) {
+  const uploadBox = document.getElementById('imageUpload');
+  uploadBox.classList.add('has-image');
+  uploadBox.innerHTML = `<img src="${imagePath}" class="image-preview" alt="제품 이미지">`;
+  uploadBox.dataset.imagePath = imagePath;
+}
+
+// 모달 닫기
+function closeModal() {
+  document.getElementById('productModal').classList.remove('active');
+  document.getElementById('productForm').reset();
+  editingProductId = null;
+}
+
+// 폼 제출 처리
+document.getElementById('productForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const token = localStorage.getItem('eden_token');
+  const imagePath = document.getElementById('imageUpload').dataset.imagePath;
+  
+  const productData = {
+    name: document.getElementById('productName').value,
+    category: document.getElementById('productCategory').value,
+    price: document.getElementById('productPrice').value,
+    description: document.getElementById('productDesc').value,
+    badge: document.getElementById('productBadge').value,
+    image: imagePath || null,
+    calorie: document.getElementById('productCalorie').value,
+    time: document.getElementById('productTime').value,
+    serving: document.getElementById('productServing').value
+  };
+  
+  try {
+    const url = editingProductId 
+      ? `/api/products/${editingProductId}` 
+      : '/api/products';
+    
+    const method = editingProductId ? 'PUT' : 'POST';
+    
+    const response = await fetch(url, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(productData)
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok) {
+      showAlert(editingProductId ? '제품이 수정되었습니다.' : '제품이 추가되었습니다.');
+      closeModal();
+      await loadProducts();
+    } else {
+      showAlert('저장 실패: ' + (data.message || '알 수 없는 오류'), 'error');
+    }
+  } catch (error) {
+    console.error('저장 오류:', error);
+    showAlert('저장 중 오류가 발생했습니다.', 'error');
+  }
+});
+
+// 알림 표시
+function showAlert(message, type = 'success') {
+  const alertContainer = document.getElementById('alert-container');
+  const alertDiv = document.createElement('div');
+  alertDiv.className = `alert alert-${type}`;
+  alertDiv.innerHTML = `
+    <span>${type === 'success' ? '✓' : '⚠'}</span>
+    <span>${message}</span>
+  `;
+  
+  alertContainer.appendChild(alertDiv);
+  
+  // 3초 후 제거
+  setTimeout(() => {
+    alertDiv.remove();
+  }, 3000);
+}
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeModal();
+  }
+});
+
+// 모달 외부 클릭 시 닫기
+document.getElementById('productModal').addEventListener('click', (e) => {
+  if (e.target.id === 'productModal') {
+    closeModal();
+  }
+});
+
+// 초기화
+init();
+</script>
+
+</body>
+</html>
