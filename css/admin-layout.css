@@ -1,0 +1,377 @@
+/* 관리자 레이아웃 공통 스타일 */
+:root {
+  --sidebar-width: 260px;
+  --header-height: 60px;
+  --admin-primary: #111827;
+  --admin-primary-hover: #1f2937;
+  --admin-text: #e5e7eb;
+  --admin-text-active: #ffffff;
+  --admin-bg: #f9fafb;
+  --admin-card-bg: #ffffff;
+  --admin-border: #e5e7eb;
+}
+
+/* 레이아웃 구조 */
+.admin-wrapper {
+  display: flex;
+  min-height: 100vh;
+  padding-top: var(--header-height);
+}
+
+/* 사이드바 */
+.admin-sidebar {
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  width: var(--sidebar-width);
+  height: calc(100vh - var(--header-height));
+  background: var(--admin-primary);
+  overflow-y: auto;
+  z-index: 40;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-title {
+  color: var(--admin-text-active);
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.sidebar-subtitle {
+  color: var(--admin-text);
+  font-size: 0.813rem;
+}
+
+/* 메뉴 그룹 */
+.sidebar-menu {
+  padding: 1rem 0;
+}
+
+.menu-group {
+  margin-bottom: 1.5rem;
+}
+
+.menu-group-title {
+  padding: 0.5rem 1.5rem;
+  color: var(--admin-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  color: var(--admin-text);
+  text-decoration: none;
+  font-size: 0.938rem;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.menu-item:hover {
+  background: var(--admin-primary-hover);
+  color: var(--admin-text-active);
+}
+
+.menu-item.active {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--admin-text-active);
+}
+
+.menu-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #10b981;
+}
+
+.menu-item-icon {
+  margin-right: 0.75rem;
+  font-size: 1.25rem;
+  width: 1.25rem;
+  text-align: center;
+}
+
+/* 서브메뉴 */
+.submenu {
+  display: none;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.submenu.active {
+  display: block;
+}
+
+.submenu .menu-item {
+  padding-left: 3.5rem;
+  font-size: 0.875rem;
+}
+
+.menu-item.has-submenu::after {
+  content: '›';
+  position: absolute;
+  right: 1.5rem;
+  transition: transform 0.2s;
+}
+
+.menu-item.has-submenu.expanded::after {
+  transform: rotate(90deg);
+}
+
+/* 메인 콘텐츠 */
+.admin-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  background: var(--admin-bg);
+  min-height: calc(100vh - var(--header-height));
+}
+
+.admin-content {
+  padding: 2rem;
+}
+
+/* 페이지 헤더 */
+.page-header {
+  background: var(--admin-card-bg);
+  border-radius: 0.75rem;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.page-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--admin-primary);
+}
+
+.page-desc {
+  color: #6b7280;
+  font-size: 0.938rem;
+  margin-top: 0.25rem;
+}
+
+/* 액션 버튼 */
+.page-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn {
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: #16a34a;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #15803d;
+}
+
+.btn-secondary {
+  background: white;
+  color: #374151;
+  border: 1px solid var(--admin-border);
+}
+
+.btn-secondary:hover {
+  background: #f9fafb;
+}
+
+/* 모바일 메뉴 토글 */
+.mobile-menu-toggle {
+  display: none;
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  width: 56px;
+  height: 56px;
+  background: var(--admin-primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 50;
+}
+
+/* 반응형 */
+@media (max-width: 1024px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .admin-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  
+  .admin-main {
+    margin-left: 0;
+  }
+  
+  .mobile-menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 35;
+    display: none;
+  }
+  
+  .sidebar-overlay.active {
+    display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-content {
+    padding: 1rem;
+  }
+  
+  .page-header {
+    padding: 1rem;
+  }
+  
+  .page-header-flex {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .page-actions {
+    width: 100%;
+  }
+  
+  .page-actions .btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* 테이블 스타일 */
+.data-table {
+  width: 100%;
+  background: var(--admin-card-bg);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.data-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th {
+  background: #f9fafb;
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.813rem;
+  font-weight: 600;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.data-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tr:hover {
+  background: #f9fafb;
+}
+
+/* 폼 요소 */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 0.5rem;
+  font-size: 0.938rem;
+  transition: all 0.2s;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+}
+
+.form-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* 카드 그리드 */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  background: var(--admin-card-bg);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}

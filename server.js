@@ -32,7 +32,7 @@ app.use(express.json({
 /* 파일 업로드 설정 */
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, 'public/assets/uploads');
+    const uploadPath = path.join(__dirname, 'uploads');
     // 디렉토리가 없으면 생성
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
@@ -72,13 +72,13 @@ const Jimp = require('jimp');
 const aboutStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     const type = req.body.type || 'ceo'; // ceo, executive, history 등
-    const uploadPath = path.join(__dirname, 'public/assets/uploads/about', type);
+    const uploadPath = path.join(__dirname, 'uploads/about', type);
     // 디렉토리가 없으면 생성
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
     // 썸네일 디렉토리도 생성
-    const thumbPath = path.join(__dirname, 'public/assets/uploads/about', type, 'thumbnails');
+    const thumbPath = path.join(__dirname, 'uploads/about', type, 'thumbnails');
     if (!fs.existsSync(thumbPath)) {
       fs.mkdirSync(thumbPath, { recursive: true });
     }
@@ -128,14 +128,18 @@ app.use((req, res, next) => {
   next();
 });
 
+// admin 정적 파일 (가장 먼저 처리되도록)
+app.use('/admin', express.static(path.join(__dirname, 'admin'), {
+  extensions: ['html']  // .html 확장자 자동 추가
+}));
 // public/ 정적 파일 (랜딩, 로그인, 인트라넷 허브, 영상 등)
 app.use(express.static(path.join(__dirname, 'public')));
-// 차량 앱 정적 파일 (/car/ prefix 제거 후 루트 기준 서빙)
-app.use('/car', express.static(path.join(__dirname)));
-// admin 정적 파일
-app.use('/admin', express.static(path.join(__dirname, 'admin')));
-// 루트 정적 파일 (js/, css/ 등 공통 자원)
-app.use(express.static(path.join(__dirname)));
+// intranet (차량 앱) 정적 파일
+app.use('/intranet/car', express.static(path.join(__dirname, 'intranet')));
+// css 디렉토리 정적 파일
+app.use('/css', express.static(path.join(__dirname, 'css')));
+// uploads 디렉토리 정적 파일
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 /* ─────────────────────────────────────────
    DB 연결 설정 (createConnection 기반)
@@ -2091,7 +2095,7 @@ app.post('/api/about/upload-image', authMiddleware, aboutUpload.single('image'),
     const nameWithoutExt = path.basename(filename, ext);
     
     // 썸네일 생성 (300x300) - Jimp 사용
-    const thumbPath = path.join(__dirname, 'public/assets/uploads/about', type, 'thumbnails', `${nameWithoutExt}_thumb${ext}`);
+    const thumbPath = path.join(__dirname, 'uploads/about', type, 'thumbnails', `${nameWithoutExt}_thumb${ext}`);
     
     try {
       const image = await Jimp.read(originalPath);
@@ -2117,8 +2121,8 @@ app.post('/api/about/upload-image', authMiddleware, aboutUpload.single('image'),
     }
     
     // 업로드된 파일 경로 (public 경로로 변환)
-    const imagePath = `/assets/uploads/about/${type}/${filename}`;
-    const thumbnailPath = `/assets/uploads/about/${type}/thumbnails/${nameWithoutExt}_thumb${ext}`;
+    const imagePath = `/uploads/about/${type}/${filename}`;
+    const thumbnailPath = `/uploads/about/${type}/thumbnails/${nameWithoutExt}_thumb${ext}`;
     
     ok(res, { 
       path: imagePath,
@@ -2306,7 +2310,7 @@ app.post('/api/upload/image', authMiddleware, (req, res) => {
       console.log('업로드된 파일:', req.file);
       
       const uploadType = req.body.type || 'general';
-      const uploadPath = path.join(__dirname, 'public/assets/uploads');
+      const uploadPath = path.join(__dirname, 'uploads');
       
       // 타입별 폴더 생성
       let typeFolder = '';
@@ -2349,11 +2353,13 @@ app.post('/api/upload/image', authMiddleware, (req, res) => {
           }
           
           // 웹에서 접근 가능한 경로
-          const imageUrl = `/assets/uploads/${typeFolder}/${req.file.filename}`;
-          const thumbnailUrl = `/assets/uploads/${typeFolder}/thumbnails/${thumbFilename}`;
+          const imageUrl = `/uploads/${typeFolder}/${req.file.filename}`;
+          const thumbnailUrl = `/uploads/${typeFolder}/thumbnails/${thumbFilename}`;
           
           res.json({
+            ok: true,
             success: true,
+            url: imageUrl,
             imageUrl,
             thumbnailUrl,
             filename: req.file.filename,
@@ -2362,10 +2368,12 @@ app.post('/api/upload/image', authMiddleware, (req, res) => {
           });
         } else {
           // 일반 이미지
-          const imageUrl = `/assets/uploads/${typeFolder ? typeFolder + '/' : ''}${req.file.filename}`;
+          const imageUrl = `/uploads/${typeFolder ? typeFolder + '/' : ''}${req.file.filename}`;
           
           res.json({
+            ok: true,
             success: true,
+            url: imageUrl,
             imageUrl,
             filename: req.file.filename,
             originalName: req.file.originalname,
@@ -2374,10 +2382,12 @@ app.post('/api/upload/image', authMiddleware, (req, res) => {
         }
       } else {
         // 기본 업로드
-        const imageUrl = `/assets/uploads/${req.file.filename}`;
+        const imageUrl = `/uploads/${req.file.filename}`;
         
         res.json({
+          ok: true,
           success: true,
+          url: imageUrl,
           imageUrl,
           filename: req.file.filename,
           originalName: req.file.originalname,
@@ -2991,7 +3001,7 @@ app.get('/api/products', async (req, res) => {
 // 제품 이미지 업로드 전용 설정
 const productStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, 'public/assets/uploads/products');
+    const uploadPath = path.join(__dirname, 'uploads/products');
     if (!fs.existsSync(uploadPath)) {
       fs.mkdirSync(uploadPath, { recursive: true });
     }
@@ -3031,7 +3041,7 @@ app.post('/api/products/upload-image', authMiddleware, productUpload.single('ima
       return err(res, '이미지 파일을 선택해주세요.', 400);
     }
     
-    const imagePath = '/assets/uploads/products/' + req.file.filename;
+    const imagePath = '/uploads/products/' + req.file.filename;
     
     ok(res, { 
       path: imagePath,

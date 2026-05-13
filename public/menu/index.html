@@ -8,7 +8,7 @@
   <link rel="icon" href="/favicon.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/public/assets/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/css/landing.css?v=2.0" />
   <link rel="stylesheet" href="/css/global.css?v=2.0" />
   <style>
     /* 헤더 공간 확보 */
@@ -30,7 +30,7 @@
     
     /* 메뉴 헤더 스타일 */
     .menu-hero {
-      background: url('/public/assets/tang.jpg') center/cover;
+      background: url('/assets/tang.jpg') center/cover;
       position: relative;
       height: 400px;
       display: flex;
@@ -443,7 +443,7 @@
 <header class="site-header scrolled" id="site-header">
   <div class="header-inner">
     <a href="/" class="logo">
-      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+      <img src="/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
     </a>
     <nav class="main-nav-links">
       <a href="/about">회사소개</a>
@@ -507,7 +507,7 @@
         <!-- 감자탕 -->
         <div class="menu-item" onclick="showMenuDetail('gamjatang')">
           <div class="menu-item-image">
-            <img src="/public/assets/thumbnails/thumb_tang.jpg" alt="감자탕" />
+            <img src="/assets/thumbnails/thumb_tang.jpg" alt="감자탕" />
             <span class="menu-badge best">BEST</span>
           </div>
           <div class="menu-item-content">
@@ -526,7 +526,7 @@
         <!-- 뼈찜 -->
         <div class="menu-item" onclick="showMenuDetail('jjim')">
           <div class="menu-item-image">
-            <img src="/public/assets/thumbnails/thumb_jjim.jpg" alt="뼈찜" />
+            <img src="/assets/thumbnails/thumb_jjim.jpg" alt="뼈찜" />
             <span class="menu-badge new">NEW</span>
           </div>
           <div class="menu-item-content">
@@ -545,7 +545,7 @@
         <!-- 뼈해장국 -->
         <div class="menu-item" onclick="showMenuDetail('haejangguk')">
           <div class="menu-item-image">
-            <img src="/public/assets/thumbnails/thumb_guk.jpg" alt="뼈해장국" />
+            <img src="/assets/thumbnails/thumb_guk.jpg" alt="뼈해장국" />
           </div>
           <div class="menu-item-content">
             <div class="menu-item-header">
@@ -563,7 +563,7 @@
         <!-- 왕갈비탕 -->
         <div class="menu-item" onclick="showMenuDetail('galbitang')">
           <div class="menu-item-image">
-            <img src="/public/assets/tang.jpg" alt="왕갈비탕" style="object-position: center 40%;" />
+            <img src="/assets/tang.jpg" alt="왕갈비탕" style="object-position: center 40%;" />
             <span class="menu-badge best">BEST</span>
           </div>
           <div class="menu-item-content">
@@ -582,7 +582,7 @@
         <!-- 김치찌개 -->
         <div class="menu-item" onclick="showMenuDetail('kimchi')">
           <div class="menu-item-image">
-            <img src="/public/assets/jjim.jpg" alt="김치찌개" style="object-position: center 60%;" />
+            <img src="/assets/jjim.jpg" alt="김치찌개" style="object-position: center 60%;" />
           </div>
           <div class="menu-item-content">
             <div class="menu-item-header">
@@ -600,7 +600,7 @@
         <!-- 통장아찌 -->
         <div class="menu-item" onclick="showMenuDetail('tongjang')">
           <div class="menu-item-image">
-            <img src="/public/assets/thumbnails/thumb_tongjang.jpg" alt="통장아찌" />
+            <img src="/assets/thumbnails/thumb_tongjang.jpg" alt="통장아찌" />
           </div>
           <div class="menu-item-content">
             <div class="menu-item-header">
@@ -685,7 +685,7 @@ document.getElementById('nav-hamburger').addEventListener('click', () => {
 const menuData = {
   gamjatang: {
     name: '감자탕',
-    image: '/public/assets/tang.jpg',
+    image: '/assets/tang.jpg',
     desc: '12시간 이상 푹 고아낸 진한 사골 육수에 큼직한 등뼈와 감자, 우거지를 넣고 끓인 이든푸드의 대표 메뉴입니다. 고소하고 진한 국물과 부드러운 고기가 일품입니다.',
     nutrition: {
       calories: '680kcal',
@@ -702,7 +702,7 @@ const menuData = {
   },
   jjim: {
     name: '매운 뼈찜',
-    image: '/public/assets/jjim.jpg',
+    image: '/assets/jjim.jpg',
     desc: '부드럽게 삶은 등뼈에 특제 매콤 양념을 더한 인기 메뉴입니다. 감자, 당근 등 야채와 함께 조리하여 영양도 풍부합니다.',
     nutrition: {
       calories: '720kcal',
@@ -717,7 +717,7 @@ const menuData = {
   },
   haejangguk: {
     name: '뼈해장국',
-    image: '/public/assets/guk.jpg',
+    image: '/assets/guk.jpg',
     desc: '시원한 국물에 부드러운 등뼈 살코기와 우거지가 들어간 해장국입니다. 속이 편안해지는 담백한 맛이 특징입니다.',
     nutrition: {
       calories: '320kcal',
@@ -801,7 +801,7 @@ document.getElementById('menu-detail').addEventListener('click', (e) => {
 <footer class="site-footer">
   <div class="footer-inner">
     <div class="footer-brand">
-      <img src="/public/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+      <img src="/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
       <p>신선함을 잇는 가치, 이든푸드</p>
     </div>
     <div class="footer-links">

@@ -956,16 +956,16 @@
         const data = await response.json();
         console.log('응답 데이터:', data);
         
-        if (data.ok) {
+        if (data.ok || data.success) {
           // 최적화된 URL이 있으면 사용, 없으면 원본 사용
-          const imageUrl = data.optimizedUrl || data.url;
+          const imageUrl = data.optimizedUrl || data.url || data.imageUrl;
           document.getElementById('popup_image').value = imageUrl;
           console.log('업로드된 이미지 URL:', imageUrl);
           
           // 미리보기 표시
           const preview = document.getElementById('popup-image-preview');
           const previewContainer = document.getElementById('image-preview-container');
-          preview.src = data.url;
+          preview.src = imageUrl;
           previewContainer.style.display = 'block';
           
           // 버튼 텍스트 변경

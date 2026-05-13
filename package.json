@@ -1,7 +1,7 @@
 {
-  "name": "eden-car-logbook",
-  "version": "2.1.0",
-  "description": "(주)이든푸드 업무용 차량 운행기록부",
+  "name": "edenfood-system",
+  "version": "3.0.0",
+  "description": "(주)이든푸드 통합 관리 시스템",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
