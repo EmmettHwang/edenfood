@@ -145,6 +145,9 @@
       overflow: hidden;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       transition: all 0.2s;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
     }
     
     .brand-card:hover {
@@ -167,6 +170,9 @@
     
     .brand-content {
       padding: 1.5rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
     
     .brand-name {
@@ -192,12 +198,27 @@
       color: #6b7280;
       line-height: 1.5;
       margin-bottom: 1rem;
-      height: 2.5rem;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
+      white-space: pre-line;
+    }
+    
+    .brand-desc ul {
+      list-style: none;
+      padding: 0;
+      margin: 0.5rem 0 0 0;
+    }
+    
+    .brand-desc ul li {
+      padding-left: 1rem;
+      position: relative;
+      margin-bottom: 0.25rem;
+    }
+    
+    .brand-desc ul li:before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: #16a34a;
+      font-weight: bold;
     }
     
     .brand-actions {
@@ -205,6 +226,7 @@
       gap: 0.5rem;
       padding-top: 1rem;
       border-top: 1px solid #e5e7eb;
+      margin-top: auto;
     }
     
     .btn-edit, .btn-delete {
@@ -432,9 +454,105 @@
       font-size: 1rem;
       margin-bottom: 1.5rem;
     }
+    
+    /* 프로그레스바 스타일 */
+    .progress-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    
+    .progress-overlay.active {
+      display: flex;
+    }
+    
+    .progress-container {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      min-width: 300px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .progress-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    
+    .progress-bar-wrapper {
+      width: 100%;
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: #16a34a;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+      text-align: center;
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    
+    /* 이미지 업로드 */
+    .image-upload {
+      border: 2px dashed #d1d5db;
+      border-radius: 0.5rem;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #f9fafb;
+    }
+    
+    .image-upload:hover {
+      border-color: #16a34a;
+      background: #f0fdf4;
+    }
+    
+    .image-upload.has-image {
+      padding: 0;
+      border: none;
+      position: relative;
+    }
+    
+    .image-preview {
+      width: 100%;
+      height: 200px;
+      object-fit: contain;
+      background: #f9fafb;
+      border-radius: 0.5rem;
+    }
   </style>
 </head>
 <body>
+
+<!-- 프로그레스바 오버레이 -->
+<div class="progress-overlay" id="progressOverlay">
+  <div class="progress-container">
+    <div class="progress-title">이미지 업로드 중...</div>
+    <div class="progress-bar-wrapper">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="progress-text" id="progressText">0%</div>
+  </div>
+</div>
 
 <!-- ===== HEADER ===== -->
 <header class="site-header scrolled" id="site-header">
@@ -564,8 +682,20 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">로고 URL</label>
-          <input type="url" class="form-input" id="brandLogoUrl" placeholder="https://example.com/logo.png">
+          <label class="form-label">로고 이미지</label>
+          <div class="image-upload" id="logoUpload" onclick="document.getElementById('logoInput').click()">
+            <input type="file" id="logoInput" accept="image/*" style="display: none;" onchange="handleLogoChange(event)">
+            <img id="logoPreview" class="image-preview" style="display: none;">
+            <div id="logoPlaceholder">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5">
+                <path d="M3 9a2 2 0 012-2h1a1 1 0 011 1v4a1 1 0 01-1 1H5a2 2 0 01-2-2V9zM14 9a2 2 0 012-2h1a1 1 0 011 1v4a1 1 0 01-1 1h-1a2 2 0 01-2-2V9z" />
+                <path d="M7 11h4M18 11h4M9 16c0 1.657 1.343 3 3 3s3-1.343 3-3" />
+                <rect x="2" y="5" width="20" height="14" rx="2" />
+              </svg>
+              <p style="margin-top: 1rem; color: #6b7280; font-size: 0.875rem;">클릭하여 로고 업로드</p>
+            </div>
+          </div>
+          <input type="hidden" id="brandLogoUrl">
         </div>
       </div>
       <div class="modal-footer">
@@ -580,6 +710,7 @@
 // 전역 변수
 let brands = [];
 let editingBrandId = null;
+let selectedLogoFile = null;
 
 // 페이지 초기화
 async function init() {
@@ -620,9 +751,12 @@ async function loadBrands() {
     const response = await fetch('/api/brands');
     const data = await response.json();
     
-    if (data.success) {
-      brands = data.brands || [];
+    if (data.ok || data.success) {
+      brands = data.data?.brands || data.brands || [];
       renderBrands();
+    } else {
+      console.error('브랜드 로드 실패:', data);
+      showAlert('브랜드 목록을 불러오는데 실패했습니다: ' + (data.message || data.error || '알 수 없는 오류'), 'error');
     }
   } catch (error) {
     console.error('브랜드 로드 실패:', error);
@@ -644,7 +778,20 @@ function renderBrands() {
   brandList.style.display = 'grid';
   emptyState.style.display = 'none';
   
-  brandList.innerHTML = brands.map(brand => `
+  brandList.innerHTML = brands.map(brand => {
+    // description을 HTML로 변환 (줄바꿈과 bullet point 처리)
+    let formattedDesc = brand.description || '설명이 없습니다.';
+    if (formattedDesc.includes('•')) {
+      const lines = formattedDesc.split('\n');
+      formattedDesc = lines.map(line => {
+        if (line.trim().startsWith('•')) {
+          return line.trim();
+        }
+        return line;
+      }).join('\n');
+    }
+    
+    return `
     <div class="brand-card">
       <div class="brand-image" style="background: ${brand.color_primary || '#16a34a'}20;">
         ${brand.logo_url ? 
@@ -655,7 +802,7 @@ function renderBrands() {
       <div class="brand-content">
         <h3 class="brand-name">${brand.name}</h3>
         ${brand.tagline ? `<p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.5rem;">${brand.tagline}</p>` : ''}
-        <p class="brand-desc">${brand.description || '설명이 없습니다.'}</p>
+        <p class="brand-desc">${formattedDesc}</p>
         <div style="font-size: 0.813rem; color: #6b7280; margin-bottom: 0.5rem;">
           ${brand.website ? `<a href="${brand.website}" target="_blank" style="color: ${brand.color_primary || '#16a34a'}; text-decoration: none;">🌐 웹사이트</a>` : ''}
         </div>
@@ -668,16 +815,32 @@ function renderBrands() {
         </div>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 
 // 새 브랜드 추가 모달 표시
 function showAddModal() {
   editingBrandId = null;
+  selectedLogoFile = null;
   document.getElementById('modalTitle').textContent = '새 브랜드 추가';
   document.getElementById('brandForm').reset();
+  resetLogoUpload();
   document.getElementById('brandModal').classList.add('active');
+}
+
+// 로고 업로드 리셋
+function resetLogoUpload() {
+  const logoUpload = document.getElementById('logoUpload');
+  const logoPreview = document.getElementById('logoPreview');
+  const logoPlaceholder = document.getElementById('logoPlaceholder');
+  
+  logoUpload.classList.remove('has-image');
+  logoPreview.style.display = 'none';
+  logoPreview.src = '';
+  logoPlaceholder.style.display = 'block';
+  document.getElementById('logoInput').value = '';
+  selectedLogoFile = null;
 }
 
 // 브랜드 수정
@@ -686,6 +849,7 @@ async function editBrand(id) {
   if (!brand) return;
   
   editingBrandId = id;
+  selectedLogoFile = null;
   document.getElementById('modalTitle').textContent = '브랜드 수정';
   
   // 폼에 데이터 채우기
@@ -699,6 +863,20 @@ async function editBrand(id) {
   document.getElementById('brandStatus').value = brand.status || 'active';
   document.getElementById('brandOrderNum').value = brand.order_num || 0;
   document.getElementById('brandLogoUrl').value = brand.logo_url || '';
+  
+  // 로고 이미지 표시
+  if (brand.logo_url) {
+    const logoUpload = document.getElementById('logoUpload');
+    const logoPreview = document.getElementById('logoPreview');
+    const logoPlaceholder = document.getElementById('logoPlaceholder');
+    
+    logoUpload.classList.add('has-image');
+    logoPreview.src = brand.logo_url;
+    logoPreview.style.display = 'block';
+    logoPlaceholder.style.display = 'none';
+  } else {
+    resetLogoUpload();
+  }
   
   document.getElementById('brandModal').classList.add('active');
 }
@@ -736,13 +914,128 @@ async function deleteBrand(id) {
 function closeModal() {
   document.getElementById('brandModal').classList.remove('active');
   document.getElementById('brandForm').reset();
+  resetLogoUpload();
   editingBrandId = null;
+  selectedLogoFile = null;
+}
+
+// 로고 파일 변경 처리
+function handleLogoChange(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  // 파일 크기 체크 (50MB)
+  if (file.size > 50 * 1024 * 1024) {
+    showAlert('파일 크기는 50MB를 초과할 수 없습니다.', 'error');
+    event.target.value = '';
+    return;
+  }
+  
+  // 이미지 파일인지 체크
+  if (!file.type.startsWith('image/')) {
+    showAlert('이미지 파일만 업로드 가능합니다.', 'error');
+    event.target.value = '';
+    return;
+  }
+  
+  selectedLogoFile = file;
+  
+  // 미리보기 표시
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const logoUpload = document.getElementById('logoUpload');
+    const logoPreview = document.getElementById('logoPreview');
+    const logoPlaceholder = document.getElementById('logoPlaceholder');
+    
+    logoUpload.classList.add('has-image');
+    logoPreview.src = e.target.result;
+    logoPreview.style.display = 'block';
+    logoPlaceholder.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+// 프로그레스바 표시
+function showProgress(percent) {
+  const progressOverlay = document.getElementById('progressOverlay');
+  const progressBar = document.getElementById('progressBar');
+  const progressText = document.getElementById('progressText');
+  
+  progressOverlay.classList.add('active');
+  progressBar.style.width = percent + '%';
+  progressText.textContent = Math.round(percent) + '%';
+}
+
+// 프로그레스바 숨기기
+function hideProgress() {
+  setTimeout(() => {
+    document.getElementById('progressOverlay').classList.remove('active');
+    document.getElementById('progressBar').style.width = '0%';
+    document.getElementById('progressText').textContent = '0%';
+  }, 500);
 }
 
 // 폼 제출 처리
 document.getElementById('brandForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   
+  const token = localStorage.getItem('eden_token');
+  
+  // 로고 파일이 있으면 먼저 업로드
+  if (selectedLogoFile) {
+    try {
+      const formData = new FormData();
+      formData.append('type', 'brand');
+      formData.append('image', selectedLogoFile);
+      
+      const xhr = new XMLHttpRequest();
+      
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percentComplete = (e.loaded / e.total) * 100;
+          showProgress(percentComplete);
+        }
+      });
+      
+      xhr.onload = async function() {
+        hideProgress();
+        
+        if (xhr.status === 200) {
+          const uploadData = JSON.parse(xhr.responseText);
+          if (uploadData.ok || uploadData.success) {
+            // 업로드 성공 시 로고 URL 설정
+            document.getElementById('brandLogoUrl').value = uploadData.imageUrl || uploadData.url;
+            // 브랜드 저장 진행
+            await saveBrand();
+          } else {
+            showAlert('로고 업로드 실패: ' + (uploadData.message || '알 수 없는 오류'), 'error');
+          }
+        } else {
+          showAlert('로고 업로드 실패', 'error');
+        }
+      };
+      
+      xhr.onerror = function() {
+        hideProgress();
+        showAlert('로고 업로드 중 오류가 발생했습니다.', 'error');
+      };
+      
+      xhr.open('POST', '/api/brands/upload');
+      xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+      xhr.send(formData);
+    } catch (error) {
+      hideProgress();
+      console.error('업로드 오류:', error);
+      showAlert('로고 업로드 중 오류가 발생했습니다.', 'error');
+    }
+  } else {
+    // 로고 파일이 없으면 바로 저장
+    await saveBrand();
+  }
+});
+
+// 브랜드 정보 저장
+async function saveBrand() {
   const token = localStorage.getItem('eden_token');
   const brandData = {
     name: document.getElementById('brandName').value,
@@ -774,18 +1067,18 @@ document.getElementById('brandForm').addEventListener('submit', async (e) => {
     
     const data = await response.json();
     
-    if (data.success) {
+    if (data.success || data.ok) {
       showAlert(editingBrandId ? '브랜드가 수정되었습니다.' : '브랜드가 추가되었습니다.');
       closeModal();
       await loadBrands();
     } else {
-      showAlert('저장 실패: ' + (data.message || '알 수 없는 오류'), 'error');
+      showAlert('저장 실패: ' + (data.message || data.error || '알 수 없는 오류'), 'error');
     }
   } catch (error) {
     console.error('저장 오류:', error);
     showAlert('저장 중 오류가 발생했습니다.', 'error');
   }
-});
+}
 
 // 알림 표시
 function showAlert(message, type = 'success') {

@@ -397,6 +397,7 @@
     .image-upload.has-image {
       padding: 0;
       border: none;
+      position: relative;
     }
     
     .image-preview {
@@ -476,9 +477,74 @@
       background: #fee2e2;
       color: #991b1b;
     }
+    /* 프로그레스바 스타일 */
+    .progress-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+    
+    .progress-overlay.active {
+      display: flex;
+    }
+    
+    .progress-container {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      min-width: 300px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .progress-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    
+    .progress-bar-wrapper {
+      width: 100%;
+      height: 8px;
+      background: #e5e7eb;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: #16a34a;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+      text-align: center;
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
   </style>
 </head>
 <body>
+
+<!-- 프로그레스바 오버레이 -->
+<div class="progress-overlay" id="progressOverlay">
+  <div class="progress-container">
+    <div class="progress-title">이미지 업로드 중...</div>
+    <div class="progress-bar-wrapper">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="progress-text" id="progressText">0%</div>
+  </div>
+</div>
 
 <!-- ===== HEADER ===== -->
 <header class="site-header scrolled" id="site-header">
@@ -621,7 +687,7 @@
           <label class="form-label">제품 이미지</label>
           <div class="image-upload" id="imageUpload" onclick="document.getElementById('imageInput').click()">
             <p>클릭하여 이미지 업로드</p>
-            <p style="font-size: 0.813rem; color: #6b7280;">JPG, PNG (최대 5MB)</p>
+            <p style="font-size: 0.813rem; color: #6b7280;">JPG, PNG (최대 50MB)</p>
           </div>
           <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
         </div>
@@ -683,12 +749,19 @@ async function checkAuth() {
 // 제품 목록 불러오기
 async function loadProducts() {
   try {
+    console.log('Loading products...');
     const response = await fetch('/api/products');
     const data = await response.json();
+    console.log('Products API response:', data);
     
     if (data.ok) {
-      products = data.products || [];
+      // data.data.products 또는 data.products 확인
+      products = data.data?.products || data.products || [];
+      console.log('Loaded products:', products);
       renderProducts();
+    } else {
+      console.error('API returned not ok:', data);
+      showAlert('제품 목록을 불러오는데 실패했습니다: ' + (data.message || '알 수 없는 오류'), 'error');
     }
   } catch (error) {
     console.error('제품 로드 실패:', error);
@@ -717,9 +790,11 @@ function renderProducts() {
   tbody.innerHTML = filteredProducts.map(product => `
     <tr>
       <td>
-        <img src="${product.image || '/assets/placeholder.jpg'}" 
+        <img src="${product.image || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%23f3f4f6"/%3E%3Ctext x="50" y="50" text-anchor="middle" dy=".3em" fill="%239ca3af" font-family="sans-serif" font-size="12"%3E이미지 없음%3C/text%3E%3C/svg%3E'}" 
              alt="${product.name}" 
-             class="product-image">
+             class="product-image"
+             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 fill=%22%23f3f4f6%22/%3E%3Ctext x=%2250%22 y=%2250%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%239ca3af%22 font-family=%22sans-serif%22 font-size=%2212%22%3E이미지 없음%3C/text%3E%3C/svg%3E'"
+             >
       </td>
       <td>
         <div class="product-name">${product.name}</div>
@@ -796,7 +871,7 @@ function showAddModal() {
   document.getElementById('imageUpload').classList.remove('has-image');
   document.getElementById('imageUpload').innerHTML = `
     <p>클릭하여 이미지 업로드</p>
-    <p style="font-size: 0.813rem; color: #6b7280;">JPG, PNG (최대 5MB)</p>
+    <p style="font-size: 0.813rem; color: #6b7280;">JPG, PNG (최대 50MB)</p>
   `;
   document.getElementById('productModal').classList.add('active');
 }
@@ -844,16 +919,34 @@ async function deleteProduct(id) {
     
     const data = await response.json();
     
-    if (data.ok) {
+    if (data.ok || response.ok) {
       showAlert('제품이 삭제되었습니다.');
       await loadProducts();
     } else {
-      showAlert('삭제 실패: ' + (data.message || '알 수 없는 오류'), 'error');
+      showAlert('삭제 실패: ' + (data.message || data.error || '알 수 없는 오류'), 'error');
     }
   } catch (error) {
     console.error('삭제 오류:', error);
     showAlert('삭제 중 오류가 발생했습니다.', 'error');
   }
+}
+
+// 프로그레스바 표시
+function showProgress(progress = 0) {
+  const overlay = document.getElementById('progressOverlay');
+  const progressBar = document.getElementById('progressBar');
+  const progressText = document.getElementById('progressText');
+  
+  overlay.classList.add('active');
+  progressBar.style.width = progress + '%';
+  progressText.textContent = Math.round(progress) + '%';
+}
+
+// 프로그레스바 숨기기
+function hideProgress() {
+  setTimeout(() => {
+    document.getElementById('progressOverlay').classList.remove('active');
+  }, 300);
 }
 
 // 이미지 선택 처리
@@ -862,8 +955,8 @@ async function handleImageSelect(event) {
   if (!file) return;
   
   // 파일 크기 체크
-  if (file.size > 5 * 1024 * 1024) {
-    showAlert('이미지 파일은 5MB 이하만 가능합니다.', 'error');
+  if (file.size > 50 * 1024 * 1024) {
+    showAlert('이미지 파일은 50MB 이하만 가능합니다.', 'error');
     return;
   }
   
@@ -874,39 +967,80 @@ async function handleImageSelect(event) {
   }
   
   try {
+    showProgress(0);
+    
     // FormData 생성
     const formData = new FormData();
     formData.append('image', file);
     
-    // 서버에 업로드
+    // XMLHttpRequest 사용하여 진행률 추적
+    const xhr = new XMLHttpRequest();
     const token = localStorage.getItem('eden_token');
-    const response = await fetch('/api/products/upload-image', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + token
-      },
-      body: formData
+    
+    // 프로그레스 이벤트 리스너
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        const percentComplete = (e.loaded / e.total) * 100;
+        showProgress(percentComplete);
+      }
     });
     
-    const data = await response.json();
+    // 업로드 완료
+    xhr.addEventListener('load', function() {
+      if (xhr.status === 200) {
+        const data = JSON.parse(xhr.responseText);
+        console.log('Image upload response:', data);
+        
+        if (data.ok) {
+          const imagePath = data.data?.path || data.path;
+          console.log('Image path:', imagePath);
+          if (imagePath) {
+            showImagePreview(imagePath);
+            showAlert('이미지가 업로드되었습니다.');
+          } else {
+            showAlert('이미지 경로를 받지 못했습니다.', 'error');
+          }
+        } else {
+          showAlert('이미지 업로드 실패: ' + (data.message || data.error || '알 수 없는 오류'), 'error');
+        }
+      } else {
+        showAlert('이미지 업로드 실패: 서버 오류', 'error');
+      }
+      hideProgress();
+    });
     
-    if (data.ok) {
-      showImagePreview(data.path);
-      showAlert('이미지가 업로드되었습니다.');
-    } else {
-      showAlert('이미지 업로드 실패: ' + (data.message || '알 수 없는 오류'), 'error');
-    }
+    // 오류 처리
+    xhr.addEventListener('error', function() {
+      showAlert('이미지 업로드 중 오류가 발생했습니다.', 'error');
+      hideProgress();
+    });
+    
+    // 요청 시작
+    xhr.open('POST', '/api/products/upload-image');
+    xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+    xhr.send(formData);
   } catch (error) {
     console.error('이미지 업로드 오류:', error);
     showAlert('이미지 업로드 중 오류가 발생했습니다.', 'error');
+    hideProgress();
   }
 }
 
 // 이미지 미리보기 표시
 function showImagePreview(imagePath) {
+  console.log('Showing image preview for:', imagePath);
   const uploadBox = document.getElementById('imageUpload');
   uploadBox.classList.add('has-image');
-  uploadBox.innerHTML = `<img src="${imagePath}" class="image-preview" alt="제품 이미지">`;
+  uploadBox.innerHTML = `
+    <img src="${imagePath}" 
+         class="image-preview" 
+         alt="제품 이미지"
+         onload="console.log('Image loaded:', this.src)"
+         onerror="console.error('Image failed to load:', this.src)">
+    <div style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; cursor: pointer;" onclick="document.getElementById('imageInput').click(); event.stopPropagation();">
+      이미지 변경
+    </div>
+  `;
   uploadBox.dataset.imagePath = imagePath;
 }
 
@@ -954,12 +1088,12 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
     
     const data = await response.json();
     
-    if (data.ok) {
+    if (data.ok || response.ok) {
       showAlert(editingProductId ? '제품이 수정되었습니다.' : '제품이 추가되었습니다.');
       closeModal();
       await loadProducts();
     } else {
-      showAlert('저장 실패: ' + (data.message || '알 수 없는 오류'), 'error');
+      showAlert('저장 실패: ' + (data.message || data.error || '알 수 없는 오류'), 'error');
     }
   } catch (error) {
     console.error('저장 오류:', error);

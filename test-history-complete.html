@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>연혁 CRUD 완전 테스트</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      border-bottom: 2px solid #16a34a;
+      padding-bottom: 10px;
+    }
+    .test-section {
+      margin: 30px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background: #fafafa;
+    }
+    .test-result {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .success { background-color: #d4edda; color: #155724; }
+    .error { background-color: #f8d7da; color: #721c24; }
+    .info { background-color: #d1ecf1; color: #0c5460; }
+    .warning { background-color: #fff3cd; color: #856404; }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      background: #16a34a;
+      color: white;
+      transition: all 0.3s;
+    }
+    button:hover {
+      background: #138b3e;
+      transform: translateY(-2px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    .history-item {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+    .history-item img {
+      max-width: 150px;
+      height: 100px;
+      object-fit: cover;
+      margin-top: 10px;
+      border-radius: 5px;
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    .status-success { background: #28a745; }
+    .status-error { background: #dc3545; }
+    .status-pending { background: #ffc107; }
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: 2px solid #ddd;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🏢 이든푸드 연혁 관리 시스템 테스트</h1>
+    
+    <div class="test-section">
+      <h2>📋 1. 시스템 상태 확인</h2>
+      <button onclick="checkSystemStatus()">시스템 상태 확인</button>
+      <button onclick="loginAdmin()">관리자 로그인</button>
+      <div id="status-result"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>📖 2. 연혁 데이터 조회 (Read)</h2>
+      <button onclick="loadHistoryData()">현재 연혁 데이터 조회</button>
+      <div id="history-list"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>➕ 3. 연혁 추가 테스트 (Create)</h2>
+      <input type="text" id="new-year" placeholder="연도 (예: 2024.01)" style="padding: 8px; margin: 5px;">
+      <input type="text" id="new-content" placeholder="내용" style="padding: 8px; margin: 5px; width: 300px;">
+      <input type="file" id="new-image" accept="image/*" style="margin: 5px;">
+      <button onclick="addNewHistory()">연혁 추가</button>
+      <div id="add-result"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>✏️ 4. 연혁 수정 테스트 (Update)</h2>
+      <p>아래 Admin 페이지에서 직접 수정 기능을 테스트하세요.</p>
+      <button onclick="checkUpdateCapability()">수정 기능 확인</button>
+      <div id="update-result"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>🗑️ 5. 연혁 삭제 테스트 (Delete)</h2>
+      <p>Admin 페이지에서 연혁 항목의 '삭제' 버튼을 테스트하세요.</p>
+      <button onclick="checkDeleteCapability()">삭제 기능 확인</button>
+      <div id="delete-result"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>🖼️ 6. 이미지 업로드 전용 테스트</h2>
+      <button onclick="testImageUpload()">이미지 업로드 API 테스트</button>
+      <button onclick="checkExistingImages()">기존 이미지 확인</button>
+      <div id="image-result"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>🖥️ 7. Admin 페이지 실시간 테스트</h2>
+      <button onclick="reloadIframe()">페이지 새로고침</button>
+      <button onclick="openInNewTab()">새 탭에서 열기</button>
+      <iframe id="admin-frame" src="/admin/about#history"></iframe>
+    </div>
+  </div>
+
+  <script>
+    let authToken = '';
+
+    // 시스템 상태 확인
+    async function checkSystemStatus() {
+      const checks = [];
+      
+      // 서버 응답 확인
+      try {
+        const response = await fetch('/');
+        checks.push({ name: '서버 응답', status: response.ok, message: `상태 코드: ${response.status}` });
+      } catch (error) {
+        checks.push({ name: '서버 응답', status: false, message: error.message });
+      }
+      
+      // API 엔드포인트 확인
+      const endpoints = ['/api/about', '/api/auth/login', '/api/about/upload-image'];
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(endpoint, { method: 'HEAD' });
+          checks.push({ 
+            name: `API ${endpoint}`, 
+            status: response.status !== 404, 
+            message: response.status === 404 ? '없음' : '존재' 
+          });
+        } catch (error) {
+          checks.push({ name: `API ${endpoint}`, status: false, message: '접근 불가' });
+        }
+      }
+      
+      let html = '<div class="test-result info"><strong>시스템 상태</strong><br>';
+      checks.forEach(check => {
+        const indicator = check.status ? 'status-success' : 'status-error';
+        html += `<span class="status-indicator ${indicator}"></span>${check.name}: ${check.message}<br>`;
+      });
+      html += '</div>';
+      
+      document.getElementById('status-result').innerHTML = html;
+    }
+
+    // 관리자 로그인
+    async function loginAdmin() {
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: 'admin',
+            password: 'eden2026!'
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok && data.token) {
+          authToken = data.token;
+          localStorage.setItem('eden_token', data.token);
+          showResult('status-result', '✅ 로그인 성공!', 'success');
+        } else {
+          showResult('status-result', '❌ 로그인 실패: ' + (data.error || '알 수 없는 오류'), 'error');
+        }
+      } catch (error) {
+        showResult('status-result', '❌ 로그인 오류: ' + error.message, 'error');
+      }
+    }
+
+    // 연혁 데이터 조회
+    async function loadHistoryData() {
+      const token = authToken || localStorage.getItem('eden_token');
+      
+      try {
+        const response = await fetch('/api/about', {
+          headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok && data.data && data.data.history) {
+          const history = data.data.history;
+          let html = '<div class="test-result info"><strong>현재 연혁 데이터 (' + history.length + '개)</strong></div>';
+          
+          history.forEach((item, index) => {
+            html += `
+              <div class="history-item">
+                <strong>${index + 1}. ${item.year || ''}</strong> - ${item.content || ''}
+                ${item.image ? `<br><img src="${item.image}" alt="연혁 이미지">` : ''}
+                <br><small>ID: ${item.id}, Order: ${item.order_num || 0}</small>
+              </div>
+            `;
+          });
+          
+          document.getElementById('history-list').innerHTML = html;
+        } else {
+          showResult('history-list', '연혁 데이터를 불러올 수 없습니다.', 'error');
+        }
+      } catch (error) {
+        showResult('history-list', '조회 오류: ' + error.message, 'error');
+      }
+    }
+
+    // 새 연혁 추가 (시뮬레이션)
+    async function addNewHistory() {
+      showResult('add-result', 
+        '연혁 추가는 Admin 페이지에서 직접 수행하세요.<br>' +
+        '1. 아래 iframe에서 "연혁" 탭 클릭<br>' +
+        '2. "+ 연혁 추가" 버튼 클릭<br>' +
+        '3. 연도와 내용 입력 후 이미지 추가<br>' +
+        '4. "저장하기" 버튼 클릭', 
+        'info'
+      );
+    }
+
+    // 수정 기능 확인
+    function checkUpdateCapability() {
+      showResult('update-result', 
+        '✅ 연혁 수정 기능:<br>' +
+        '- 기존 항목의 연도/내용 직접 수정 가능<br>' +
+        '- 이미지 변경: "사진 제거" 후 새 이미지 추가<br>' +
+        '- 수정 후 반드시 "저장하기" 클릭', 
+        'info'
+      );
+    }
+
+    // 삭제 기능 확인
+    function checkDeleteCapability() {
+      showResult('delete-result', 
+        '✅ 연혁 삭제 기능:<br>' +
+        '- 각 항목의 "삭제" 버튼 클릭<br>' +
+        '- 삭제 후 "저장하기" 클릭하여 확정<br>' +
+        '⚠️ 주의: 저장하기 전까지는 화면에서만 삭제됨', 
+        'warning'
+      );
+    }
+
+    // 이미지 업로드 API 테스트
+    async function testImageUpload() {
+      const token = authToken || localStorage.getItem('eden_token');
+      if (!token) {
+        showResult('image-result', '먼저 로그인하세요.', 'error');
+        return;
+      }
+      
+      // 1x1 빨간색 PNG 테스트 이미지
+      const testImageBlob = new Blob([atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx8gAAAABJRU5ErkJggg==')], { type: 'image/png' });
+      
+      const formData = new FormData();
+      formData.append('image', testImageBlob, 'test.png');
+      formData.append('type', 'history');
+      
+      try {
+        const response = await fetch('/api/about/upload-image', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token },
+          body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok || data.success) {
+          showResult('image-result', 
+            `✅ 이미지 업로드 API 정상 작동<br>` +
+            `업로드 경로: ${data.path || '알 수 없음'}`, 
+            'success'
+          );
+        } else {
+          showResult('image-result', `❌ 업로드 실패: ${data.error || data.message}`, 'error');
+        }
+      } catch (error) {
+        showResult('image-result', `❌ API 오류: ${error.message}`, 'error');
+      }
+    }
+
+    // 기존 이미지 확인
+    async function checkExistingImages() {
+      await loadHistoryData();
+      
+      const imageCount = document.querySelectorAll('.history-item img').length;
+      showResult('image-result', 
+        `현재 ${imageCount}개의 연혁 이미지가 표시되고 있습니다.<br>` +
+        `이미지가 표시되지 않는다면:<br>` +
+        `1. 이미지 경로 확인<br>` +
+        `2. 서버 업로드 폴더 권한 확인<br>` +
+        `3. 네트워크 탭에서 404 에러 확인`, 
+        'info'
+      );
+    }
+
+    function showResult(elementId, message, type) {
+      document.getElementById(elementId).innerHTML = 
+        `<div class="test-result ${type}">${message}</div>`;
+    }
+
+    function reloadIframe() {
+      document.getElementById('admin-frame').src = '/admin/about#history';
+    }
+
+    function openInNewTab() {
+      window.open('/admin/about#history', '_blank');
+    }
+
+    // 초기화
+    window.onload = function() {
+      if (localStorage.getItem('eden_token')) {
+        authToken = localStorage.getItem('eden_token');
+        showResult('status-result', '✅ 저장된 토큰 사용 중', 'success');
+      }
+      
+      // 자동으로 연혁 탭으로 이동
+      setTimeout(() => {
+        const frame = document.getElementById('admin-frame');
+        if (frame && frame.contentWindow) {
+          try {
+            frame.contentWindow.location.hash = 'history';
+          } catch (e) {
+            console.log('iframe 접근 제한');
+          }
+        }
+      }, 2000);
+    };
+  </script>
+</body>
+</html>

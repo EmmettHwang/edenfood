@@ -464,13 +464,21 @@
         if (data.ok && data.categories) {
           categories = data.categories;
           const selectEl = document.getElementById('category_id');
-          selectEl.innerHTML = '<option value="">카테고리 선택</option>' + 
+          selectEl.innerHTML = '<option value="">전체</option>' + 
             categories.map(cat => `
               <option value="${cat.id}">${escapeHtml(cat.name)}</option>
             `).join('');
+          
+          // 카테고리가 없으면 전체를 기본으로
+          if (categories.length === 0) {
+            selectEl.innerHTML = '<option value="" selected>전체</option>';
+          }
         }
       } catch (error) {
         console.error('카테고리 로드 실패:', error);
+        // 오류 시에도 전체 옵션 표시
+        const selectEl = document.getElementById('category_id');
+        selectEl.innerHTML = '<option value="" selected>전체</option>';
       }
     }
     
@@ -517,13 +525,14 @@
           <div class="document-info">
             <div class="document-title">${escapeHtml(doc.title)}</div>
             <div class="document-meta">
-              ${doc.category_name || '미분류'} · 
+              ${doc.category_name || '전체'} · 
               파일 ${doc.file_count || 0}개 · 
               다운로드 ${doc.download_count || 0}회 · 
               ${new Date(doc.created_at).toLocaleDateString()}
             </div>
           </div>
           <div class="document-actions">
+            <button class="btn btn-sm btn-primary" onclick="editDocument(${doc.id})">수정</button>
             <button class="btn btn-sm btn-secondary" onclick="deleteDocument(${doc.id})">삭제</button>
           </div>
         </div>
@@ -537,6 +546,55 @@
       uploadedFiles = [];
       renderFileList();
       document.getElementById('upload-progress').style.display = 'none';
+      document.querySelector('.modal-header h2').textContent = '새 문서 업로드';
+      document.getElementById('submit-btn').textContent = '업로드';
+      document.getElementById('document-modal').classList.add('active');
+    }
+    
+    // 문서 수정
+    async function editDocument(id) {
+      const response = await fetch(`/api/documents/${id}`, {
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+        }
+      });
+      const data = await response.json();
+      
+      if (!data.ok || !data.document) {
+        alert('문서를 불러올 수 없습니다.');
+        return;
+      }
+      
+      const doc = data.document;
+      currentDocumentId = id;
+      
+      // 폼에 데이터 채우기
+      document.getElementById('category_id').value = doc.category_id || '';
+      document.getElementById('title').value = doc.title || '';
+      document.getElementById('description').value = doc.description || '';
+      document.getElementById('thumbnail').value = doc.thumbnail || '';
+      
+      // 파일 목록은 비우고 기존 파일 표시
+      uploadedFiles = [];
+      if (data.files && data.files.length > 0) {
+        const fileListEl = document.getElementById('file-list');
+        fileListEl.innerHTML = `
+          <div style="margin-bottom: 1rem; padding: 1rem; background: #f3f4f6; border-radius: 0.5rem;">
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">기존 파일 (${data.files.length}개)</p>
+            ${data.files.map(file => `
+              <div style="margin-bottom: 0.5rem; font-size: 0.875rem; color: #6b7280;">
+                • ${escapeHtml(file.original_name)} (${formatFileSize(file.file_size)})
+              </div>
+            `).join('')}
+            <p style="margin-top: 0.5rem; font-size: 0.813rem; color: #ef4444;">
+              * 새 파일을 업로드하면 기존 파일은 모두 삭제됩니다.
+            </p>
+          </div>
+        `;
+      }
+      
+      document.querySelector('.modal-header h2').textContent = '문서 수정';
+      document.getElementById('submit-btn').textContent = '수정';
       document.getElementById('document-modal').classList.add('active');
     }
     
@@ -640,7 +698,8 @@
     async function saveDocument(event) {
       event.preventDefault();
       
-      if (uploadedFiles.length === 0) {
+      // 수정 모드가 아닌 경우에만 파일 필수 체크
+      if (!currentDocumentId && uploadedFiles.length === 0) {
         alert('파일을 첨부하세요.');
         return;
       }
@@ -650,9 +709,13 @@
         category_id: formData.get('category_id') || null,
         title: formData.get('title'),
         description: formData.get('description'),
-        thumbnail: formData.get('thumbnail'),
-        files: uploadedFiles
+        thumbnail: formData.get('thumbnail')
       };
+      
+      // 새 파일이 있는 경우에만 files 추가
+      if (uploadedFiles.length > 0) {
+        data.files = uploadedFiles;
+      }
       
       const submitBtn = document.getElementById('submit-btn');
       const progressEl = document.getElementById('upload-progress');
@@ -670,14 +733,28 @@
           progressFill.style.width = progress + '%';
         }, 100);
         
-        const response = await fetch('/api/documents', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
-          },
-          body: JSON.stringify(data)
-        });
+        let response;
+        if (currentDocumentId) {
+          // 수정
+          response = await fetch(`/api/documents/${currentDocumentId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+            },
+            body: JSON.stringify(data)
+          });
+        } else {
+          // 추가
+          response = await fetch('/api/documents', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+            },
+            body: JSON.stringify(data)
+          });
+        }
         
         clearInterval(interval);
         progressFill.style.width = '100%';
@@ -687,13 +764,13 @@
         if (result.ok) {
           hideModal();
           loadDocuments();
-          alert(result.message || '문서가 업로드되었습니다.');
+          alert(result.message || (currentDocumentId ? '문서가 수정되었습니다.' : '문서가 업로드되었습니다.'));
         } else {
-          alert(result.error || '업로드에 실패했습니다.');
+          alert(result.error || (currentDocumentId ? '수정에 실패했습니다.' : '업로드에 실패했습니다.'));
         }
       } catch (error) {
-        console.error('업로드 실패:', error);
-        alert('업로드에 실패했습니다.');
+        console.error('저장 실패:', error);
+        alert(currentDocumentId ? '수정에 실패했습니다.' : '업로드에 실패했습니다.');
       } finally {
         submitBtn.disabled = false;
         progressEl.style.display = 'none';
@@ -766,7 +843,7 @@
     
     // 돌아가기
     function goBack() {
-      location.href = '/intranet';
+      location.href = '/admin';
     }
     
     // 초기화

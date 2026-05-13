@@ -12,9 +12,7 @@
   <link rel="stylesheet" href="/css/global.css?v=2.0" />
   <script src="/admin/admin-auth.js"></script>
   <style>
-    /* 헤더 공간 확보 */
     body {
-      padding-top: 60px;
       background: #f9fafb;
     }
     
@@ -23,7 +21,7 @@
       background: #1f2937;
       border-bottom: 1px solid #374151;
       position: sticky;
-      top: 60px;
+      top: 0;
       z-index: 40;
     }
     
@@ -172,27 +170,36 @@
     
     /* 관리자 페이지 스타일 */
     .admin-header {
-      background: #111827;
+      background: #2563eb;
       color: white;
-      padding: 2rem 0;
+      padding: 3rem 0;
       margin-bottom: 2rem;
+      position: relative;
     }
     
     .admin-header-inner {
       max-width: 1200px;
       margin: 0 auto;
       padding: 0 1rem;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
     }
     
     .admin-header h1 {
-      font-size: 1.875rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin: 0;
+      letter-spacing: -0.025em;
+      color: white;
     }
     
     .admin-header p {
-      color: #9ca3af;
-      font-size: 0.875rem;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1.125rem;
+      margin-top: 0.5rem;
     }
     
     .admin-container {
@@ -218,6 +225,8 @@
       text-decoration: none;
       color: inherit;
       display: block;
+      position: relative;
+      min-height: 180px;
     }
     
     .admin-card:hover {
@@ -247,6 +256,33 @@
       color: #6b7280;
       font-size: 0.875rem;
       line-height: 1.5;
+    }
+    
+    .card-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .admin-card h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #111827;
+    }
+    
+    .admin-card p {
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+    }
+    
+    .link-arrow {
+      position: absolute;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      color: #16a34a;
+      font-size: 1.25rem;
+      font-weight: 600;
     }
     
     /* 색상별 아이콘 배경 */
@@ -332,40 +368,42 @@
       border-color: #d1d5db;
     }
     
-    /* 로그아웃 버튼 */
-    .btn-logout {
+    /* 상태 정보 컨테이너 */
+    .admin-status-container {
       position: absolute;
       top: 1rem;
       right: 1rem;
+      text-align: right;
+    }
+    
+    /* 관리자 로그인 상태 */
+    .admin-login-status {
       padding: 0.5rem 1rem;
-      background: #ef4444;
-      color: white;
-      border: none;
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+      border: 1px solid #10b981;
       border-radius: 0.375rem;
       font-size: 0.875rem;
       font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .btn-logout:hover {
-      background: #dc2626;
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.5rem;
     }
     
     /* 버전 정보 */
     .version-info {
-      position: absolute;
-      bottom: 1rem;
-      left: 1rem;
-      font-size: 0.813rem;
-      color: #9ca3af;
+      display: inline-block;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.8);
       cursor: pointer;
-      transition: color 0.2s;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      transition: all 0.2s;
     }
     
     .version-info:hover {
-      color: #6b7280;
-      text-decoration: underline;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
     }
     
     /* README 모달 */
@@ -437,6 +475,14 @@
     }
     
     @media (max-width: 768px) {
+      .admin-header h1 {
+        font-size: 1.75rem;
+      }
+      
+      .version-info {
+        font-size: 0.7rem;
+      }
+      
       .admin-grid {
         grid-template-columns: 1fr;
       }
@@ -449,46 +495,18 @@
 </head>
 <body>
 
-<!-- ===== HEADER ===== -->
-<header class="site-header scrolled" id="site-header">
-  <div class="header-inner">
-    <a href="/" class="logo">
-      <img src="/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
-    </a>
-    <nav class="main-nav-links">
-      <a href="/about">회사소개</a>
-      <a href="/products">메뉴</a>
-      <a href="/brands">브랜드소개</a>
-      <a href="/gallery">갤러리</a>
-      <a href="/documents">서식자료실</a>
-      <a href="/contact">문의</a>
-    </nav>
-    <div class="header-actions">
-      <a href="/intranet" class="btn-login">인트라넷</a>
-    </div>
-    <button class="nav-hamburger" id="nav-hamburger" aria-label="메뉴">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
-  <!-- 모바일 드롭다운 -->
-  <div class="mobile-menu" id="mobile-menu">
-    <a href="/about">회사소개</a>
-    <a href="/products">메뉴</a>
-    <a href="/brands">브랜드소개</a>
-    <a href="/gallery">갤러리</a>
-    <a href="/documents">서식자료실</a>
-    <a href="/contact">문의</a>
-    <a href="/intranet" class="mobile-login-btn">인트라넷 →</a>
-  </div>
-</header>
 
 <!-- ===== ADMIN HEADER ===== -->
 <div class="admin-header">
   <div class="admin-header-inner">
-    <button class="btn-logout" onclick="logout()">로그아웃</button>
-    <h1>관리자 대시보드</h1>
-    <p>주식회사 이든푸드 관리 시스템</p>
-    <span class="version-info" onclick="showReadme()">v2.0.0</span>
+    <div class="admin-status-container">
+      <div class="admin-login-status">
+        <span style="color: #10b981; margin-right: 0.5rem;">●</span>
+        관리자 로그인중
+      </div>
+      <span class="version-info" onclick="showReadme()">Ver.3.0.20260513</span>
+    </div>
+    <h1>주식회사 이든푸드 관리 시스템</h1>
   </div>
 </div>
 
@@ -496,13 +514,14 @@
 <nav class="admin-nav">
   <div class="admin-nav-inner">
     <a href="/admin" class="admin-nav-item active">대시보드</a>
+    <a href="/admin/cars" class="admin-nav-item">차량 운행기록</a>
+    <a href="/admin/users" class="admin-nav-item">사용자 관리</a>
     <a href="/admin/notices" class="admin-nav-item">공지사항 관리</a>
+    <a href="/admin/schedules" class="admin-nav-item">일정 관리</a>
     <a href="/admin/about" class="admin-nav-item">회사소개 관리</a>
-    <a href="/admin/products" class="admin-nav-item">메뉴(제품) 관리</a>
-    <a href="/admin/brands" class="admin-nav-item">브랜드소개 관리</a>
     <a href="/admin/gallery" class="admin-nav-item">갤러리 관리</a>
     <a href="/admin/documents" class="admin-nav-item">서식자료실 관리</a>
-    <a href="/admin/faq" class="admin-nav-item">FAQ&문의 관리</a>
+    <a href="/admin/contacts" class="admin-nav-item">문의 관리</a>
   </div>
 </nav>
 
@@ -561,33 +580,35 @@
       </div>
     </div>
   </div>
-  
-  
 </div>
 
 <!-- README 모달 -->
 <div class="readme-modal" id="readme-modal">
   <div class="readme-content">
     <div class="readme-header">
-      <h2 class="readme-title">이든푸드 관리 시스템 v2.0.0</h2>
+      <h2 class="readme-title">이든푸드 관리 시스템</h2>
       <button class="readme-close" onclick="closeReadme()">×</button>
     </div>
     <div class="readme-body">
 # 이든푸드 홈페이지 관리 시스템
 
 ## 버전 정보
-- 현재 버전: v2.0.0
-- 릴리즈 날짜: 2024-01-15
+- 현재 버전: Ver.3.0.20260513
+- 릴리즈 날짜: 2026-05-13
 - 개발팀: 이든푸드 IT팀
+- 버전 체계: 메이저.마이너.년월일 (마이너 버전 9 초과 시 메이저 버전 상승)
 
 ## 주요 기능
 
-### 1. 홈페이지 통합 관리
-- 공지사항 관리 (팝업/고정 공지 설정)
+### 1. 통합 관리 시스템
+- 차량 운행기록 관리
 - 사용자 관리 (직원 계정 생성 및 권한 관리)
-- 서식다운로드 관리 (문서 업로드/카테고리 관리)
-- 사진갤러리 관리 (이미지 업로드/분류)
-- 제품 관리 (제품 정보 수정 및 이미지 관리)
+- 공지사항 관리 (팝업/고정 공지 설정)
+- 일정 관리
+- 회사소개 페이지 관리 (CEO 인사말, 연혁, 임원진 정보)
+- 갤러리 관리 (이미지 업로드/분류, 등록일 수정)
+- 서식자료실 관리 (문서 CRUD, 카테고리별 관리)
+- 문의 관리 (문의 유형별 담당자 설정, 알림 기능)
 
 ### 2. 시스템 모니터링
 - 실시간 CPU 사용률 모니터링
@@ -595,12 +616,22 @@
 - 디스크 공간 관리
 - 시스템 상태 알림
 
-### 3. 사용자 관리
-- 직원 계정 생성 및 권한 설정
-- 활동 로그 기록
-- 접속 통계
+### 3. 향상된 UI/UX
+- 상단 네비게이션 바 통합
+- 관리자 전용 헤더 디자인
+- 파란색 테마의 전문적인 인터페이스
+- 관리자 로그인 상태 표시
 
 ## 최근 업데이트
+
+### v3.0.20260513
+- 관리자 대시보드 UI 전면 개편
+- 상단 네비게이션에 모든 관리 메뉴 통합
+- 문의 관리 시스템 추가 (유형별 담당자 설정)
+- 서식자료실 문서 수정 기능 추가
+- 갤러리 등록일 수정 기능 추가
+- 회사소개 페이지 DB 연동 완료
+- 관리자 헤더 디자인 개선 (파란색 테마)
 
 ### v2.0.0 (2024-01-15)
 - 좌측 사이드바 네비게이션 추가
@@ -629,11 +660,6 @@
 </div>
 
 <script>
-// 모바일 메뉴
-document.getElementById('nav-hamburger').addEventListener('click', () => {
-  document.getElementById('mobile-menu').classList.toggle('open');
-});
-
 // 페이지별 초기화 함수
 async function initAdminDashboard() {
   const isAuth = await checkAuth();

@@ -228,14 +228,14 @@
       opacity: 0.8;
     }
     
-    /* 라이트박스 */
+    /* 라이트박스 개선 */
     .lightbox {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(0, 0, 0, 0.95);
       display: none;
       align-items: center;
       justify-content: center;
@@ -251,54 +251,109 @@
       max-width: 90%;
       max-height: 90%;
       position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     
     .lightbox-content img {
-      width: 100%;
-      height: 100%;
+      max-width: 100%;
+      max-height: 90vh;
       object-fit: contain;
+      cursor: zoom-in;
+      transition: transform 0.3s ease;
+    }
+    
+    .lightbox-content img.zoomed {
+      cursor: zoom-out;
+      transform: scale(1.5);
     }
     
     .lightbox-close {
       position: absolute;
-      top: -40px;
-      right: 0;
-      background: none;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(0, 0, 0, 0.5);
       border: none;
       color: white;
       font-size: 2rem;
       cursor: pointer;
-      padding: 0.5rem;
-      transition: opacity 0.3s;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      transition: all 0.3s;
+      z-index: 1001;
     }
     
     .lightbox-close:hover {
-      opacity: 0.7;
+      background: rgba(0, 0, 0, 0.8);
     }
     
     .lightbox-nav {
       position: absolute;
       top: 50%;
       transform: translateY(-50%);
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.5);
       border: none;
       color: white;
-      font-size: 2rem;
-      padding: 1rem;
+      font-size: 3rem;
+      padding: 1rem 1.5rem;
       cursor: pointer;
-      transition: background 0.3s;
+      transition: all 0.3s;
+      border-radius: 0.5rem;
+      z-index: 1001;
     }
     
     .lightbox-nav:hover {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.8);
     }
     
     .lightbox-prev {
-      left: -60px;
+      left: 1rem;
     }
     
     .lightbox-next {
-      right: -60px;
+      right: 1rem;
+    }
+    
+    .lightbox-info {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 0.5rem;
+      text-align: center;
+      z-index: 1001;
+    }
+    
+    .lightbox-info h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.25rem;
+    }
+    
+    .lightbox-info p {
+      margin: 0;
+      font-size: 0.875rem;
+      opacity: 0.9;
+    }
+    
+    /* 빈 상태 */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #6b7280;
+    }
+    
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+    
+    .empty-state-text {
+      font-size: 1.125rem;
     }
     
     @media (max-width: 768px) {
@@ -308,16 +363,13 @@
       }
       
       .lightbox-nav {
-        font-size: 1.5rem;
-        padding: 0.5rem;
+        font-size: 2rem;
+        padding: 0.5rem 1rem;
       }
       
-      .lightbox-prev {
-        left: 0;
-      }
-      
-      .lightbox-next {
-        right: 0;
+      .lightbox-info {
+        bottom: 1rem;
+        padding: 0.75rem 1.5rem;
       }
     }
   </style>
@@ -374,9 +426,10 @@
 <div class="gallery-tabs">
   <div class="gallery-tabs-inner">
     <button class="gallery-tab active" onclick="filterGallery('all')">전체</button>
-    <button class="gallery-tab" onclick="filterGallery('product')">제품 사진</button>
-    <button class="gallery-tab" onclick="filterGallery('event')">행사 사진</button>
-    <button class="gallery-tab" onclick="filterGallery('facility')">시설 사진</button>
+    <button class="gallery-tab" onclick="filterGallery('product')">제품</button>
+    <button class="gallery-tab" onclick="filterGallery('event')">이벤트</button>
+    <button class="gallery-tab" onclick="filterGallery('store')">매장</button>
+    <button class="gallery-tab" onclick="filterGallery('etc')">기타</button>
   </div>
 </div>
 
@@ -384,93 +437,28 @@
 <section class="gallery-section">
   <div class="gallery-container">
     <div class="gallery-grid" id="gallery-grid">
-      
-      <!-- 제품 사진 -->
-      <div class="gallery-item" data-category="product" data-index="0">
-        <img src="/assets/tang.jpg" alt="감자탕" loading="lazy" />
-        <div class="gallery-caption">
-          <h3 class="gallery-title">감자탕</h3>
-          <p class="gallery-date">제품 사진</p>
-        </div>
-      </div>
-      
-      <div class="gallery-item" data-category="product" data-index="1">
-        <img src="/assets/jjim.jpg" alt="뼈찜" loading="lazy" />
-        <div class="gallery-caption">
-          <h3 class="gallery-title">뼈찜</h3>
-          <p class="gallery-date">제품 사진</p>
-        </div>
-      </div>
-      
-      <div class="gallery-item" data-category="product" data-index="2">
-        <img src="/assets/guk.jpg" alt="뼈해장국" loading="lazy" />
-        <div class="gallery-caption">
-          <h3 class="gallery-title">뼈해장국</h3>
-          <p class="gallery-date">제품 사진</p>
-        </div>
-      </div>
-      
-      <div class="gallery-item" data-category="product" data-index="3">
-        <img src="/assets/tongjang.jpg" alt="통장아찌" loading="lazy" />
-        <div class="gallery-caption">
-          <h3 class="gallery-title">통장아찌</h3>
-          <p class="gallery-date">제품 사진</p>
-        </div>
-      </div>
-      
-      <div class="gallery-item" data-category="product" data-index="4">
-        <img src="/assets/namchaina.jpg" alt="남도한정식" loading="lazy" />
-        <div class="gallery-caption">
-          <h3 class="gallery-title">남도한정식</h3>
-          <p class="gallery-date">제품 사진</p>
-        </div>
-      </div>
-      
-      <div class="gallery-item" data-category="product" data-index="5">
-        <img src="/assets/yeochina.jpg" alt="여수한정식" loading="lazy" />
-        <div class="gallery-caption">
-          <h3 class="gallery-title">여수한정식</h3>
-          <p class="gallery-date">제품 사진</p>
-        </div>
-      </div>
-      
-      <!-- 행사 사진 -->
-      <div class="gallery-item" data-category="event" data-index="6">
-        <img src="/assets/saup.png" alt="창업 기념식" loading="lazy" />
-        <div class="gallery-caption">
-          <h3 class="gallery-title">창업 기념식</h3>
-          <p class="gallery-date">2023년 5월</p>
-        </div>
-      </div>
-      
-      <div class="gallery-item" data-category="event" data-index="7">
-        <img src="/assets/sang.jpg" alt="품질 우수상 수상" loading="lazy" />
-        <div class="gallery-caption">
-          <h3 class="gallery-title">품질 우수상 수상</h3>
-          <p class="gallery-date">2023년 12월</p>
-        </div>
-      </div>
-      
-      <!-- 시설 사진 -->
-      <div class="gallery-item" data-category="facility" data-index="8">
-        <img src="/assets/ganpan.ai" alt="매장 간판" loading="lazy" />
-        <div class="gallery-caption">
-          <h3 class="gallery-title">매장 간판</h3>
-          <p class="gallery-date">본점</p>
-        </div>
-      </div>
-      
+      <!-- 갤러리 이미지가 여기에 동적으로 추가됩니다 -->
+    </div>
+    
+    <!-- 빈 상태 -->
+    <div class="empty-state" id="empty-state" style="display: none;">
+      <div class="empty-state-icon">🖼️</div>
+      <div class="empty-state-text">표시할 이미지가 없습니다.</div>
     </div>
   </div>
 </section>
 
 <!-- ===== LIGHTBOX ===== -->
 <div class="lightbox" id="lightbox">
+  <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+  <button class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1)">‹</button>
+  <button class="lightbox-nav lightbox-next" onclick="navigateLightbox(1)">›</button>
   <div class="lightbox-content">
-    <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
-    <button class="lightbox-nav lightbox-prev" onclick="navigateLightbox(-1)">‹</button>
-    <button class="lightbox-nav lightbox-next" onclick="navigateLightbox(1)">›</button>
-    <img src="" alt="" id="lightbox-image" />
+    <img src="" alt="" id="lightbox-image" onclick="toggleZoom()" />
+  </div>
+  <div class="lightbox-info" id="lightbox-info">
+    <h3 id="lightbox-title"></h3>
+    <p id="lightbox-desc"></p>
   </div>
 </div>
 
@@ -484,7 +472,110 @@ document.getElementById('nav-hamburger').addEventListener('click', () => {
 let currentFilter = 'all';
 let currentLightboxIndex = 0;
 let filteredItems = [];
+let galleryData = [];
 
+// 갤러리 데이터 로드
+async function loadGallery() {
+  try {
+    const response = await fetch('/api/gallery');
+    const data = await response.json();
+    
+    if (data.ok) {
+      galleryData = data.data?.images || [];
+      // 날짜 기준으로 정렬 (최신 먼저)
+      galleryData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      renderGallery();
+    } else {
+      console.error('갤러리 로드 실패:', data.error);
+      showEmptyState();
+    }
+  } catch (error) {
+    console.error('갤러리 로드 오류:', error);
+    showEmptyState();
+  }
+}
+
+// 갤러리 렌더링
+function renderGallery() {
+  const grid = document.getElementById('gallery-grid');
+  const emptyState = document.getElementById('empty-state');
+  
+  if (galleryData.length === 0) {
+    showEmptyState();
+    return;
+  }
+  
+  emptyState.style.display = 'none';
+  grid.style.display = 'grid';
+  
+  const categoryNames = {
+    product: '제품',
+    store: '매장', 
+    event: '이벤트',
+    etc: '기타'
+  };
+  
+  grid.innerHTML = galleryData.map((image, index) => {
+    const createdDate = new Date(image.created_at);
+    const dateStr = createdDate.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    return `
+      <div class="gallery-item" data-category="${image.category}" data-index="${index}">
+        <img src="${image.thumbnail_url || image.image_url}" 
+             alt="${image.title}" 
+             loading="lazy"
+             onerror="this.src='/assets/placeholder.png'" />
+        <div class="gallery-caption">
+          <h3 class="gallery-title">${image.title}</h3>
+          <p class="gallery-date">${dateStr}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  // 이미지 로드 이벤트 리스너 추가
+  setupImageLoaders();
+  // 라이트박스 리스너 설정
+  setupLightboxListeners();
+  // 초기 필터 적용
+  applyFilter();
+}
+
+// 이미지 로드 이벤트 설정
+function setupImageLoaders() {
+  document.querySelectorAll('.gallery-item img').forEach(img => {
+    img.addEventListener('load', function() {
+      this.classList.add('loaded');
+    });
+    
+    // 이미 로드된 경우 (캐시)
+    if (img.complete) {
+      img.classList.add('loaded');
+    }
+  });
+}
+
+// 라이트박스 리스너 설정
+function setupLightboxListeners() {
+  document.querySelectorAll('.gallery-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      const index = parseInt(item.dataset.index);
+      openLightbox(index);
+    });
+  });
+}
+
+// 빈 상태 표시
+function showEmptyState() {
+  document.getElementById('gallery-grid').style.display = 'none';
+  document.getElementById('empty-state').style.display = 'block';
+}
+
+// 필터 적용
 function filterGallery(category) {
   currentFilter = category;
   
@@ -494,29 +585,38 @@ function filterGallery(category) {
   });
   event.target.classList.add('active');
   
-  // 갤러리 아이템 필터링
+  applyFilter();
+}
+
+function applyFilter() {
   const items = document.querySelectorAll('.gallery-item');
+  let visibleCount = 0;
+  
   items.forEach(item => {
-    if (category === 'all' || item.dataset.category === category) {
+    if (currentFilter === 'all' || item.dataset.category === currentFilter) {
       item.style.display = 'block';
+      visibleCount++;
     } else {
       item.style.display = 'none';
     }
   });
+  
+  // 필터 결과가 없으면 빈 상태 표시
+  if (visibleCount === 0) {
+    document.getElementById('empty-state').style.display = 'block';
+    document.getElementById('empty-state').querySelector('.empty-state-text').textContent = 
+      '이 카테고리에는 이미지가 없습니다.';
+  } else {
+    document.getElementById('empty-state').style.display = 'none';
+  }
 }
 
 // 라이트박스 열기
-document.querySelectorAll('.gallery-item').forEach((item, index) => {
-  item.addEventListener('click', () => {
-    openLightbox(parseInt(item.dataset.index));
-  });
-});
-
 function openLightbox(index) {
   // 현재 필터에 맞는 아이템들만 가져오기
   const allItems = Array.from(document.querySelectorAll('.gallery-item'));
   filteredItems = allItems.filter(item => 
-    currentFilter === 'all' || item.dataset.category === currentFilter
+    item.style.display !== 'none'
   );
   
   // 필터된 목록에서의 인덱스 찾기
@@ -529,11 +629,15 @@ function openLightbox(index) {
   document.body.style.overflow = 'hidden';
 }
 
+// 라이트박스 닫기
 function closeLightbox() {
   document.getElementById('lightbox').classList.remove('active');
   document.body.style.overflow = '';
+  // 줌 리셋
+  document.getElementById('lightbox-image').classList.remove('zoomed');
 }
 
+// 라이트박스 네비게이션
 function navigateLightbox(direction) {
   currentLightboxIndex += direction;
   if (currentLightboxIndex < 0) {
@@ -544,17 +648,40 @@ function navigateLightbox(direction) {
   updateLightboxImage();
 }
 
+// 라이트박스 이미지 업데이트
 function updateLightboxImage() {
   const currentItem = filteredItems[currentLightboxIndex];
-  const img = currentItem.querySelector('img');
-  const lightboxImg = document.getElementById('lightbox-image');
+  const dataIndex = parseInt(currentItem.dataset.index);
+  const imageData = galleryData[dataIndex];
   
-  lightboxImg.src = img.src;
-  lightboxImg.alt = img.alt;
+  const lightboxImg = document.getElementById('lightbox-image');
+  const lightboxTitle = document.getElementById('lightbox-title');
+  const lightboxDesc = document.getElementById('lightbox-desc');
+  
+  // 원본 이미지 사용
+  lightboxImg.src = imageData.image_url;
+  lightboxImg.alt = imageData.title;
+  lightboxImg.classList.remove('zoomed');
+  
+  // 정보 업데이트
+  lightboxTitle.textContent = imageData.title;
+  lightboxDesc.textContent = imageData.description || '';
+  
+  // 설명이 없으면 정보 박스 숨기기
+  document.getElementById('lightbox-info').style.display = 
+    imageData.description ? 'block' : 'none';
 }
 
-// ESC 키로 라이트박스 닫기
+// 이미지 확대/축소 토글
+function toggleZoom() {
+  const img = document.getElementById('lightbox-image');
+  img.classList.toggle('zoomed');
+}
+
+// 키보드 이벤트
 document.addEventListener('keydown', (e) => {
+  if (!document.getElementById('lightbox').classList.contains('active')) return;
+  
   if (e.key === 'Escape') {
     closeLightbox();
   } else if (e.key === 'ArrowLeft') {
@@ -570,17 +697,9 @@ document.getElementById('lightbox').addEventListener('click', (e) => {
     closeLightbox();
   }
 });
-// Add image load event listeners
-document.querySelectorAll('.gallery-item img').forEach(img => {
-  img.addEventListener('load', function() {
-    this.classList.add('loaded');
-  });
-  
-  // If image is already loaded (cached)
-  if (img.complete) {
-    img.classList.add('loaded');
-  }
-});
+
+// 페이지 로드 시 갤러리 데이터 로드
+window.addEventListener('DOMContentLoaded', loadGallery);
 </script>
 
 <!-- ===== FOOTER ===== -->

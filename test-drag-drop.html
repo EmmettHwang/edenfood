@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>CEO 드래그앤드롭 테스트</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .drop-zone {
+      border: 2px dashed #ccc;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #f9f9f9;
+    }
+    .drop-zone.drag-over {
+      border-color: #16a34a;
+      background-color: #e6f7ff;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .success { background-color: #d4edda; color: #155724; }
+    .error { background-color: #f8d7da; color: #721c24; }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 5px;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background: #138b3e;
+    }
+    #preview img {
+      max-width: 300px;
+      margin-top: 20px;
+    }
+    .test-result {
+      margin: 10px 0;
+      padding: 10px;
+      background: #f0f0f0;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>CEO 드래그앤드롭 이미지 업로드 테스트</h1>
+  
+  <h2>1. 로그인 테스트</h2>
+  <button onclick="testLogin()">로그인 테스트</button>
+  <div id="login-result"></div>
+
+  <h2>2. 드래그앤드롭 이벤트 테스트</h2>
+  <div 
+    class="drop-zone"
+    id="test-drop-zone"
+    ondrop="testDrop(event)"
+    ondragover="testDragOver(event)"
+    ondragleave="testDragLeave(event)"
+  >
+    <p>테스트 이미지를 여기에 드래그하세요</p>
+  </div>
+  <div id="drag-result"></div>
+  <div id="preview"></div>
+
+  <h2>3. 실제 admin/about 페이지 시뮬레이션</h2>
+  <button onclick="testAdminAboutPage()">admin/about 페이지 테스트</button>
+  <div id="admin-test-result"></div>
+
+  <script>
+    let authToken = '';
+    let testFile = null;
+
+    // 드래그 이벤트 핸들러
+    function testDragOver(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.classList.add('drag-over');
+      event.dataTransfer.dropEffect = 'copy';
+      
+      document.getElementById('drag-result').innerHTML = 
+        '<div class="test-result">✓ dragover 이벤트 발생</div>';
+      return false;
+    }
+
+    function testDragLeave(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.classList.remove('drag-over');
+      
+      document.getElementById('drag-result').innerHTML += 
+        '<div class="test-result">✓ dragleave 이벤트 발생</div>';
+    }
+
+    function testDrop(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.classList.remove('drag-over');
+      
+      const files = event.dataTransfer.files;
+      document.getElementById('drag-result').innerHTML += 
+        '<div class="test-result">✓ drop 이벤트 발생 - 파일 수: ' + files.length + '</div>';
+      
+      if (files.length > 0) {
+        testFile = files[0];
+        document.getElementById('drag-result').innerHTML += 
+          '<div class="test-result">✓ 파일명: ' + testFile.name + ' (크기: ' + (testFile.size / 1024).toFixed(2) + 'KB)</div>';
+        
+        // 미리보기
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('preview').innerHTML = 
+            '<img src="' + e.target.result + '">';
+        };
+        reader.readAsDataURL(testFile);
+      }
+      return false;
+    }
+
+    // 로그인 테스트
+    async function testLogin() {
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: 'admin',
+            password: 'eden2026!'
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok && data.token) {
+          authToken = data.token;
+          localStorage.setItem('eden_token', data.token);
+          showResult('login-result', '로그인 성공! 토큰 저장됨', 'success');
+        } else {
+          showResult('login-result', '로그인 실패: ' + (data.error || '알 수 없는 오류'), 'error');
+        }
+      } catch (error) {
+        showResult('login-result', '로그인 중 오류: ' + error.message, 'error');
+      }
+    }
+
+    // admin/about 페이지 시뮬레이션
+    async function testAdminAboutPage() {
+      const results = [];
+      
+      // 1. 페이지 로드 테스트
+      try {
+        const response = await fetch('/admin/about');
+        results.push('✓ 페이지 로드: ' + response.status);
+      } catch (error) {
+        results.push('✗ 페이지 로드 실패: ' + error.message);
+      }
+      
+      // 2. 현재 CEO 메시지 조회
+      try {
+        const response = await fetch('/api/about', {
+          headers: {
+            'Authorization': 'Bearer ' + (authToken || localStorage.getItem('eden_token'))
+          }
+        });
+        const data = await response.json();
+        
+        if (data.ok && data.data) {
+          results.push('✓ 현재 CEO 이미지: ' + (data.data.ceo_message_image || '없음'));
+        } else {
+          results.push('✗ CEO 메시지 조회 실패');
+        }
+      } catch (error) {
+        results.push('✗ API 호출 실패: ' + error.message);
+      }
+      
+      // 3. 테스트 이미지 업로드
+      if (authToken) {
+        try {
+          // 1x1 빨간색 PNG
+          const testBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx8gAAAABJRU5ErkJggg==';
+          
+          const response = await fetch('/api/about/greeting', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + authToken
+            },
+            body: JSON.stringify({
+              greeting_text: '드래그앤드롭 테스트',
+              greeting_image: testBase64
+            })
+          });
+          
+          const data = await response.json();
+          
+          if (data.ok) {
+            results.push('✓ CEO 이미지 업로드 성공: ' + data.imagePath);
+          } else {
+            results.push('✗ CEO 이미지 업로드 실패: ' + (data.error || '알 수 없는 오류'));
+          }
+        } catch (error) {
+          results.push('✗ 업로드 중 오류: ' + error.message);
+        }
+      } else {
+        results.push('! 로그인이 필요합니다');
+      }
+      
+      document.getElementById('admin-test-result').innerHTML = 
+        '<div class="test-result">' + results.join('<br>') + '</div>';
+    }
+
+    function showResult(elementId, message, type) {
+      document.getElementById(elementId).innerHTML = 
+        '<div class="result ' + type + '">' + message + '</div>';
+    }
+
+    // 페이지 로드 시 저장된 토큰 확인
+    if (localStorage.getItem('eden_token')) {
+      authToken = localStorage.getItem('eden_token');
+      showResult('login-result', '저장된 토큰 사용 중', 'success');
+    }
+  </script>
+</body>
+</html>

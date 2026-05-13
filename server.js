@@ -87,13 +87,16 @@ const aboutStorage = multer.diskStorage({
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const ext = path.extname(file.originalname);
-    cb(null, `${req.body.type || 'about'}-${uniqueSuffix}${ext}`);
+    const nameWithoutExt = path.basename(file.originalname, ext);
+    const type = req.body.type || 'about';
+    // 원본 파일명을 유지하면서 타입과 타임스탬프 추가
+    cb(null, `${type}-${nameWithoutExt}-${uniqueSuffix}${ext}`);
   }
 });
 
 const aboutUpload = multer({ 
   storage: aboutStorage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB 제한
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB 제한
   fileFilter: function (req, file, cb) {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -2267,7 +2270,40 @@ app.put('/api/about/greeting', authMiddleware, async (req, res) => {
       return err(res, '관리자 권한이 필요합니다.', 403);
     }
     
-    const { greeting_text, greeting_author, greeting_image } = req.body;
+    const { greeting_text, greeting_author, greeting_image, ceo_message, ceo_message_image } = req.body;
+    
+    // 이전 버전 호환성을 위해 ceo_message 필드도 체크
+    const messageText = greeting_text || ceo_message || '';
+    const messageAuthor = greeting_author || '이든푸드 대표이사';
+    let messageImage = greeting_image || ceo_message_image || null;
+    
+    // base64 이미지인 경우 파일로 저장
+    if (messageImage && messageImage.startsWith('data:image')) {
+      try {
+        const matches = messageImage.match(/^data:image\/([a-zA-Z+]+);base64,(.+)$/);
+        if (matches) {
+          const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+          const imageBuffer = Buffer.from(matches[2], 'base64');
+          const fileName = `ceo-${Date.now()}.${ext}`;
+          const filePath = path.join(__dirname, 'uploads', fileName);
+          
+          // uploads 폴더 확인
+          const uploadsDir = path.join(__dirname, 'uploads');
+          if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+          }
+          
+          // 파일 저장
+          fs.writeFileSync(filePath, imageBuffer);
+          messageImage = `/uploads/${fileName}`;
+          
+          console.log('CEO 이미지 저장 완료:', messageImage);
+        }
+      } catch (e) {
+        console.error('이미지 저장 실패:', e);
+        // 이미지 저장 실패해도 계속 진행
+      }
+    }
     
     await pool.query(
       `INSERT INTO about_content (id, greeting_text, greeting_author, greeting_image)
@@ -2276,10 +2312,13 @@ app.put('/api/about/greeting', authMiddleware, async (req, res) => {
        greeting_text = VALUES(greeting_text),
        greeting_author = VALUES(greeting_author),
        greeting_image = VALUES(greeting_image)`,
-      [greeting_text || '', greeting_author || '이든푸드 대표이사', greeting_image || null]
+      [messageText, messageAuthor, messageImage]
     );
     
-    ok(res, { message: 'CEO 인사말이 저장되었습니다.' });
+    ok(res, { 
+      message: 'CEO 인사말이 저장되었습니다.',
+      imagePath: messageImage 
+    });
   } catch(e) {
     err(res, 'CEO 인사말 저장 실패: ' + e.message);
   }
@@ -2581,6 +2620,70 @@ app.delete('/api/menu/:id', authMiddleware, async (req, res) => {
 /* ─────────────────────────────────────────
    API: 브랜드 관리
 ───────────────────────────────────────── */
+
+// 브랜드 로고 업로드 전용 설정
+const brandStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadPath = path.join(__dirname, 'uploads/brands');
+    // 디렉토리가 없으면 생성
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    const nameWithoutExt = path.basename(file.originalname, ext);
+    // 원본 파일명을 유지하면서 타임스탬프 추가
+    cb(null, `brand-${nameWithoutExt}-${uniqueSuffix}${ext}`);
+  }
+});
+
+const brandUpload = multer({ 
+  storage: brandStorage,
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB 제한
+  fileFilter: function (req, file, cb) {
+    // 이미지 파일만 허용
+    const allowedTypes = /jpeg|jpg|png|gif|webp|svg/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype) || file.mimetype === 'image/svg+xml';
+    
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('이미지 파일만 업로드 가능합니다.'));
+    }
+  }
+});
+
+// 브랜드 로고 업로드
+app.post('/api/brands/upload', authMiddleware, brandUpload.single('image'), async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      if (req.file) {
+        fs.unlinkSync(req.file.path); // 권한이 없으면 파일 삭제
+      }
+      return err(res, '관리자 권한이 필요합니다.', 403);
+    }
+    
+    if (!req.file) {
+      return err(res, '업로드할 파일이 없습니다.', 400);
+    }
+    
+    const imageUrl = '/uploads/brands/' + req.file.filename;
+    ok(res, { 
+      imageUrl: imageUrl,
+      url: imageUrl,
+      filename: req.file.filename,
+      originalname: req.file.originalname 
+    });
+  } catch(e) {
+    console.error('브랜드 로고 업로드 오류:', e);
+    err(res, '업로드 실패: ' + e.message);
+  }
+});
+
 // 브랜드 목록 조회
 app.get('/api/brands', async (req, res) => {
   try {
@@ -2917,70 +3020,6 @@ app.get('/api/health', async (req, res) => {
   } catch(e) { err(res, 'DB disconnected: ' + e.message); }
 });
 
-/* ─────────────────────────────────────────
-   SPA fallback - index.html
-───────────────────────────────────────── */
-app.get('*', (req, res) => {
-  const url = req.path;
-
-  // /intranet/* → 인트라넷 허브
-  if (url === '/intranet' || url.startsWith('/intranet/')) {
-    const intrFile = path.join(__dirname, 'public', 'intranet', 'index.html');
-    if (fs.existsSync(intrFile)) return res.sendFile(intrFile);
-  }
-
-  // /car/* → 기존 차량 운행기록부 앱
-  if (url === '/car' || url.startsWith('/car/')) {
-    return res.sendFile(path.join(__dirname, 'index.html'));
-  }
-
-  // /login → 로그인 페이지
-  if (url === '/login') {
-    const loginFile = path.join(__dirname, 'public', 'login.html');
-    if (fs.existsSync(loginFile)) return res.sendFile(loginFile);
-  }
-  
-  // 정책 페이지들 (privacy, terms, email-policy)
-  if (url === '/privacy' || url === '/terms' || url === '/email-policy') {
-    const policyFile = path.join(__dirname, 'public', url.substring(1) + '.html');
-    if (fs.existsSync(policyFile)) return res.sendFile(policyFile);
-  }
-  
-  // /admin → 관리자 대시보드
-  if (url === '/admin' || url === '/admin/') {
-    const adminIndexFile = path.join(__dirname, 'public', 'admin', 'index.html');
-    if (fs.existsSync(adminIndexFile)) return res.sendFile(adminIndexFile);
-  }
-  
-  // /admin/* → 관리자 페이지
-  if (url.startsWith('/admin/')) {
-    const adminPath = url.substring(7); // /admin/ 제거
-    const adminFile = path.join(__dirname, 'public', 'admin', adminPath + '.html');
-    if (fs.existsSync(adminFile)) return res.sendFile(adminFile);
-  }
-  
-  // /documents → 서식 다운로드
-  if (url === '/documents' || url === '/documents/') {
-    const docsFile = path.join(__dirname, 'public', 'documents', 'index.html');
-    if (fs.existsSync(docsFile)) return res.sendFile(docsFile);
-  }
-  
-  // /about → 회사소개
-  if (url === '/about' || url === '/about/') {
-    const aboutFile = path.join(__dirname, 'public', 'about', 'index.html');
-    if (fs.existsSync(aboutFile)) return res.sendFile(aboutFile);
-  }
-
-  // / (랜딩 페이지)
-  if (url === '/' || url === '/index.html') {
-    const landingFile = path.join(__dirname, 'public', 'index.html');
-    if (fs.existsSync(landingFile)) return res.sendFile(landingFile);
-  }
-
-  // 기타 정적 자원 처리
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
 /* ===== 제품 관리 API ===== */
 
 // 제품 목록 조회
@@ -3010,13 +3049,15 @@ const productStorage = multer.diskStorage({
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const ext = path.extname(file.originalname);
-    cb(null, `product-${uniqueSuffix}${ext}`);
+    const nameWithoutExt = path.basename(file.originalname, ext);
+    // 원본 파일명을 유지하면서 타임스탬프 추가
+    cb(null, `${nameWithoutExt}-${uniqueSuffix}${ext}`);
   }
 });
 
 const productUpload = multer({ 
   storage: productStorage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB 제한
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB 제한
   fileFilter: function (req, file, cb) {
     const allowedTypes = /jpeg|jpg|png|gif|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
@@ -3136,6 +3177,71 @@ app.delete('/api/products/:id', authMiddleware, async (req, res) => {
     err(res, '제품 삭제에 실패했습니다.');
   }
 });
+
+/* ─────────────────────────────────────────
+   SPA fallback - index.html
+───────────────────────────────────────── */
+app.get('*', (req, res) => {
+  const url = req.path;
+
+  // /intranet/* → 인트라넷 허브
+  if (url === '/intranet' || url.startsWith('/intranet/')) {
+    const intrFile = path.join(__dirname, 'public', 'intranet', 'index.html');
+    if (fs.existsSync(intrFile)) return res.sendFile(intrFile);
+  }
+
+  // /car/* → 기존 차량 운행기록부 앱
+  if (url === '/car' || url.startsWith('/car/')) {
+    return res.sendFile(path.join(__dirname, 'index.html'));
+  }
+
+  // /login → 로그인 페이지
+  if (url === '/login') {
+    const loginFile = path.join(__dirname, 'public', 'login.html');
+    if (fs.existsSync(loginFile)) return res.sendFile(loginFile);
+  }
+  
+  // 정책 페이지들 (privacy, terms, email-policy)
+  if (url === '/privacy' || url === '/terms' || url === '/email-policy') {
+    const policyFile = path.join(__dirname, 'public', url.substring(1) + '.html');
+    if (fs.existsSync(policyFile)) return res.sendFile(policyFile);
+  }
+  
+  // /admin → 관리자 대시보드
+  if (url === '/admin' || url === '/admin/') {
+    const adminIndexFile = path.join(__dirname, 'public', 'admin', 'index.html');
+    if (fs.existsSync(adminIndexFile)) return res.sendFile(adminIndexFile);
+  }
+  
+  // /admin/* → 관리자 페이지
+  if (url.startsWith('/admin/')) {
+    const adminPath = url.substring(7); // /admin/ 제거
+    const adminFile = path.join(__dirname, 'public', 'admin', adminPath + '.html');
+    if (fs.existsSync(adminFile)) return res.sendFile(adminFile);
+  }
+  
+  // /documents → 서식 다운로드
+  if (url === '/documents' || url === '/documents/') {
+    const docsFile = path.join(__dirname, 'public', 'documents', 'index.html');
+    if (fs.existsSync(docsFile)) return res.sendFile(docsFile);
+  }
+  
+  // /about → 회사소개
+  if (url === '/about' || url === '/about/') {
+    const aboutFile = path.join(__dirname, 'public', 'about', 'index.html');
+    if (fs.existsSync(aboutFile)) return res.sendFile(aboutFile);
+  }
+
+  // / (랜딩 페이지)
+  if (url === '/' || url === '/index.html') {
+    const landingFile = path.join(__dirname, 'public', 'index.html');
+    if (fs.existsSync(landingFile)) return res.sendFile(landingFile);
+  }
+
+  // 기타 정적 자원 처리
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 
 /* ─────────────────────────────────────────
    서버 시작

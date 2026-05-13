@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>About 페이지 함수 테스트</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .result {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .success { background-color: #d4edda; color: #155724; }
+    .error { background-color: #f8d7da; color: #721c24; }
+    .info { background-color: #d1ecf1; color: #0c5460; }
+    button {
+      margin: 5px;
+      padding: 8px 16px;
+      cursor: pointer;
+    }
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <h1>About 페이지 함수 테스트</h1>
+
+  <div class="test-section">
+    <h2>1. 페이지 로드 및 함수 확인</h2>
+    <button onclick="loadAboutPage()">About 페이지 로드</button>
+    <button onclick="checkFunctions()">함수 확인</button>
+    <div id="load-result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>2. 탭 클릭 시뮬레이션</h2>
+    <button onclick="simulateTabClick('greeting')">CEO 인사말 탭</button>
+    <button onclick="simulateTabClick('history')">연혁 탭</button>
+    <button onclick="simulateTabClick('executives')">임원진 탭</button>
+    <div id="tab-result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>3. CEO 이미지 기능 테스트</h2>
+    <button onclick="testCeoImageFunction()">selectCeoImage 함수 테스트</button>
+    <button onclick="testDragDrop()">드래그앤드롭 이벤트 테스트</button>
+    <div id="ceo-result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>4. About 페이지 iframe</h2>
+    <iframe id="about-frame" src="/admin/about"></iframe>
+  </div>
+
+  <script>
+    // About 페이지 로드
+    async function loadAboutPage() {
+      try {
+        const response = await fetch('/admin/about');
+        const html = await response.text();
+        
+        // HTML에서 스크립트 태그 찾기
+        const scriptMatches = html.match(/<script[^>]*>([\s\S]*?)<\/script>/gi);
+        const functionCount = (html.match(/function\s+\w+/g) || []).length;
+        const windowFunctionCount = (html.match(/window\.\w+\s*=\s*function/g) || []).length;
+        
+        showResult('load-result', 
+          `페이지 로드 성공<br>` +
+          `- 스크립트 태그: ${scriptMatches ? scriptMatches.length : 0}개<br>` +
+          `- 일반 함수: ${functionCount}개<br>` +
+          `- window 함수: ${windowFunctionCount}개`,
+          'success'
+        );
+      } catch (error) {
+        showResult('load-result', '페이지 로드 실패: ' + error.message, 'error');
+      }
+    }
+
+    // 함수 존재 확인
+    function checkFunctions() {
+      const frame = document.getElementById('about-frame');
+      const frameWindow = frame.contentWindow;
+      
+      const functionsToCheck = [
+        'showTab',
+        'selectCeoImage',
+        'handleDragOver',
+        'handleDragLeave',
+        'handleDrop',
+        'saveGreeting',
+        'addHistoryItem',
+        'saveHistory',
+        'addExecutive',
+        'saveExecutives'
+      ];
+      
+      const results = [];
+      
+      functionsToCheck.forEach(funcName => {
+        // iframe window에서 확인
+        const exists = frameWindow && typeof frameWindow[funcName] === 'function';
+        // window 객체에서 확인
+        const windowExists = frameWindow && frameWindow.window && typeof frameWindow.window[funcName] === 'function';
+        
+        results.push(`${funcName}: ${exists ? '✓' : '✗'} (window.${funcName}: ${windowExists ? '✓' : '✗'})`);
+      });
+      
+      showResult('load-result', 
+        '<strong>함수 존재 여부:</strong><br>' + results.join('<br>'),
+        'info'
+      );
+    }
+
+    // 탭 클릭 시뮬레이션
+    function simulateTabClick(tabName) {
+      try {
+        const frame = document.getElementById('about-frame');
+        const frameDocument = frame.contentDocument;
+        const frameWindow = frame.contentWindow;
+        
+        // data-tab 속성으로 탭 찾기
+        const tab = frameDocument.querySelector(`[data-tab="${tabName}"]`);
+        
+        if (!tab) {
+          showResult('tab-result', `${tabName} 탭을 찾을 수 없습니다`, 'error');
+          return;
+        }
+        
+        // 클릭 이벤트 발생
+        tab.click();
+        
+        // showTab 함수 직접 호출 시도
+        if (frameWindow.showTab) {
+          frameWindow.showTab(tabName);
+          showResult('tab-result', `${tabName} 탭 클릭 성공 (showTab 함수 호출)`, 'success');
+        } else {
+          showResult('tab-result', `${tabName} 탭 클릭됨 (showTab 함수 없음)`, 'error');
+        }
+        
+      } catch (error) {
+        showResult('tab-result', '탭 클릭 실패: ' + error.message, 'error');
+      }
+    }
+
+    // CEO 이미지 함수 테스트
+    function testCeoImageFunction() {
+      try {
+        const frame = document.getElementById('about-frame');
+        const frameWindow = frame.contentWindow;
+        
+        if (frameWindow.selectCeoImage) {
+          frameWindow.selectCeoImage();
+          showResult('ceo-result', 'selectCeoImage 함수 실행 성공', 'success');
+        } else if (frameWindow.window && frameWindow.window.selectCeoImage) {
+          frameWindow.window.selectCeoImage();
+          showResult('ceo-result', 'window.selectCeoImage 함수 실행 성공', 'success');
+        } else {
+          showResult('ceo-result', 'selectCeoImage 함수를 찾을 수 없습니다', 'error');
+        }
+      } catch (error) {
+        showResult('ceo-result', 'CEO 이미지 함수 테스트 실패: ' + error.message, 'error');
+      }
+    }
+
+    // 드래그앤드롭 테스트
+    function testDragDrop() {
+      try {
+        const frame = document.getElementById('about-frame');
+        const frameDocument = frame.contentDocument;
+        const ceoUpload = frameDocument.getElementById('ceo-image-upload');
+        
+        if (!ceoUpload) {
+          showResult('ceo-result', 'ceo-image-upload 요소를 찾을 수 없습니다', 'error');
+          return;
+        }
+        
+        // 이벤트 리스너 확인
+        const hasOnDrop = ceoUpload.hasAttribute('ondrop');
+        const hasOnDragOver = ceoUpload.hasAttribute('ondragover');
+        const hasOnDragLeave = ceoUpload.hasAttribute('ondragleave');
+        
+        showResult('ceo-result', 
+          `드래그앤드롭 이벤트 상태:<br>` +
+          `- ondrop: ${hasOnDrop ? '✓' : '✗'}<br>` +
+          `- ondragover: ${hasOnDragOver ? '✓' : '✗'}<br>` +
+          `- ondragleave: ${hasOnDragLeave ? '✓' : '✗'}`,
+          'info'
+        );
+      } catch (error) {
+        showResult('ceo-result', '드래그앤드롭 테스트 실패: ' + error.message, 'error');
+      }
+    }
+
+    function showResult(elementId, message, type) {
+      document.getElementById(elementId).innerHTML = 
+        `<div class="result ${type}">${message}</div>`;
+    }
+
+    // iframe 로드 완료 후 자동 체크
+    document.getElementById('about-frame').onload = function() {
+      setTimeout(() => {
+        console.log('About 페이지 로드 완료');
+        checkFunctions();
+      }, 1000);
+    };
+  </script>
+</body>
+</html>

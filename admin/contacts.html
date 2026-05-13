@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문의 관리 - 이든푸드 관리자</title>
+    <link rel="stylesheet" href="/css/global.css">
+    <style>
+        .contacts-container {
+            background-color: #f3f4f6;
+            min-height: 100vh;
+        }
+        
+        /* 헤더 스타일 */
+        .admin-header {
+            background-color: #1f2937;
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background-color: #374151;
+            border-radius: 0.5rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background-color: #16a34a;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #15803d;
+        }
+        
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        
+        .btn-danger {
+            background-color: #dc2626;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+        
+        /* 컨텐츠 스타일 */
+        .main-content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* 탭 스타일 */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: #6b7280;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+        }
+        
+        .tab-btn:hover {
+            background: #f3f4f6;
+        }
+        
+        .tab-btn.active {
+            background: #16a34a;
+            color: white;
+        }
+        
+        /* 담당자 설정 섹션 */
+        .settings-section {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .settings-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            color: #111827;
+        }
+        
+        .contact-types-grid {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .contact-type-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            background: #f9fafb;
+        }
+        
+        .contact-type-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .contact-type-name {
+            font-weight: 600;
+            font-size: 1.125rem;
+            color: #374151;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #374151;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #16a34a;
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .save-btn {
+            margin-top: 1rem;
+        }
+        
+        /* 문의 목록 섹션 */
+        .contacts-list-section {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .list-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .list-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #111827;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .filter-select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+        
+        /* 문의 테이블 */
+        .contacts-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .contacts-table th {
+            padding: 1rem;
+            text-align: left;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+        }
+        
+        .contacts-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+        }
+        
+        .contacts-table tr:hover {
+            background: #f9fafb;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .status-new {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .status-processing {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .contact-type-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: #e5e7eb;
+            color: #374151;
+        }
+        
+        /* 문의 상세 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            max-width: 700px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-header h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #111827;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.375rem;
+            transition: background-color 0.2s;
+        }
+        
+        .modal-close:hover {
+            background-color: #f3f4f6;
+        }
+        
+        .contact-detail {
+            margin-bottom: 1.5rem;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.25rem;
+        }
+        
+        .detail-value {
+            color: #6b7280;
+            white-space: pre-wrap;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        /* 빈 상태 */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6b7280;
+        }
+        
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+        
+        .empty-state-text {
+            font-size: 1.125rem;
+        }
+        
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .tabs {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                flex-wrap: nowrap;
+            }
+            
+            .tab-btn {
+                white-space: nowrap;
+            }
+            
+            .filter-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .filter-select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="contacts-container">
+        <!-- 헤더 -->
+        <header class="admin-header">
+            <div class="header-title">
+                <span>📧</span>
+                <span>문의 관리</span>
+            </div>
+            <div class="header-actions">
+                <div class="user-info">
+                    <span>👤</span>
+                    <span id="user-name">관리자</span>
+                </div>
+                <button onclick="goBack()" class="btn btn-secondary">
+                    <span>←</span>
+                    <span>돌아가기</span>
+                </button>
+            </div>
+        </header>
+        
+        <!-- 메인 컨텐츠 -->
+        <main class="main-content">
+            <!-- 탭 네비게이션 -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('contacts')">문의 목록</button>
+                <button class="tab-btn" onclick="switchTab('settings')">담당자 설정</button>
+            </div>
+            
+            <!-- 문의 목록 탭 -->
+            <div id="contacts-tab" class="tab-content">
+                <div class="contacts-list-section">
+                    <div class="list-header">
+                        <h2 class="list-title">문의 목록</h2>
+                        <div class="filter-controls">
+                            <select class="filter-select" id="type-filter" onchange="filterContacts()">
+                                <option value="">전체 유형</option>
+                                <option value="general">일반 문의</option>
+                                <option value="product">제품 관련</option>
+                                <option value="franchise">가맹 문의</option>
+                                <option value="complaint">불만 사항</option>
+                                <option value="etc">기타</option>
+                            </select>
+                            <select class="filter-select" id="status-filter" onchange="filterContacts()">
+                                <option value="">전체 상태</option>
+                                <option value="new">신규</option>
+                                <option value="processing">처리중</option>
+                                <option value="completed">완료</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <table class="contacts-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">번호</th>
+                                <th style="width: 100px;">유형</th>
+                                <th>제목</th>
+                                <th style="width: 120px;">작성자</th>
+                                <th style="width: 120px;">연락처</th>
+                                <th style="width: 100px;">상태</th>
+                                <th style="width: 120px;">접수일시</th>
+                                <th style="width: 100px;">작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contacts-tbody">
+                            <!-- 문의 목록이 여기에 동적으로 추가됩니다 -->
+                        </tbody>
+                    </table>
+                    
+                    <!-- 빈 상태 -->
+                    <div id="empty-state" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-text">접수된 문의가 없습니다.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 담당자 설정 탭 -->
+            <div id="settings-tab" class="tab-content" style="display: none;">
+                <div class="settings-section">
+                    <h2 class="settings-title">문의 유형별 담당자 설정</h2>
+                    
+                    <div class="contact-types-grid">
+                        <!-- 일반 문의 -->
+                        <div class="contact-type-item">
+                            <div class="contact-type-header">
+                                <h3 class="contact-type-name">일반 문의</h3>
+                                <button class="btn btn-sm btn-primary" onclick="saveSettings('general')">저장</button>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">담당자 이름</label>
+                                    <input type="text" id="general-name" class="form-control" placeholder="홍길동">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">휴대폰 번호</label>
+                                    <input type="tel" id="general-phone" class="form-control" placeholder="010-1234-5678">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">이메일</label>
+                                    <input type="email" id="general-email" class="form-control" placeholder="example@edenfood.com">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 제품 관련 -->
+                        <div class="contact-type-item">
+                            <div class="contact-type-header">
+                                <h3 class="contact-type-name">제품 관련</h3>
+                                <button class="btn btn-sm btn-primary" onclick="saveSettings('product')">저장</button>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">담당자 이름</label>
+                                    <input type="text" id="product-name" class="form-control" placeholder="홍길동">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">휴대폰 번호</label>
+                                    <input type="tel" id="product-phone" class="form-control" placeholder="010-1234-5678">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">이메일</label>
+                                    <input type="email" id="product-email" class="form-control" placeholder="example@edenfood.com">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 가맹 문의 -->
+                        <div class="contact-type-item">
+                            <div class="contact-type-header">
+                                <h3 class="contact-type-name">가맹 문의</h3>
+                                <button class="btn btn-sm btn-primary" onclick="saveSettings('franchise')">저장</button>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">담당자 이름</label>
+                                    <input type="text" id="franchise-name" class="form-control" placeholder="홍길동">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">휴대폰 번호</label>
+                                    <input type="tel" id="franchise-phone" class="form-control" placeholder="010-1234-5678">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">이메일</label>
+                                    <input type="email" id="franchise-email" class="form-control" placeholder="example@edenfood.com">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 불만 사항 -->
+                        <div class="contact-type-item">
+                            <div class="contact-type-header">
+                                <h3 class="contact-type-name">불만 사항</h3>
+                                <button class="btn btn-sm btn-primary" onclick="saveSettings('complaint')">저장</button>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">담당자 이름</label>
+                                    <input type="text" id="complaint-name" class="form-control" placeholder="홍길동">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">휴대폰 번호</label>
+                                    <input type="tel" id="complaint-phone" class="form-control" placeholder="010-1234-5678">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">이메일</label>
+                                    <input type="email" id="complaint-email" class="form-control" placeholder="example@edenfood.com">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 기타 -->
+                        <div class="contact-type-item">
+                            <div class="contact-type-header">
+                                <h3 class="contact-type-name">기타</h3>
+                                <button class="btn btn-sm btn-primary" onclick="saveSettings('etc')">저장</button>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">담당자 이름</label>
+                                    <input type="text" id="etc-name" class="form-control" placeholder="홍길동">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">휴대폰 번호</label>
+                                    <input type="tel" id="etc-phone" class="form-control" placeholder="010-1234-5678">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">이메일</label>
+                                    <input type="email" id="etc-email" class="form-control" placeholder="example@edenfood.com">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 알림 설정 -->
+                    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e5e7eb;">
+                        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">알림 설정</h3>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="email-notification" style="width: 1.25rem; height: 1.25rem;">
+                            <span>새로운 문의 접수 시 담당자에게 이메일 알림 발송</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- 문의 상세 모달 -->
+    <div id="contact-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">문의 상세</h3>
+                <button onclick="closeModal()" class="modal-close">×</button>
+            </div>
+            
+            <div class="contact-detail">
+                <div class="detail-label">문의 유형</div>
+                <div class="detail-value" id="detail-type"></div>
+            </div>
+            
+            <div class="contact-detail">
+                <div class="detail-label">작성자</div>
+                <div class="detail-value" id="detail-name"></div>
+            </div>
+            
+            <div class="contact-detail">
+                <div class="detail-label">연락처</div>
+                <div class="detail-value" id="detail-phone"></div>
+            </div>
+            
+            <div class="contact-detail">
+                <div class="detail-label">이메일</div>
+                <div class="detail-value" id="detail-email"></div>
+            </div>
+            
+            <div class="contact-detail">
+                <div class="detail-label">제목</div>
+                <div class="detail-value" id="detail-title"></div>
+            </div>
+            
+            <div class="contact-detail">
+                <div class="detail-label">내용</div>
+                <div class="detail-value" id="detail-content"></div>
+            </div>
+            
+            <div class="contact-detail">
+                <div class="detail-label">접수일시</div>
+                <div class="detail-value" id="detail-created"></div>
+            </div>
+            
+            <div class="contact-detail">
+                <div class="detail-label">현재 상태</div>
+                <div class="detail-value" id="detail-status"></div>
+            </div>
+            
+            <div class="modal-actions">
+                <select class="form-control" id="status-select" style="width: 150px;">
+                    <option value="new">신규</option>
+                    <option value="processing">처리중</option>
+                    <option value="completed">완료</option>
+                </select>
+                <button class="btn btn-primary" onclick="updateContactStatus()">상태 변경</button>
+                <button class="btn btn-danger" onclick="deleteContact()">삭제</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 전역 변수
+        let contacts = [];
+        let currentContactId = null;
+        let contactSettings = {};
+        
+        // 페이지 로드 시 초기화
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 인증 체크
+            const token = localStorage.getItem('eden_token');
+            if (!token) {
+                alert('로그인이 필요합니다.');
+                location.href = '/login';
+                return;
+            }
+            
+            // 사용자 정보 가져오기
+            try {
+                const authResponse = await fetch('/api/auth/me', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                const authData = await authResponse.json();
+                
+                if (!authData.ok || authData.user.role !== 'admin') {
+                    alert('관리자 권한이 필요합니다.');
+                    location.href = '/';
+                    return;
+                }
+                
+                document.getElementById('user-name').textContent = authData.user.name || '관리자';
+            } catch (error) {
+                console.error('인증 확인 실패:', error);
+                location.href = '/login';
+                return;
+            }
+            
+            // 데이터 로드
+            await loadContacts();
+            await loadSettings();
+        });
+        
+        // 탭 전환
+        function switchTab(tab) {
+            // 탭 버튼 활성화
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 탭 컨텐츠 표시
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            document.getElementById(tab + '-tab').style.display = 'block';
+        }
+        
+        // 문의 목록 로드
+        async function loadContacts() {
+            try {
+                const response = await fetch('/api/contacts', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        console.log('문의 API가 아직 구현되지 않았습니다.');
+                        contacts = [];
+                        renderContacts();
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.ok) {
+                    contacts = data.contacts || [];
+                    renderContacts();
+                }
+            } catch (error) {
+                console.error('문의 목록 로드 실패:', error);
+                contacts = [];
+                renderContacts();
+            }
+        }
+        
+        // 문의 목록 렌더링
+        function renderContacts() {
+            const tbody = document.getElementById('contacts-tbody');
+            const emptyState = document.getElementById('empty-state');
+            
+            // 필터 적용
+            let filteredContacts = contacts;
+            const typeFilter = document.getElementById('type-filter').value;
+            const statusFilter = document.getElementById('status-filter').value;
+            
+            if (typeFilter) {
+                filteredContacts = filteredContacts.filter(c => c.contact_type === typeFilter);
+            }
+            if (statusFilter) {
+                filteredContacts = filteredContacts.filter(c => c.status === statusFilter);
+            }
+            
+            if (filteredContacts.length === 0) {
+                tbody.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            tbody.style.display = '';
+            emptyState.style.display = 'none';
+            
+            const typeNames = {
+                general: '일반 문의',
+                product: '제품 관련',
+                franchise: '가맹 문의',
+                complaint: '불만 사항',
+                etc: '기타'
+            };
+            
+            const statusNames = {
+                new: '신규',
+                processing: '처리중',
+                completed: '완료'
+            };
+            
+            tbody.innerHTML = filteredContacts.map(contact => {
+                const createdDate = new Date(contact.created_at);
+                const dateStr = createdDate.toLocaleString('ko-KR', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                return `
+                    <tr>
+                        <td>${contact.id}</td>
+                        <td><span class="contact-type-badge">${typeNames[contact.contact_type] || contact.contact_type}</span></td>
+                        <td>${escapeHtml(contact.title)}</td>
+                        <td>${escapeHtml(contact.name)}</td>
+                        <td>${escapeHtml(contact.phone)}</td>
+                        <td><span class="status-badge status-${contact.status}">${statusNames[contact.status]}</span></td>
+                        <td>${dateStr}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="viewContact(${contact.id})">보기</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        // 문의 상세 보기
+        function viewContact(id) {
+            const contact = contacts.find(c => c.id === id);
+            if (!contact) return;
+            
+            currentContactId = id;
+            
+            const typeNames = {
+                general: '일반 문의',
+                product: '제품 관련',
+                franchise: '가맹 문의',
+                complaint: '불만 사항',
+                etc: '기타'
+            };
+            
+            const statusNames = {
+                new: '신규',
+                processing: '처리중',
+                completed: '완료'
+            };
+            
+            document.getElementById('detail-type').textContent = typeNames[contact.contact_type] || contact.contact_type;
+            document.getElementById('detail-name').textContent = contact.name;
+            document.getElementById('detail-phone').textContent = contact.phone;
+            document.getElementById('detail-email').textContent = contact.email;
+            document.getElementById('detail-title').textContent = contact.title;
+            document.getElementById('detail-content').textContent = contact.content;
+            document.getElementById('detail-created').textContent = new Date(contact.created_at).toLocaleString('ko-KR');
+            document.getElementById('detail-status').textContent = statusNames[contact.status];
+            document.getElementById('status-select').value = contact.status;
+            
+            document.getElementById('contact-modal').classList.add('active');
+        }
+        
+        // 모달 닫기
+        function closeModal() {
+            document.getElementById('contact-modal').classList.remove('active');
+            currentContactId = null;
+        }
+        
+        // 문의 상태 업데이트
+        async function updateContactStatus() {
+            if (!currentContactId) return;
+            
+            const newStatus = document.getElementById('status-select').value;
+            
+            try {
+                const response = await fetch(`/api/contacts/${currentContactId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                const data = await response.json();
+                if (data.ok) {
+                    alert('상태가 변경되었습니다.');
+                    await loadContacts();
+                    closeModal();
+                } else {
+                    alert(data.error || '상태 변경에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('상태 업데이트 실패:', error);
+                alert('상태 변경 중 오류가 발생했습니다.');
+            }
+        }
+        
+        // 문의 삭제
+        async function deleteContact() {
+            if (!currentContactId) return;
+            
+            if (!confirm('이 문의를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/contacts/${currentContactId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+                    }
+                });
+                
+                const data = await response.json();
+                if (data.ok) {
+                    alert('문의가 삭제되었습니다.');
+                    await loadContacts();
+                    closeModal();
+                } else {
+                    alert(data.error || '삭제에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('문의 삭제 실패:', error);
+                alert('삭제 중 오류가 발생했습니다.');
+            }
+        }
+        
+        // 필터 적용
+        function filterContacts() {
+            renderContacts();
+        }
+        
+        // 담당자 설정 로드
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/contacts/settings', {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        console.log('설정 API가 아직 구현되지 않았습니다.');
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.ok && data.settings) {
+                    contactSettings = data.settings;
+                    
+                    // 각 유형별 설정 적용
+                    const types = ['general', 'product', 'franchise', 'complaint', 'etc'];
+                    types.forEach(type => {
+                        if (contactSettings[type]) {
+                            document.getElementById(`${type}-name`).value = contactSettings[type].name || '';
+                            document.getElementById(`${type}-phone`).value = contactSettings[type].phone || '';
+                            document.getElementById(`${type}-email`).value = contactSettings[type].email || '';
+                        }
+                    });
+                    
+                    // 알림 설정
+                    if (contactSettings.email_notification !== undefined) {
+                        document.getElementById('email-notification').checked = contactSettings.email_notification;
+                    }
+                }
+            } catch (error) {
+                console.error('설정 로드 실패:', error);
+                // 기본값 설정
+                document.getElementById('email-notification').checked = false;
+            }
+        }
+        
+        // 담당자 설정 저장
+        async function saveSettings(type) {
+            const settings = {
+                type: type,
+                name: document.getElementById(`${type}-name`).value,
+                phone: document.getElementById(`${type}-phone`).value,
+                email: document.getElementById(`${type}-email`).value
+            };
+            
+            try {
+                const response = await fetch('/api/contacts/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+                    },
+                    body: JSON.stringify(settings)
+                });
+                
+                const data = await response.json();
+                if (data.ok) {
+                    alert('설정이 저장되었습니다.');
+                    await loadSettings();
+                } else {
+                    alert(data.error || '설정 저장에 실패했습니다.');
+                }
+            } catch (error) {
+                console.error('설정 저장 실패:', error);
+                alert('설정 저장 중 오류가 발생했습니다.');
+            }
+        }
+        
+        // HTML 이스케이프
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // 돌아가기
+        function goBack() {
+            location.href = '/admin';
+        }
+        
+        // ESC 키로 모달 닫기
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+        
+        // 모달 외부 클릭으로 닫기
+        document.getElementById('contact-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'contact-modal') {
+                closeModal();
+            }
+        });
+        
+        // 알림 설정 변경 시 자동 저장
+        document.getElementById('email-notification').addEventListener('change', async (e) => {
+            try {
+                const response = await fetch('/api/contacts/settings/notification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+                    },
+                    body: JSON.stringify({ email_notification: e.target.checked })
+                });
+                
+                const data = await response.json();
+                if (!data.ok) {
+                    alert('알림 설정 저장에 실패했습니다.');
+                    e.target.checked = !e.target.checked; // 원래 상태로 복원
+                }
+            } catch (error) {
+                console.error('알림 설정 저장 실패:', error);
+                alert('알림 설정 저장 중 오류가 발생했습니다.');
+                e.target.checked = !e.target.checked; // 원래 상태로 복원
+            }
+        });
+    </script>
+</body>
+</html>

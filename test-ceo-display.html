@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>CEO 기존 이미지 표시 테스트</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background: #f9f9f9;
+    }
+    .result {
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 5px;
+    }
+    .success { background-color: #d4edda; color: #155724; }
+    .error { background-color: #f8d7da; color: #721c24; }
+    .info { background-color: #d1ecf1; color: #0c5460; }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background: #138b3e;
+    }
+    .ceo-image-preview {
+      margin: 20px 0;
+      text-align: center;
+    }
+    .ceo-image-preview img {
+      max-width: 300px;
+      max-height: 300px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: 2px solid #ddd;
+      margin-top: 20px;
+    }
+    .highlight {
+      background: yellow;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <h1>CEO 기존 이미지 표시 테스트 🖼️</h1>
+
+  <div class="test-section">
+    <h2>1. 현재 CEO 데이터 확인</h2>
+    <button onclick="checkCurrentCeoData()">현재 CEO 데이터 조회</button>
+    <div id="current-data"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>2. CEO 이미지 업데이트 테스트</h2>
+    <button onclick="updateWithTestImage()">테스트 이미지로 업데이트</button>
+    <button onclick="updateWithRealImage()">실제 이미지 업로드</button>
+    <input type="file" id="real-image" accept="image/*" style="display: none;">
+    <div id="update-result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>3. Admin 페이지 확인</h2>
+    <p>아래 iframe에서 CEO 인사말 탭을 확인하세요:</p>
+    <ol>
+      <li>CEO 인사말 탭 클릭</li>
+      <li><span class="highlight">기존 이미지가 표시되는지 확인</span></li>
+      <li>이미지를 클릭하면 변경 가능</li>
+    </ol>
+    <button onclick="reloadIframe()">페이지 새로고침</button>
+    <button onclick="clearCacheAndReload()">캐시 지우고 새로고침</button>
+    <iframe id="admin-frame" src="/admin/about"></iframe>
+  </div>
+
+  <script>
+    let authToken = localStorage.getItem('eden_token') || '';
+
+    // 현재 CEO 데이터 확인
+    async function checkCurrentCeoData() {
+      try {
+        // 먼저 로그인 시도
+        if (!authToken) {
+          await login();
+        }
+
+        const response = await fetch('/api/about', {
+          headers: { 'Authorization': 'Bearer ' + authToken }
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok && data.data && data.data.content) {
+          const content = data.data.content;
+          let html = '<div class="result info">';
+          html += '<h3>현재 CEO 인사말 데이터</h3>';
+          html += `<p><strong>텍스트:</strong> ${content.greeting_text || '(없음)'}</p>`;
+          html += `<p><strong>작성자:</strong> ${content.greeting_author || '(없음)'}</p>`;
+          html += `<p><strong>이미지 경로:</strong> ${content.greeting_image || '(없음)'}</p>`;
+          
+          if (content.greeting_image) {
+            html += '<div class="ceo-image-preview">';
+            html += '<p><strong>현재 CEO 이미지:</strong></p>';
+            html += `<img src="${content.greeting_image}" alt="CEO 이미지">`;
+            html += '</div>';
+          }
+          
+          html += '</div>';
+          document.getElementById('current-data').innerHTML = html;
+        } else {
+          showResult('current-data', 'CEO 데이터를 가져올 수 없습니다.', 'error');
+        }
+      } catch (error) {
+        showResult('current-data', '오류: ' + error.message, 'error');
+      }
+    }
+
+    // 로그인
+    async function login() {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: 'admin',
+          password: 'eden2026!'
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.ok && data.token) {
+        authToken = data.token;
+        localStorage.setItem('eden_token', data.token);
+      } else {
+        throw new Error('로그인 실패');
+      }
+    }
+
+    // 테스트 이미지로 업데이트
+    async function updateWithTestImage() {
+      try {
+        if (!authToken) {
+          await login();
+        }
+
+        // 다양한 색상의 테스트 이미지 생성
+        const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        
+        // 색상별 base64 이미지
+        const testImages = {
+          red: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx8gAAAABJRU5ErkJggg==',
+          blue: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPj/HwADAgH/a4mjYwAAAABJRU5ErkJggg==',
+          green: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+          yellow: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5/hPwAIAgL/92huVwAAAABJRU5ErkJggg==',
+          purple: 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg=='
+        };
+
+        const response = await fetch('/api/about/greeting', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + authToken
+          },
+          body: JSON.stringify({
+            greeting_text: '테스트 CEO 인사말 (' + new Date().toLocaleString() + ')',
+            greeting_author: '테스트 대표이사',
+            greeting_image: 'data:image/png;base64,' + testImages[color]
+          })
+        });
+
+        const data = await response.json();
+        
+        if (data.ok) {
+          showResult('update-result', 
+            `✅ ${color} 색상의 테스트 이미지로 업데이트 성공!<br>` +
+            `이미지 경로: ${data.imagePath || '알 수 없음'}<br>` +
+            `<strong>이제 아래 Admin 페이지를 새로고침하면 이미지가 표시됩니다.</strong>`, 
+            'success'
+          );
+          
+          // 자동으로 현재 데이터 다시 조회
+          setTimeout(checkCurrentCeoData, 500);
+        } else {
+          showResult('update-result', '업데이트 실패: ' + (data.error || '알 수 없는 오류'), 'error');
+        }
+      } catch (error) {
+        showResult('update-result', '오류: ' + error.message, 'error');
+      }
+    }
+
+    // 실제 이미지 업로드
+    async function updateWithRealImage() {
+      document.getElementById('real-image').click();
+    }
+
+    document.getElementById('real-image').onchange = async function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        if (!authToken) {
+          await login();
+        }
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+          const response = await fetch('/api/about/greeting', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + authToken
+            },
+            body: JSON.stringify({
+              greeting_text: '실제 이미지 테스트',
+              greeting_author: 'CEO',
+              greeting_image: e.target.result
+            })
+          });
+
+          const data = await response.json();
+          
+          if (data.ok) {
+            showResult('update-result', 
+              `✅ 실제 이미지 업로드 성공!<br>` +
+              `이미지 경로: ${data.imagePath || '알 수 없음'}`, 
+              'success'
+            );
+            
+            setTimeout(checkCurrentCeoData, 500);
+          } else {
+            showResult('update-result', '업로드 실패: ' + (data.error || '알 수 없는 오류'), 'error');
+          }
+        };
+        reader.readAsDataURL(file);
+      } catch (error) {
+        showResult('update-result', '오류: ' + error.message, 'error');
+      }
+    };
+
+    function showResult(elementId, message, type) {
+      document.getElementById(elementId).innerHTML = 
+        `<div class="result ${type}">${message}</div>`;
+    }
+
+    function reloadIframe() {
+      document.getElementById('admin-frame').src = '/admin/about';
+    }
+
+    function clearCacheAndReload() {
+      // 캐시 무효화를 위해 타임스탬프 추가
+      document.getElementById('admin-frame').src = '/admin/about?' + Date.now();
+    }
+
+    // 페이지 로드 시 자동으로 데이터 확인
+    window.onload = function() {
+      if (authToken) {
+        checkCurrentCeoData();
+      }
+    };
+  </script>
+</body>
+</html>

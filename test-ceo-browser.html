@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>CEO 이미지 업로드 브라우저 테스트</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background: #f9f9f9;
+    }
+    .result {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .success { background-color: #d4edda; color: #155724; }
+    .error { background-color: #f8d7da; color: #721c24; }
+    .info { background-color: #d1ecf1; color: #0c5460; }
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #16a34a;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background: #138b3e;
+    }
+    iframe {
+      width: 100%;
+      height: 800px;
+      border: 2px solid #ddd;
+    }
+    .log-output {
+      background: #222;
+      color: #0f0;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+    .test-image-upload {
+      border: 2px dashed #ccc;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin: 20px 0;
+    }
+    .test-image-upload:hover {
+      border-color: #16a34a;
+      background: #f0f9ff;
+    }
+    .test-image-upload.drag-over {
+      border-color: #16a34a;
+      background: #e6f7ff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Eden Food CEO 이미지 업로드 완전 테스트</h1>
+
+  <div class="test-section">
+    <h2>1단계: 로그인</h2>
+    <button onclick="doLogin()">관리자 로그인</button>
+    <button onclick="checkAuth()">인증 상태 확인</button>
+    <div id="login-result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>2단계: 페이지 상태 확인</h2>
+    <button onclick="checkPageStatus()">페이지 및 함수 상태 확인</button>
+    <button onclick="checkCurrentCeoImage()">현재 CEO 이미지 확인</button>
+    <div id="status-result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>3단계: 이미지 업로드 테스트</h2>
+    <div class="test-image-upload" id="test-upload-zone">
+      <p>테스트 이미지를 여기에 드래그하거나 클릭하여 업로드</p>
+      <input type="file" id="test-file-input" accept="image/*" style="display: none;">
+    </div>
+    <div id="upload-preview"></div>
+    <button onclick="uploadTestImage()" id="upload-btn" style="display: none;">이 이미지로 CEO 사진 업로드</button>
+    <div id="upload-result"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>4단계: iframe 내 실제 페이지 테스트</h2>
+    <button onclick="testIframeUpload()">iframe에서 CEO 이미지 클릭 시뮬레이션</button>
+    <button onclick="checkIframeFunctions()">iframe 함수 확인</button>
+    <button onclick="triggerFileInput()">파일 입력 직접 트리거</button>
+    <div id="iframe-result"></div>
+    <iframe id="admin-frame" src="/admin/about"></iframe>
+  </div>
+
+  <div class="test-section">
+    <h2>콘솔 로그</h2>
+    <div id="console-log" class="log-output"></div>
+  </div>
+
+  <script>
+    let authToken = '';
+    let selectedFile = null;
+
+    // 콘솔 로그 캡처
+    const originalLog = console.log;
+    const originalError = console.error;
+    const logOutput = document.getElementById('console-log');
+    
+    function addLog(msg, type = 'log') {
+      const time = new Date().toLocaleTimeString();
+      const color = type === 'error' ? '#f88' : '#0f0';
+      logOutput.innerHTML += `<div style="color: ${color}">[${time}] ${msg}</div>`;
+      logOutput.scrollTop = logOutput.scrollHeight;
+    }
+    
+    console.log = function(...args) {
+      originalLog.apply(console, args);
+      addLog(args.join(' '));
+    };
+    
+    console.error = function(...args) {
+      originalError.apply(console, args);
+      addLog(args.join(' '), 'error');
+    };
+
+    // 1. 로그인
+    async function doLogin() {
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: 'admin',
+            password: 'eden2026!'
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.ok && data.token) {
+          authToken = data.token;
+          localStorage.setItem('eden_token', data.token);
+          showResult('login-result', '✅ 로그인 성공! 토큰 저장됨', 'success');
+          console.log('로그인 성공, 토큰:', authToken.substring(0, 20) + '...');
+        } else {
+          showResult('login-result', '❌ 로그인 실패: ' + (data.error || '알 수 없는 오류'), 'error');
+        }
+      } catch (error) {
+        showResult('login-result', '❌ 로그인 중 오류: ' + error.message, 'error');
+        console.error('로그인 오류:', error);
+      }
+    }
+
+    // 인증 확인
+    async function checkAuth() {
+      const token = authToken || localStorage.getItem('eden_token');
+      if (!token) {
+        showResult('login-result', '❌ 토큰이 없습니다. 먼저 로그인하세요.', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/verify', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await response.json();
+        
+        if (data.ok && data.user) {
+          showResult('login-result', 
+            `✅ 인증 확인 성공<br>` +
+            `사용자: ${data.user.username}<br>` +
+            `권한: ${data.user.role}`, 
+            'success'
+          );
+        } else {
+          showResult('login-result', '❌ 인증 실패', 'error');
+        }
+      } catch (error) {
+        showResult('login-result', '❌ 인증 확인 오류: ' + error.message, 'error');
+      }
+    }
+
+    // 2. 페이지 상태 확인
+    async function checkPageStatus() {
+      try {
+        // admin/about 페이지 로드
+        const response = await fetch('/admin/about');
+        const html = await response.text();
+        
+        const checks = {
+          'selectCeoImage 함수': html.includes('selectCeoImage'),
+          'handleCeoImageSelect 함수': html.includes('handleCeoImageSelect'),
+          'handleDragOver 함수': html.includes('handleDragOver'),
+          'handleDrop 함수': html.includes('handleDrop'),
+          'ceo-image-upload 요소': html.includes('id="ceo-image-upload"'),
+          'ceo-image-input 요소': html.includes('id="ceo-image-input"'),
+          'onclick selectCeoImage': html.includes('onclick="selectCeoImage()"'),
+          'onchange handleCeoImageSelect': html.includes('onchange="handleCeoImageSelect(event)"')
+        };
+        
+        let results = '<strong>페이지 상태 확인:</strong><br>';
+        for (const [item, exists] of Object.entries(checks)) {
+          results += `${exists ? '✅' : '❌'} ${item}<br>`;
+        }
+        
+        showResult('status-result', results, 'info');
+        console.log('페이지 상태 확인 완료');
+      } catch (error) {
+        showResult('status-result', '❌ 페이지 상태 확인 실패: ' + error.message, 'error');
+      }
+    }
+
+    // 현재 CEO 이미지 확인
+    async function checkCurrentCeoImage() {
+      const token = authToken || localStorage.getItem('eden_token');
+      
+      try {
+        const response = await fetch('/api/about', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await response.json();
+        
+        if (data.ok && data.data) {
+          const imageUrl = data.data.ceo_message_image || data.data.greeting_image;
+          showResult('status-result', 
+            `<strong>현재 CEO 이미지:</strong><br>` +
+            `경로: ${imageUrl || '없음'}<br>` +
+            (imageUrl ? `<img src="${imageUrl}" style="max-width: 200px; margin-top: 10px;">` : ''),
+            'info'
+          );
+        } else {
+          showResult('status-result', '❌ CEO 이미지 조회 실패', 'error');
+        }
+      } catch (error) {
+        showResult('status-result', '❌ 조회 중 오류: ' + error.message, 'error');
+      }
+    }
+
+    // 3. 이미지 업로드 테스트
+    const uploadZone = document.getElementById('test-upload-zone');
+    const fileInput = document.getElementById('test-file-input');
+    
+    uploadZone.onclick = () => fileInput.click();
+    
+    uploadZone.ondragover = (e) => {
+      e.preventDefault();
+      uploadZone.classList.add('drag-over');
+      console.log('Drag over 이벤트 발생');
+    };
+    
+    uploadZone.ondragleave = (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('drag-over');
+      console.log('Drag leave 이벤트 발생');
+    };
+    
+    uploadZone.ondrop = (e) => {
+      e.preventDefault();
+      uploadZone.classList.remove('drag-over');
+      if (e.dataTransfer.files.length > 0) {
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
+      console.log('Drop 이벤트 발생');
+    };
+    
+    fileInput.onchange = (e) => {
+      if (e.target.files.length > 0) {
+        handleFileSelect(e.target.files[0]);
+      }
+    };
+    
+    function handleFileSelect(file) {
+      if (!file.type.startsWith('image/')) {
+        alert('이미지 파일만 선택할 수 있습니다.');
+        return;
+      }
+      
+      selectedFile = file;
+      console.log('파일 선택됨:', file.name, file.size, 'bytes');
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('upload-preview').innerHTML = 
+          `<img src="${e.target.result}" style="max-width: 300px;">`;
+        document.getElementById('upload-btn').style.display = 'inline-block';
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    async function uploadTestImage() {
+      if (!selectedFile) {
+        showResult('upload-result', '❌ 파일을 선택하세요.', 'error');
+        return;
+      }
+      
+      const token = authToken || localStorage.getItem('eden_token');
+      if (!token) {
+        showResult('upload-result', '❌ 먼저 로그인하세요.', 'error');
+        return;
+      }
+      
+      try {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const base64Data = e.target.result;
+          console.log('Base64 데이터 크기:', base64Data.length);
+          
+          const response = await fetch('/api/about/greeting', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({
+              greeting_text: '테스트 CEO 인사말',
+              greeting_image: base64Data
+            })
+          });
+          
+          const data = await response.json();
+          console.log('업로드 응답:', data);
+          
+          if (data.ok) {
+            showResult('upload-result', 
+              `✅ CEO 이미지 업로드 성공!<br>` +
+              `경로: ${data.imagePath}`, 
+              'success'
+            );
+            
+            // 업로드 후 이미지 다시 확인
+            setTimeout(checkCurrentCeoImage, 500);
+          } else {
+            showResult('upload-result', '❌ 업로드 실패: ' + (data.error || '알 수 없는 오류'), 'error');
+          }
+        };
+        reader.readAsDataURL(selectedFile);
+      } catch (error) {
+        showResult('upload-result', '❌ 업로드 중 오류: ' + error.message, 'error');
+        console.error('업로드 오류:', error);
+      }
+    }
+
+    // 4. iframe 테스트
+    function testIframeUpload() {
+      try {
+        const frame = document.getElementById('admin-frame');
+        const frameDoc = frame.contentDocument;
+        const frameWin = frame.contentWindow;
+        
+        // CEO 이미지 업로드 영역 찾기
+        const uploadDiv = frameDoc.getElementById('ceo-image-upload');
+        if (uploadDiv) {
+          console.log('CEO 업로드 영역 찾음, 클릭 시도');
+          uploadDiv.click();
+          showResult('iframe-result', '✅ CEO 이미지 영역 클릭됨', 'success');
+        } else {
+          showResult('iframe-result', '❌ ceo-image-upload 요소를 찾을 수 없음', 'error');
+        }
+      } catch (error) {
+        showResult('iframe-result', '❌ iframe 접근 오류: ' + error.message, 'error');
+        console.error('iframe 오류:', error);
+      }
+    }
+
+    function checkIframeFunctions() {
+      try {
+        const frame = document.getElementById('admin-frame');
+        const frameWin = frame.contentWindow;
+        
+        const functions = [
+          'selectCeoImage',
+          'handleCeoImageSelect',
+          'handleDragOver',
+          'handleDrop',
+          'showCeoImage'
+        ];
+        
+        let results = '<strong>iframe 내 함수 상태:</strong><br>';
+        functions.forEach(func => {
+          const exists = typeof frameWin[func] === 'function';
+          const windowExists = frameWin.window && typeof frameWin.window[func] === 'function';
+          results += `${func}: ${exists ? '✅' : '❌'} (window.${func}: ${windowExists ? '✅' : '❌'})<br>`;
+        });
+        
+        showResult('iframe-result', results, 'info');
+      } catch (error) {
+        showResult('iframe-result', '❌ 함수 확인 오류: ' + error.message, 'error');
+      }
+    }
+
+    function triggerFileInput() {
+      try {
+        const frame = document.getElementById('admin-frame');
+        const frameDoc = frame.contentDocument;
+        
+        const fileInput = frameDoc.getElementById('ceo-image-input');
+        if (fileInput) {
+          console.log('파일 입력 요소 찾음, 클릭 시도');
+          fileInput.click();
+          showResult('iframe-result', '✅ 파일 입력 트리거됨', 'success');
+        } else {
+          showResult('iframe-result', '❌ ceo-image-input 요소를 찾을 수 없음', 'error');
+        }
+      } catch (error) {
+        showResult('iframe-result', '❌ 파일 입력 트리거 오류: ' + error.message, 'error');
+      }
+    }
+
+    function showResult(elementId, message, type) {
+      document.getElementById(elementId).innerHTML = 
+        `<div class="result ${type}">${message}</div>`;
+    }
+
+    // 페이지 로드 시 자동 실행
+    window.onload = () => {
+      if (localStorage.getItem('eden_token')) {
+        authToken = localStorage.getItem('eden_token');
+        console.log('저장된 토큰 발견');
+        checkAuth();
+      }
+      
+      // iframe 로드 완료 대기
+      document.getElementById('admin-frame').onload = () => {
+        console.log('Admin iframe 로드 완료');
+        setTimeout(() => {
+          checkIframeFunctions();
+        }, 1000);
+      };
+    };
+  </script>
+</body>
+</html>

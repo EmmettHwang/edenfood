@@ -322,56 +322,8 @@
     </div>
     
     <!-- 브랜드 그리드 -->
-    <div class="brand-grid">
-      
-      <!-- 홍안에 브랜드 -->
-      <div class="brand-card">
-        <div class="brand-logo">
-          <img src="/assets/hongane.png" alt="홍안에" />
-        </div>
-        <div class="brand-info">
-          <h2 class="brand-name">홍안에</h2>
-          <p class="brand-desc">
-            전통 한식의 정성을 담아 만든 프리미엄 한식 브랜드입니다. 
-            엄선된 재료와 정통 조리법으로 한국의 맛을 제대로 전달합니다.
-          </p>
-          <ul class="brand-features">
-            <li>100% 국내산 재료 사용</li>
-            <li>전통 발효 장류 사용</li>
-            <li>수제 반찬 매일 제조</li>
-            <li>건강한 한식 메뉴</li>
-          </ul>
-          <div class="brand-cta">
-            <a href="/contact?type=franchise" class="brand-btn">가맹 문의</a>
-            <a href="#" class="brand-btn brand-btn-outline">메뉴 보기</a>
-          </div>
-        </div>
-      </div>
-      
-      <!-- 차이나감자탕 브랜드 -->
-      <div class="brand-card">
-        <div class="brand-logo">
-          <img src="/assets/namchaina.jpg" alt="차이나감자탕" />
-        </div>
-        <div class="brand-info">
-          <h2 class="brand-name">차이나감자탕</h2>
-          <p class="brand-desc">
-            깊고 진한 국물맛이 일품인 감자탕 전문 브랜드입니다. 
-            24시간 푹 끓인 사골육수와 신선한 등뼈로 만든 최고의 감자탕을 제공합니다.
-          </p>
-          <ul class="brand-features">
-            <li>24시간 우린 진한 사골육수</li>
-            <li>매일 신선한 등뼈 공급</li>
-            <li>특제 양념 레시피</li>
-            <li>다양한 사이드 메뉴</li>
-          </ul>
-          <div class="brand-cta">
-            <a href="/contact?type=franchise" class="brand-btn">가맹 문의</a>
-            <a href="/products#감자탕" class="brand-btn brand-btn-outline">제품 보기</a>
-          </div>
-        </div>
-      </div>
-      
+    <div class="brand-grid" id="brandGrid">
+      <!-- 브랜드가 여기에 동적으로 추가됩니다 -->
     </div>
     
   </div>
@@ -382,6 +334,72 @@
 document.getElementById('nav-hamburger').addEventListener('click', () => {
   document.getElementById('mobile-menu').classList.toggle('open');
 });
+
+// 브랜드 데이터 로드
+async function loadBrands() {
+  try {
+    const response = await fetch('/api/brands');
+    const data = await response.json();
+    
+    if (data.ok || data.success) {
+      const brands = data.data?.brands || data.brands || [];
+      const activebrands = brands.filter(b => b.status === 'active').sort((a, b) => a.order_num - b.order_num);
+      renderBrands(activebrands);
+    } else {
+      console.error('브랜드 로드 실패:', data);
+      document.getElementById('brandGrid').innerHTML = '<p style="text-align: center; color: #6b7280;">브랜드 정보를 불러올 수 없습니다.</p>';
+    }
+  } catch (error) {
+    console.error('브랜드 로드 오류:', error);
+    document.getElementById('brandGrid').innerHTML = '<p style="text-align: center; color: #6b7280;">브랜드 정보를 불러올 수 없습니다.</p>';
+  }
+}
+
+// 브랜드 렌더링
+function renderBrands(brands) {
+  const brandGrid = document.getElementById('brandGrid');
+  
+  brandGrid.innerHTML = brands.map(brand => {
+    // description에서 주요 설명과 특징 분리
+    const descLines = brand.description.split('\n').filter(line => line.trim());
+    const mainDesc = [];
+    const features = [];
+    
+    descLines.forEach(line => {
+      if (line.trim().startsWith('•')) {
+        features.push(line.trim().substring(1).trim());
+      } else {
+        mainDesc.push(line.trim());
+      }
+    });
+    
+    return `
+      <div class="brand-card">
+        <div class="brand-logo">
+          <img src="${brand.logo_url}" alt="${brand.name}" />
+        </div>
+        <div class="brand-info">
+          <h2 class="brand-name">${brand.name}</h2>
+          <p class="brand-desc">
+            ${mainDesc.join(' ')}
+          </p>
+          ${features.length > 0 ? `
+          <ul class="brand-features">
+            ${features.map(feature => `<li>${feature}</li>`).join('')}
+          </ul>
+          ` : ''}
+          <div class="brand-cta">
+            <a href="/contact?type=franchise" class="brand-btn">가맹 문의</a>
+            <a href="/gallery" class="brand-btn brand-btn-outline">갤러리 보기</a>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// 페이지 로드 시 브랜드 데이터 로드
+window.addEventListener('DOMContentLoaded', loadBrands);
 </script>
 
 <!-- ===== FOOTER ===== -->
