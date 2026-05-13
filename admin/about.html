@@ -436,6 +436,41 @@
       }
     }
   </style>
+  <script>
+    // 모든 함수를 미리 전역으로 등록
+    function showTab(tabName) {
+      console.log('showTab called with:', tabName);
+      // DOM이 준비되지 않았으면 대기
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => showTab(tabName));
+        return;
+      }
+      
+      // 모든 탭과 컨텐츠 숨기기
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      // 선택한 탭 활성화 - data-tab 속성 기반
+      document.querySelectorAll('.tab').forEach(tab => {
+        if (tab.getAttribute('data-tab') === tabName) {
+          tab.classList.add('active');
+        }
+      });
+      
+      // 해당 컨텐츠 활성화 - ID 기반
+      const targetContent = document.getElementById(tabName + '-tab');
+      if (targetContent) {
+        targetContent.classList.add('active');
+      }
+    }
+    
+    // 다른 함수들도 선언만 해두기
+    var selectCeoImage, handleDrop, handleDragOver, handleDragLeave, handleCeoImageSelect;
+    var saveGreeting, addHistoryItem, saveHistory, addExecutive, saveExecutives;
+    var selectHistoryImage, handleHistoryImageSelect, removeHistoryImage;
+    var selectExecutiveImage, handleExecutiveImageSelect, removeExecutiveImage;
+    var addDepartment, saveDepartments;
+  </script>
 </head>
 <body>
 
@@ -481,9 +516,9 @@
   
   <!-- 탭 네비게이션 -->
   <div class="tabs">
-    <button class="tab active" onclick="showTab('greeting')">CEO 인사말</button>
-    <button class="tab" onclick="showTab('history')">연혁</button>
-    <button class="tab" onclick="showTab('executives')">임원진</button>
+    <button class="tab active" data-tab="greeting">CEO 인사말</button>
+    <button class="tab" data-tab="history">연혁</button>
+    <button class="tab" data-tab="executives">임원진</button>
   </div>
   
   <!-- CEO 인사말 탭 -->
@@ -586,6 +621,37 @@
 </div>
 
 <script>
+// 모든 함수 정의
+let aboutData = {
+  content: {
+    greeting_text: '',
+    greeting_author: '대표이사 노진훈',
+    greeting_image: null
+  },
+  history: [],
+  departments: [],
+  executives: []
+};
+  
+  tabButtons.forEach((tab, index) => {
+    if (tab.getAttribute('data-tab') === tabName) {
+      tab.classList.add('active');
+      if (tabContents[index]) {
+        tabContents[index].classList.add('active');
+      }
+    }
+  });
+  
+  // ID로도 찾기
+  const targetContent = document.getElementById(tabName + '-tab');
+  if (targetContent) {
+    targetContent.classList.add('active');
+  }
+}
+
+// 전역으로 노출
+window.showTab = showTab;
+
 let aboutData = {
   content: {
     greeting_text: '',
@@ -602,6 +668,14 @@ async function init() {
   console.log('=== About Admin Page Init ===');
   await checkAuth();
   await loadAboutData();
+  
+  // 탭 클릭 이벤트 리스너 추가
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      const tabName = this.getAttribute('data-tab');
+      showTab(tabName);
+    });
+  });
   
   // URL 해시에 따른 탭 활성화
   const hash = window.location.hash.substring(1);
@@ -700,19 +774,7 @@ async function loadAboutData() {
   }
 }
 
-// 탭 전환
-function showTab(tabName) {
-  // 모든 탭과 컨텐츠 숨기기
-  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-  
-  // 선택한 탭 활성화
-  const tabIndex = ['greeting', 'history', 'executives'].indexOf(tabName);
-  if (tabIndex !== -1) {
-    document.querySelectorAll('.tab')[tabIndex].classList.add('active');
-    document.getElementById(tabName + '-tab').classList.add('active');
-  }
-}
+// 탭 전환 함수는 이미 상단에 정의됨
 
 // 알림 표시
 function showAlert(message, type = 'success') {
@@ -730,31 +792,31 @@ function showAlert(message, type = 'success') {
 }
 
 // CEO 이미지 선택
-function selectCeoImage() {
+selectCeoImage = function() {
   document.getElementById('ceo-image-input').click();
 }
 
 // 드래그앤드롭 핸들러
-function handleDragOver(event) {
+handleDragOver = function(event) {
   event.preventDefault();
   event.stopPropagation();
   event.currentTarget.classList.add('drag-over');
 }
 
-function handleDragLeave(event) {
+handleDragLeave = function(event) {
   event.preventDefault();
   event.stopPropagation();
   event.currentTarget.classList.remove('drag-over');
 }
 
-function handleDrop(event) {
+handleDrop = function(event) {
   event.preventDefault();
   event.stopPropagation();
   event.currentTarget.classList.remove('drag-over');
   
   const files = event.dataTransfer.files;
   if (files.length > 0 && files[0].type.startsWith('image/')) {
-    handleImageFile(files[0]);
+    uploadCeoImage(files[0]);
   } else {
     showAlert('이미지 파일만 업로드 가능합니다.', 'error');
   }
@@ -780,7 +842,7 @@ function hideProgress() {
   }, 300);
 }
 
-async function handleCeoImageSelect(event) {
+handleCeoImageSelect = async function(event) {
   const file = event.target.files[0];
   if (file) {
     await uploadCeoImage(file);
@@ -925,11 +987,14 @@ function showCeoImage(imagePath) {
     </div>
   `;
   // 파일 경로만 저장 (base64가 아닌)
+  if (!aboutData.content) {
+    aboutData.content = {};
+  }
   aboutData.content.greeting_image = imagePath;
 }
 
 // 인사말 저장
-async function saveGreeting() {
+saveGreeting = async function() {
   // content 객체가 없는 경우 생성
   if (!aboutData.content) {
     aboutData.content = {};
@@ -962,9 +1027,11 @@ async function saveGreeting() {
     showProgress('저장 완료!', 100);
     
     if (data.ok || data.success) {
-      setTimeout(() => {
+      setTimeout(async () => {
         hideProgress();
         showAlert('CEO 인사말이 저장되었습니다.');
+        // 저장 후 최신 데이터 다시 로드
+        await loadAboutData();
       }, 500);
     } else {
       hideProgress();
@@ -991,7 +1058,7 @@ function loadHistoryList(history) {
   }
 }
 
-function addHistoryItem(year = '', content = '', image = '') {
+addHistoryItem = function(year = '', content = '', image = '') {
   const listEl = document.getElementById('history-list');
   const item = document.createElement('div');
   item.className = 'history-item';
@@ -1020,15 +1087,76 @@ function addHistoryItem(year = '', content = '', image = '') {
 }
 
 // 연혁 이미지 함수들
-function selectHistoryImage(itemId) {
+selectHistoryImage = function(itemId) {
   document.getElementById(itemId + '-input').click();
 }
 
-async function handleHistoryImageSelect(event, itemId) {
+handleHistoryImageSelect = async function(event, itemId) {
   const file = event.target.files[0];
   if (!file) return;
   
   if (file.size > 5 * 1024 * 1024) {
+    showAlert('이미지 파일은 5MB 이하만 가능합니다.', 'error');
+    return;
+  }
+  
+  try {
+    showProgress('이미지 업로드 중...', 10);
+    
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('type', 'history');
+    
+    const token = localStorage.getItem('eden_token');
+    if (!token) {
+      hideProgress();
+      showAlert('로그인이 필요합니다.', 'error');
+      return;
+    }
+    
+    showProgress('이미지 업로드 중...', 50);
+    
+    const response = await fetch('/api/about/upload-image', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token
+      },
+      body: formData
+    });
+    
+    showProgress('이미지 업로드 중...', 80);
+    
+    if (!response.ok) {
+      hideProgress();
+      const errorData = await response.json();
+      showAlert('업로드 실패: ' + (errorData.error || '알 수 없는 오류'), 'error');
+      return;
+    }
+    
+    const data = await response.json();
+    
+    if (data.ok || data.success) {
+      const imagePath = data.path || (data.data && data.data.path);
+      if (imagePath) {
+        // 이미지 표시
+        document.getElementById(itemId + '-upload').style.display = 'none';
+        document.getElementById(itemId + '-preview').style.display = 'block';
+        document.getElementById(itemId + '-preview').querySelector('img').src = imagePath;
+        document.getElementById(itemId + '-image').value = imagePath;
+      }
+      showProgress('업로드 완료!', 100);
+      setTimeout(() => {
+        hideProgress();
+        showAlert('이미지가 업로드되었습니다.', 'success');
+      }, 500);
+    } else {
+      hideProgress();
+      showAlert('이미지 업로드 실패', 'error');
+    }
+  } catch (error) {
+    hideProgress();
+    console.error('이미지 업로드 오류:', error);
+    showAlert('이미지 업로드 중 오류가 발생했습니다.', 'error');
     showAlert('이미지 파일은 5MB 이하만 가능합니다.', 'error');
     return;
   }
@@ -1151,15 +1279,15 @@ function handleHistoryImageSelectOld(event, itemId) {
   }
 }
 
-function removeHistoryImage(itemId) {
+removeHistoryImage = function(itemId) {
   document.getElementById(itemId + '-image').value = '';
   document.getElementById(itemId + '-upload').style.display = 'block';
   document.getElementById(itemId + '-preview').style.display = 'none';
 }
 
-async function saveHistory() {
+saveHistory = async function() {
   const items = document.querySelectorAll('#history-list .history-item');
-  aboutData.history = Array.from(items).map(item => {
+  const historyData = Array.from(items).map(item => {
     const inputs = item.querySelectorAll('input[type="text"]');
     const imageInput = item.querySelector('input[type="hidden"]');
     return {
@@ -1168,6 +1296,9 @@ async function saveHistory() {
       image: imageInput ? imageInput.value : ''
     };
   }).filter(item => item.year && item.content);
+  
+  // aboutData.history만 업데이트
+  aboutData.history = historyData;
   
   const token = localStorage.getItem('eden_token');
   
@@ -1180,16 +1311,29 @@ async function saveHistory() {
   try {
     showProgress('연혁 저장 중...', 20);
     
-    const response = await fetch('/api/about', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
-      body: JSON.stringify(aboutData)
-    });
+    // 먼저 최신 데이터를 가져와서 병합
+    const getResponse = await fetch('/api/about');
+    const currentData = await getResponse.json();
     
-    showProgress('연혁 저장 중...', 60);
+    if (currentData.ok || currentData.success) {
+      // 현재 데이터와 병합
+      const mergedData = {
+        content: currentData.content || aboutData.content || {},
+        history: aboutData.history, // 방금 업데이트한 연혁 데이터 사용
+        executives: currentData.executives || aboutData.executives || [],
+        departments: currentData.departments || aboutData.departments || []
+      };
+      
+      const response = await fetch('/api/about', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(mergedData)
+      });
+      
+      showProgress('연혁 저장 중...', 60);
     
     if (!response.ok) {
       hideProgress();
@@ -1208,9 +1352,11 @@ async function saveHistory() {
     showProgress('저장 완료!', 100);
     
     if (data.ok || data.success) {
-      setTimeout(() => {
+      setTimeout(async () => {
         hideProgress();
         showAlert('연혁이 저장되었습니다.');
+        // 저장 후 최신 데이터 다시 로드
+        await loadAboutData();
       }, 500);
     } else {
       hideProgress();
@@ -1301,11 +1447,11 @@ function loadExecutivesList(executives) {
   });
 }
 
-function addExecutive(exec = {}) {
+addExecutive = function(exec = {}) {
   const listEl = document.getElementById('executives-list');
   const item = document.createElement('div');
   item.className = 'card-item';
-  const execId = 'exec-' + Date.now();
+  const execId = 'exec-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
   item.innerHTML = `
     <button class="btn-remove" onclick="this.parentElement.remove()">✕</button>
     <div class="form-row">
@@ -1324,14 +1470,14 @@ function addExecutive(exec = {}) {
     </div>
     <div class="form-group">
       <label class="form-label">사진</label>
-      <div class="image-upload-small" id="${execId}-upload" onclick="selectExecutiveImage('${execId}')" style="width: 150px; height: 150px; ${exec.image ? 'display:none;' : ''}">
+      <div class="image-upload-small" id="${execId}-upload" onclick="selectExecutiveImage('${execId}')" style="width: 150px; height: 150px; ${exec.photo ? 'display:none;' : ''}">
         <p>사진 추가</p>
       </div>
-      <div id="${execId}-preview" style="${exec.image ? '' : 'display:none;'}">
-        <img src="${exec.image || ''}" style="width: 150px; height: 150px; object-fit: cover; border-radius: 0.5rem;" />
+      <div id="${execId}-preview" style="${exec.photo ? '' : 'display:none;'}">
+        <img src="${exec.photo || ''}" style="width: 150px; height: 150px; object-fit: cover; border-radius: 0.5rem;" />
         <button class="btn-small" onclick="removeExecutiveImage('${execId}')" style="margin-top: 0.25rem;">사진 제거</button>
       </div>
-      <input type="hidden" id="${execId}-image" value="${exec.image || ''}" />
+      <input type="hidden" id="${execId}-image" value="${exec.photo || ''}" />
       <input type="file" id="${execId}-input" accept="image/*" style="display: none;" onchange="handleExecutiveImageSelect(event, '${execId}')" />
     </div>
   `;
@@ -1339,12 +1485,12 @@ function addExecutive(exec = {}) {
 }
 
 // 임원 사진 선택
-function selectExecutiveImage(execId) {
+selectExecutiveImage = function(execId) {
   document.getElementById(`${execId}-input`).click();
 }
 
 // 임원 사진 파일 선택 처리
-async function handleExecutiveImageSelect(event, execId) {
+handleExecutiveImageSelect = async function(event, execId) {
   const file = event.target.files[0];
   if (!file) return;
   
@@ -1429,16 +1575,16 @@ async function handleExecutiveImageSelect(event, execId) {
 }
 
 // 임원 사진 제거
-function removeExecutiveImage(execId) {
+removeExecutiveImage = function(execId) {
   document.getElementById(`${execId}-upload`).style.display = 'block';
   document.getElementById(`${execId}-preview`).style.display = 'none';
   document.getElementById(`${execId}-image`).value = '';
   document.getElementById(`${execId}-input`).value = '';
 }
 
-async function saveExecutives() {
+saveExecutives = async function() {
   const items = document.querySelectorAll('#executives-list .card-item');
-  aboutData.executives = Array.from(items).map(item => {
+  const executivesData = Array.from(items).map(item => {
     const inputs = item.querySelectorAll('input[type="text"]');
     const textarea = item.querySelector('textarea');
     const imageInput = item.querySelector('input[type="hidden"]');
@@ -1446,25 +1592,47 @@ async function saveExecutives() {
       name: inputs[0].value,
       position: inputs[1].value,
       bio: textarea.value,
-      image: imageInput?.value || ''
+      photo: imageInput?.value || ''
     };
   }).filter(item => item.name && item.position);
   
+  // aboutData.executives만 업데이트
+  aboutData.executives = executivesData;
+  
   const token = localStorage.getItem('eden_token');
+  
+  if (!token) {
+    showAlert('로그인이 필요합니다. 다시 로그인해주세요.', 'error');
+    setTimeout(() => location.href = '/login', 2000);
+    return;
+  }
   
   try {
     showProgress('임원진 정보 저장 중...', 20);
     
-    const response = await fetch('/api/about', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
-      body: JSON.stringify(aboutData)
-    });
+    // 먼저 최신 데이터를 가져와서 병합
+    const getResponse = await fetch('/api/about');
+    const currentData = await getResponse.json();
     
-    showProgress('임원진 정보 저장 중...', 60);
+    if (currentData.ok || currentData.success) {
+      // 현재 데이터와 병합
+      const mergedData = {
+        content: currentData.content || aboutData.content || {},
+        history: currentData.history || aboutData.history || [],
+        executives: aboutData.executives, // 방금 업데이트한 임원 데이터 사용
+        departments: currentData.departments || aboutData.departments || []
+      };
+      
+      const response = await fetch('/api/about', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(mergedData)
+      });
+      
+      showProgress('임원진 정보 저장 중...', 60);
     
     if (!response.ok) {
       hideProgress();
@@ -1483,9 +1651,11 @@ async function saveExecutives() {
     showProgress('저장 완료!', 100);
     
     if (data.ok || data.success) {
-      setTimeout(() => {
+      setTimeout(async () => {
         hideProgress();
         showAlert('임원진 정보가 저장되었습니다.');
+        // 저장 후 최신 데이터 다시 로드
+        await loadAboutData();
       }, 500);
     } else {
       hideProgress();
@@ -1498,8 +1668,21 @@ async function saveExecutives() {
   }
 }
 
-// 페이지 초기화
-init();
+// saveDepartments 함수 추가 (현재 사용 안함)
+addDepartment = function() {
+  console.log('부서 관리 기능은 구현 중입니다.');
+};
+saveDepartments = function() {
+  console.log('부서 관리 기능은 구현 중입니다.');
+};
+loadDepartmentList = function() {};
+
+// 페이지 초기화 - DOM이 로드된 후에 실행
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
 </script>
 
 </body>

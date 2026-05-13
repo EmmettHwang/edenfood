@@ -132,6 +132,8 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public')));
 // 차량 앱 정적 파일 (/car/ prefix 제거 후 루트 기준 서빙)
 app.use('/car', express.static(path.join(__dirname)));
+// admin 정적 파일
+app.use('/admin', express.static(path.join(__dirname, 'admin')));
 // 루트 정적 파일 (js/, css/ 등 공통 자원)
 app.use(express.static(path.join(__dirname)));
 
@@ -2202,7 +2204,7 @@ app.post('/api/about', authMiddleware, async (req, res) => {
           if (exec.name && exec.position) {
             await connection.query(
               'INSERT INTO executives (name, position, greeting, photo, order_num) VALUES (?, ?, ?, ?, ?)',
-              [exec.name, exec.position, exec.bio || '', exec.image || null, i]
+              [exec.name, exec.position, exec.bio || '', exec.photo || null, i]
             );
           }
         }

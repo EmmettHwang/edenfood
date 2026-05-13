@@ -536,8 +536,10 @@
       document.getElementById('greeting-author').textContent = greetingAuthor;
       
       if (content.greeting_image) {
-        document.getElementById('greeting-image').innerHTML = 
-          `<img src="${content.greeting_image}" alt="CEO">`;
+        const imageContainer = document.getElementById('greeting-image');
+        if (imageContainer) {
+          imageContainer.innerHTML = `<img src="${content.greeting_image}" alt="CEO" style="width: 100%; height: 100%; object-fit: cover;">`;
+        }
       }
     }
     
