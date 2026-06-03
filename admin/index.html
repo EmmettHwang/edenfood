@@ -504,7 +504,7 @@
         <span style="color: #10b981; margin-right: 0.5rem;">●</span>
         관리자 로그인중
       </div>
-      <span class="version-info" onclick="showReadme()">Ver.3.0.20260513</span>
+      <span class="version-info" onclick="showReadme()">Ver.3.1.20260603</span>
     </div>
     <h1>주식회사 이든푸드 관리 시스템</h1>
   </div>
@@ -519,6 +519,8 @@
     <a href="/admin/notices" class="admin-nav-item">공지사항 관리</a>
     <a href="/admin/schedules" class="admin-nav-item">일정 관리</a>
     <a href="/admin/about" class="admin-nav-item">회사소개 관리</a>
+    <a href="/admin/products" class="admin-nav-item">메뉴(제품) 관리</a>
+    <a href="/admin/brands" class="admin-nav-item">브랜드소개 관리</a>
     <a href="/admin/gallery" class="admin-nav-item">갤러리 관리</a>
     <a href="/admin/documents" class="admin-nav-item">서식자료실 관리</a>
     <a href="/admin/contacts" class="admin-nav-item">문의 관리</a>
@@ -593,8 +595,8 @@
 # 이든푸드 홈페이지 관리 시스템
 
 ## 버전 정보
-- 현재 버전: Ver.3.0.20260513
-- 릴리즈 날짜: 2026-05-13
+- 현재 버전: Ver.3.1.20260603
+- 릴리즈 날짜: 2026-06-03
 - 개발팀: 이든푸드 IT팀
 - 버전 체계: 메이저.마이너.년월일 (마이너 버전 9 초과 시 메이저 버전 상승)
 
@@ -623,6 +625,12 @@
 - 관리자 로그인 상태 표시
 
 ## 최근 업데이트
+
+### v3.1.20260603
+- 팝업 이미지 썸네일 자동 생성 (600px 리사이즈)
+- 메뉴(제품) 관리 및 브랜드소개 관리 메뉴 추가
+- 브랜드 로고 자동 스케일링 (400px 표준화)
+- 모달 드래그 버그 수정
 
 ### v3.0.20260513
 - 관리자 대시보드 UI 전면 개편
@@ -766,8 +774,8 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// README 모달 외부 클릭시 닫기
-document.getElementById('readme-modal').addEventListener('click', (e) => {
+// README 모달 외부 클릭시 닫기 (드래그 방지)
+document.getElementById('readme-modal').addEventListener('mousedown', (e) => {
   if (e.target.id === 'readme-modal') {
     closeReadme();
   }

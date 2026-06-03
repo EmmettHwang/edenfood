@@ -1126,8 +1126,8 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// 모달 외부 클릭 시 닫기
-document.getElementById('productModal').addEventListener('click', (e) => {
+// 모달 외부 클릭 시 닫기 (드래그 방지)
+document.getElementById('productModal').addEventListener('mousedown', (e) => {
   if (e.target.id === 'productModal') {
     closeModal();
   }

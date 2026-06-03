@@ -929,6 +929,7 @@
       
       const formData = new FormData();
       formData.append('image', file);
+      formData.append('type', 'popup'); // popup 타입으로 지정하여 썸네일 생성
       
       // 진행 표시
       const progressDiv = document.getElementById('upload-progress');
@@ -957,10 +958,16 @@
         console.log('응답 데이터:', data);
         
         if (data.ok || data.success) {
-          // 최적화된 URL이 있으면 사용, 없으면 원본 사용
-          const imageUrl = data.optimizedUrl || data.url || data.imageUrl;
+          // 썸네일이 있으면 썸네일 사용, 없으면 원본 사용
+          const imageUrl = data.thumbnailUrl || data.optimizedUrl || data.url || data.imageUrl;
+          const originalUrl = data.url || data.imageUrl;
+          
+          // 팝업에는 썸네일 표시
           document.getElementById('popup_image').value = imageUrl;
+          // 원본 URL도 별도로 저장 (필요시 사용)
+          document.getElementById('popup_image').setAttribute('data-original-url', originalUrl);
           console.log('업로드된 이미지 URL:', imageUrl);
+          console.log('원본 이미지 URL:', originalUrl);
           
           // 미리보기 표시
           const preview = document.getElementById('popup-image-preview');

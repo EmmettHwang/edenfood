@@ -2353,10 +2353,15 @@ app.post('/api/upload/image', authMiddleware, (req, res) => {
       
       // 타입별 폴더 생성
       let typeFolder = '';
+      let shouldCreateThumbnail = false;
       if (uploadType === 'gallery') {
         typeFolder = 'gallery';
+        shouldCreateThumbnail = true;
       } else if (uploadType === 'about') {
         typeFolder = 'about';
+      } else if (uploadType === 'popup') {
+        typeFolder = 'popup';
+        shouldCreateThumbnail = true;
       }
       
       if (typeFolder) {
@@ -2376,19 +2381,28 @@ app.post('/api/upload/image', authMiddleware, (req, res) => {
         const newPath = path.join(typePath, req.file.filename);
         fs.renameSync(oldPath, newPath);
         
-        // 갤러리 이미지인 경우 썸네일 생성 - Jimp 사용
-        if (uploadType === 'gallery') {
+        // 썸네일이 필요한 이미지 타입인 경우 썸네일 생성 - Jimp 사용
+        if (shouldCreateThumbnail) {
           const thumbFilename = `thumb_${req.file.filename}`;
           const thumbFullPath = path.join(thumbPath, thumbFilename);
           
           try {
             const image = await Jimp.read(newPath);
-            await image
-              .cover(400, 300) // 400x300으로 중앙 기준 크롭
-              .quality(85)
-              .writeAsync(thumbFullPath);
+            if (uploadType === 'popup') {
+              // 팝업 이미지는 가로 기준 600px로 리사이즈 (비율 유지)
+              await image
+                .resize(600, Jimp.AUTO)
+                .quality(85)
+                .writeAsync(thumbFullPath);
+            } else {
+              // 갤러리 이미지는 400x300 크롭
+              await image
+                .cover(400, 300)
+                .quality(85)
+                .writeAsync(thumbFullPath);
+            }
           } catch (jimpError) {
-            console.error('갤러리 썸네일 생성 실패:', jimpError);
+            console.error(`${uploadType} 썸네일 생성 실패:`, jimpError);
           }
           
           // 웹에서 접근 가능한 경로
@@ -2669,6 +2683,32 @@ app.post('/api/brands/upload', authMiddleware, brandUpload.single('image'), asyn
     
     if (!req.file) {
       return err(res, '업로드할 파일이 없습니다.', 400);
+    }
+    
+    // SVG 파일이 아닌 경우에만 리사이즈
+    if (!req.file.mimetype.includes('svg')) {
+      try {
+        // 이미지를 읽어서 리사이즈
+        const image = await Jimp.read(req.file.path);
+        const width = image.bitmap.width;
+        const height = image.bitmap.height;
+        
+        // 브랜드 로고는 가로 기준 400px로 표준화
+        const targetWidth = 400;
+        
+        // 이미지가 작으면 확대, 크면 축소
+        if (width !== targetWidth) {
+          await image
+            .resize(targetWidth, Jimp.AUTO)
+            .quality(90)
+            .writeAsync(req.file.path);
+          
+          console.log(`브랜드 로고 리사이즈: ${width}x${height} -> ${targetWidth}x${Math.round(height * targetWidth / width)}`);
+        }
+      } catch (resizeError) {
+        console.error('브랜드 로고 리사이즈 오류:', resizeError);
+        // 리사이즈 실패해도 원본은 업로드
+      }
     }
     
     const imageUrl = '/uploads/brands/' + req.file.filename;

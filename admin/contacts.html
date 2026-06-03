@@ -1046,8 +1046,8 @@
             }
         });
         
-        // 모달 외부 클릭으로 닫기
-        document.getElementById('contact-modal').addEventListener('click', (e) => {
+        // 모달 외부 클릭으로 닫기 (드래그 방지)
+        document.getElementById('contact-modal').addEventListener('mousedown', (e) => {
             if (e.target.id === 'contact-modal') {
                 closeModal();
             }
