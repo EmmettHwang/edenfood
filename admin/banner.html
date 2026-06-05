@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>배너 관리 - 이든푸드</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/global.css" />
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f9fafb;
+      color: #111827;
+      line-height: 1.6;
+    }
+    
+    .header {
+      background: white;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    
+    .btn {
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+      font-size: 0.875rem;
+    }
+    
+    .btn-primary {
+      background: #16a34a;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #15803d;
+    }
+    
+    .btn-secondary {
+      background: white;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+    }
+    
+    .btn-secondary:hover {
+      background: #f9fafb;
+    }
+    
+    .btn-danger {
+      background: #dc2626;
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    
+    .section {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    
+    /* 배너 리스트 */
+    .banner-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .banner-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.5rem;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+    }
+    
+    .banner-item:hover {
+      background: white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .banner-preview {
+      width: 100px;
+      height: 100px;
+      background: #e5e7eb;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    
+    .banner-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .banner-info {
+      flex: 1;
+    }
+    
+    .banner-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    
+    .banner-subtitle {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+    }
+    
+    .banner-link {
+      font-size: 0.75rem;
+      color: #3b82f6;
+      text-decoration: none;
+    }
+    
+    .banner-link:hover {
+      text-decoration: underline;
+    }
+    
+    .banner-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .banner-order {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin-right: 1rem;
+    }
+    
+    .order-btn {
+      background: none;
+      border: 1px solid #e5e7eb;
+      width: 32px;
+      height: 32px;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    
+    .order-btn:hover {
+      background: #f3f4f6;
+    }
+    
+    .order-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* 모달 */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.5);
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 0.75rem;
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #6b7280;
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.375rem;
+      transition: all 0.2s;
+    }
+    
+    .modal-close:hover {
+      background: #f3f4f6;
+    }
+    
+    .modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    }
+    
+    .form-hint {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 0.25rem;
+    }
+    
+    .image-upload {
+      border: 2px dashed #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #f9fafb;
+    }
+    
+    .image-upload:hover {
+      border-color: #16a34a;
+      background: #f0fdf4;
+    }
+    
+    .image-upload.has-image {
+      padding: 0;
+      position: relative;
+    }
+    
+    .image-preview {
+      max-width: 100%;
+      max-height: 200px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto;
+    }
+    
+    .modal-footer {
+      padding: 1.5rem;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+    
+    /* 미리보기 섹션 */
+    .preview-section {
+      background: #1e293b;
+      padding: 2rem;
+      border-radius: 0.5rem;
+      margin-top: 2rem;
+    }
+    
+    .preview-title {
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    
+    .preview-banner {
+      background: #16a34a;
+      color: white;
+      padding: 2.5rem 1.5rem;
+      border-radius: 0.375rem;
+    }
+    
+    .preview-stats {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+    
+    .preview-stat {
+      text-align: center;
+      padding: 1rem 3rem;
+      color: white;
+    }
+    
+    .preview-stat-num {
+      font-size: 2.5rem;
+      font-weight: 800;
+      display: inline;
+    }
+    
+    .preview-stat-unit {
+      font-size: 1.5rem;
+      font-weight: 700;
+      opacity: 0.85;
+    }
+    
+    .preview-stat-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      opacity: 0.8;
+      margin-top: 0.25rem;
+    }
+    
+    .preview-divider {
+      width: 1px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.25);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #6b7280;
+    }
+    
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-inner">
+      <h1>배너 관리</h1>
+      <button class="btn btn-secondary" onclick="goBack()">← 돌아가기</button>
+    </div>
+  </div>
+  
+  <div class="container">
+    <!-- 배너 목록 섹션 -->
+    <div class="section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 class="section-title" style="margin: 0;">히어로 배너 항목</h2>
+        <button class="btn btn-primary" onclick="openAddModal()">
+          <span>+</span> 새 배너 추가
+        </button>
+      </div>
+      
+      <div id="banner-list" class="banner-list">
+        <!-- 배너 항목들이 여기에 동적으로 추가됩니다 -->
+      </div>
+      
+      <div id="empty-state" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">📊</div>
+        <p>등록된 배너가 없습니다.</p>
+        <button class="btn btn-primary" onclick="openAddModal()">첫 배너 추가하기</button>
+      </div>
+    </div>
+    
+    <!-- 미리보기 섹션 -->
+    <div class="section">
+      <h2 class="section-title">미리보기</h2>
+      <div class="preview-section">
+        <p class="preview-title">홈페이지에서의 표시 예시</p>
+        <div class="preview-banner">
+          <div id="preview-stats" class="preview-stats">
+            <!-- 미리보기 내용이 여기에 표시됩니다 -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 배너 추가/수정 모달 -->
+  <div id="banner-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-title">새 배너 추가</h3>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      
+      <div class="modal-body">
+        <form id="banner-form">
+          <input type="hidden" id="banner-id" />
+          
+          <div class="form-group">
+            <label class="form-label">아이콘 (이모지 또는 이미지)</label>
+            <input type="text" id="banner-icon" class="form-control" placeholder="예: 🏪, 📦, 🚚 등" />
+            <div class="form-hint">이모지를 입력하거나 아래에서 이미지를 업로드하세요</div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">아이콘 이미지 (선택)</label>
+            <div class="image-upload" id="icon-upload" onclick="document.getElementById('icon-file').click()">
+              <div id="icon-upload-text">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📷</div>
+                <p>클릭하여 이미지 업로드</p>
+                <p style="font-size: 0.75rem; color: #9ca3af;">권장 크기: 100x100px</p>
+              </div>
+              <img id="icon-preview" class="image-preview" style="display: none;" />
+              <input type="file" id="icon-file" accept="image/*" style="display: none;" onchange="handleIconUpload(event)" />
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">숫자 *</label>
+            <input type="text" id="banner-number" class="form-control" placeholder="예: 500" required />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">단위 *</label>
+            <input type="text" id="banner-unit" class="form-control" placeholder="예: +, 년, %, 일" required />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">라벨 *</label>
+            <input type="text" id="banner-label" class="form-control" placeholder="예: 거래처, 업력, 고객 만족도" required />
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">링크 URL (선택)</label>
+            <input type="url" id="banner-link" class="form-control" placeholder="https://example.com" />
+            <div class="form-hint">클릭 시 이동할 URL (비워두면 클릭 불가)</div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              <input type="checkbox" id="banner-active" checked />
+              활성화
+            </label>
+          </div>
+        </form>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">취소</button>
+        <button class="btn btn-primary" onclick="saveBanner()">저장</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // 전역 변수
+    let banners = [];
+    let currentBannerId = null;
+    let currentIconFile = null;
+    
+    // 페이지 로드 시 초기화
+    document.addEventListener('DOMContentLoaded', async () => {
+      // iframe 내에서 실행 중인지 확인
+      if (window.parent !== window) {
+        const header = document.querySelector('.header');
+        if (header) {
+          header.style.display = 'none';
+        }
+        const container = document.querySelector('.container');
+        if (container) {
+          container.style.paddingTop = '1rem';
+        }
+      }
+      
+      // 인증 체크
+      const token = localStorage.getItem('eden_token');
+      if (!token) {
+        if (window.parent === window) {
+          location.href = '/login';
+        }
+        return;
+      }
+      
+      // 배너 데이터 로드
+      await loadBanners();
+    });
+    
+    // 배너 데이터 로드
+    async function loadBanners() {
+      try {
+        const token = localStorage.getItem('eden_token');
+        const response = await fetch('/api/hero-banners', {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          banners = data.banners || [];
+        } else if (response.status === 404) {
+          // API가 없는 경우 로컬 스토리지에서 로드
+          banners = JSON.parse(localStorage.getItem('hero_banners') || '[]');
+        }
+      } catch (error) {
+        console.error('배너 로드 실패:', error);
+        // 로컬 스토리지에서 로드
+        banners = JSON.parse(localStorage.getItem('hero_banners') || '[]');
+      }
+      
+      // 기본 배너가 없으면 추가
+      if (banners.length === 0) {
+        banners = [
+          { id: 1, icon: '🏪', number: '500', unit: '+', label: '거래처', active: true, order: 1 },
+          { id: 2, icon: '📅', number: '15', unit: '년', label: '업력', active: true, order: 2 },
+          { id: 3, icon: '😊', number: '99', unit: '%', label: '고객 만족도', active: true, order: 3 },
+          { id: 4, icon: '📦', number: '365', unit: '일', label: '연중 무휴 공급', active: true, order: 4 }
+        ];
+        saveBannersToStorage();
+      }
+      
+      renderBanners();
+      updatePreview();
+    }
+    
+    // 배너 목록 렌더링
+    function renderBanners() {
+      const bannerList = document.getElementById('banner-list');
+      const emptyState = document.getElementById('empty-state');
+      
+      if (banners.length === 0) {
+        bannerList.style.display = 'none';
+        emptyState.style.display = 'block';
+        return;
+      }
+      
+      bannerList.style.display = 'block';
+      emptyState.style.display = 'none';
+      
+      // 순서대로 정렬
+      const sortedBanners = [...banners].sort((a, b) => a.order - b.order);
+      
+      bannerList.innerHTML = sortedBanners.map((banner, index) => `
+        <div class="banner-item">
+          <div class="banner-preview">
+            ${banner.iconImage ? `<img src="${banner.iconImage}" alt="${banner.label}" />` : banner.icon}
+          </div>
+          
+          <div class="banner-info">
+            <div class="banner-title">${banner.number}${banner.unit} ${banner.label}</div>
+            <div class="banner-subtitle">
+              ${banner.active ? '<span style="color: #16a34a;">● 활성화</span>' : '<span style="color: #dc2626;">● 비활성화</span>'}
+            </div>
+            ${banner.link ? `<a href="${banner.link}" class="banner-link" target="_blank">${banner.link}</a>` : ''}
+          </div>
+          
+          <div style="display: flex; align-items: center; gap: 1rem;">
+            <div class="banner-order">
+              <button class="order-btn" onclick="moveBanner(${banner.id}, 'up')" ${index === 0 ? 'disabled' : ''}>↑</button>
+              <span>순서 ${index + 1}</span>
+              <button class="order-btn" onclick="moveBanner(${banner.id}, 'down')" ${index === sortedBanners.length - 1 ? 'disabled' : ''}>↓</button>
+            </div>
+            
+            <div class="banner-actions">
+              <button class="btn btn-secondary" onclick="editBanner(${banner.id})" style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">수정</button>
+              <button class="btn btn-danger" onclick="deleteBanner(${banner.id})" style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">삭제</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // 미리보기 업데이트
+    function updatePreview() {
+      const previewStats = document.getElementById('preview-stats');
+      const activeBanners = banners.filter(b => b.active).sort((a, b) => a.order - b.order);
+      
+      previewStats.innerHTML = activeBanners.map((banner, index) => `
+        ${index > 0 ? '<div class="preview-divider"></div>' : ''}
+        <div class="preview-stat" ${banner.link ? `style="cursor: pointer;" onclick="window.open('${banner.link}', '_blank')"` : ''}>
+          ${banner.iconImage ? `<img src="${banner.iconImage}" alt="${banner.label}" style="width: 48px; height: 48px; margin-bottom: 0.5rem;" />` : `<div style="font-size: 3rem; margin-bottom: 0.5rem;">${banner.icon}</div>`}
+          <span class="preview-stat-num">${banner.number}</span><span class="preview-stat-unit">${banner.unit}</span>
+          <span class="preview-stat-label">${banner.label}</span>
+        </div>
+      `).join('');
+    }
+    
+    // 모달 열기 (추가)
+    function openAddModal() {
+      currentBannerId = null;
+      document.getElementById('modal-title').textContent = '새 배너 추가';
+      document.getElementById('banner-form').reset();
+      document.getElementById('banner-active').checked = true;
+      document.getElementById('icon-preview').style.display = 'none';
+      document.getElementById('icon-upload-text').style.display = 'block';
+      currentIconFile = null;
+      
+      document.getElementById('banner-modal').classList.add('active');
+    }
+    
+    // 배너 편집
+    function editBanner(id) {
+      const banner = banners.find(b => b.id === id);
+      if (!banner) return;
+      
+      currentBannerId = id;
+      document.getElementById('modal-title').textContent = '배너 수정';
+      document.getElementById('banner-icon').value = banner.icon || '';
+      document.getElementById('banner-number').value = banner.number;
+      document.getElementById('banner-unit').value = banner.unit;
+      document.getElementById('banner-label').value = banner.label;
+      document.getElementById('banner-link').value = banner.link || '';
+      document.getElementById('banner-active').checked = banner.active;
+      
+      if (banner.iconImage) {
+        document.getElementById('icon-preview').src = banner.iconImage;
+        document.getElementById('icon-preview').style.display = 'block';
+        document.getElementById('icon-upload-text').style.display = 'none';
+      } else {
+        document.getElementById('icon-preview').style.display = 'none';
+        document.getElementById('icon-upload-text').style.display = 'block';
+      }
+      
+      document.getElementById('banner-modal').classList.add('active');
+    }
+    
+    // 모달 닫기
+    function closeModal() {
+      document.getElementById('banner-modal').classList.remove('active');
+      currentBannerId = null;
+      currentIconFile = null;
+    }
+    
+    // 아이콘 업로드 처리
+    function handleIconUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        currentIconFile = file;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('icon-preview').src = e.target.result;
+          document.getElementById('icon-preview').style.display = 'block';
+          document.getElementById('icon-upload-text').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+    
+    // 배너 저장
+    async function saveBanner() {
+      const icon = document.getElementById('banner-icon').value;
+      const number = document.getElementById('banner-number').value;
+      const unit = document.getElementById('banner-unit').value;
+      const label = document.getElementById('banner-label').value;
+      const link = document.getElementById('banner-link').value;
+      const active = document.getElementById('banner-active').checked;
+      
+      if (!number || !unit || !label) {
+        alert('필수 항목을 입력해주세요.');
+        return;
+      }
+      
+      let iconImage = null;
+      if (currentIconFile) {
+        // 이미지 업로드 처리 (실제로는 서버에 업로드해야 함)
+        const reader = new FileReader();
+        iconImage = await new Promise((resolve) => {
+          reader.onload = (e) => resolve(e.target.result);
+          reader.readAsDataURL(currentIconFile);
+        });
+      }
+      
+      if (currentBannerId) {
+        // 수정
+        const banner = banners.find(b => b.id === currentBannerId);
+        banner.icon = icon;
+        banner.number = number;
+        banner.unit = unit;
+        banner.label = label;
+        banner.link = link;
+        banner.active = active;
+        if (iconImage) {
+          banner.iconImage = iconImage;
+        }
+      } else {
+        // 추가
+        const newBanner = {
+          id: Date.now(),
+          icon: icon,
+          iconImage: iconImage,
+          number: number,
+          unit: unit,
+          label: label,
+          link: link,
+          active: active,
+          order: banners.length + 1
+        };
+        banners.push(newBanner);
+      }
+      
+      await saveBannersToStorage();
+      renderBanners();
+      updatePreview();
+      closeModal();
+    }
+    
+    // 배너 삭제
+    async function deleteBanner(id) {
+      if (!confirm('정말 이 배너를 삭제하시겠습니까?')) {
+        return;
+      }
+      
+      banners = banners.filter(b => b.id !== id);
+      
+      // 순서 재정렬
+      banners.forEach((banner, index) => {
+        banner.order = index + 1;
+      });
+      
+      await saveBannersToStorage();
+      renderBanners();
+      updatePreview();
+    }
+    
+    // 배너 순서 이동
+    async function moveBanner(id, direction) {
+      const sortedBanners = [...banners].sort((a, b) => a.order - b.order);
+      const index = sortedBanners.findIndex(b => b.id === id);
+      
+      if (direction === 'up' && index > 0) {
+        [sortedBanners[index].order, sortedBanners[index - 1].order] = 
+        [sortedBanners[index - 1].order, sortedBanners[index].order];
+      } else if (direction === 'down' && index < sortedBanners.length - 1) {
+        [sortedBanners[index].order, sortedBanners[index + 1].order] = 
+        [sortedBanners[index + 1].order, sortedBanners[index].order];
+      }
+      
+      await saveBannersToStorage();
+      renderBanners();
+      updatePreview();
+    }
+    
+    // 로컬 스토리지에 저장
+    async function saveBannersToStorage() {
+      localStorage.setItem('hero_banners', JSON.stringify(banners));
+      
+      // 서버에도 저장 시도
+      try {
+        const token = localStorage.getItem('eden_token');
+        await fetch('/api/hero-banners', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ banners })
+        });
+      } catch (error) {
+        console.error('서버 저장 실패:', error);
+      }
+    }
+    
+    // 돌아가기
+    function goBack() {
+      location.href = '/admin';
+    }
+    
+    // ESC 키로 모달 닫기
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    });
+    
+    // 모달 외부 클릭 시 닫기
+    document.getElementById('banner-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'banner-modal') {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>

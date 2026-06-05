@@ -3,78 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>갤러리 관리 - 이든푸드 관리자</title>
-    <link rel="stylesheet" href="/css/global.css">
+    <title>갤러리 관리 - 이든푸드</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/global.css" />
+    <link rel="stylesheet" href="/css/admin-common.css" />
     <style>
-        .gallery-container {
-            background-color: #f3f4f6;
-            min-height: 100vh;
-        }
-        
-        /* 헤더 스타일 */
-        .admin-header {
-            background-color: #1f2937;
-            color: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        
-        .header-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .header-actions {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background-color: #374151;
-            border-radius: 0.5rem;
-        }
-        
-        .btn {
-            padding: 0.5rem 1rem;
-            border-radius: 0.375rem;
-            border: none;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .btn-primary {
-            background-color: #16a34a;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background-color: #15803d;
-        }
-        
-        .btn-secondary {
-            background-color: #6b7280;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background-color: #4b5563;
-        }
         
         .btn-danger {
             background-color: #dc2626;
@@ -131,9 +65,9 @@
         }
         
         .category-btn.active {
-            background-color: #16a34a;
+            background-color: var(--primary, #16a34a);
             color: white;
-            border-color: #16a34a;
+            border-color: var(--primary, #16a34a);
         }
         
         /* 갤러리 그리드 */
@@ -460,45 +394,98 @@
         .viewer-close:hover {
             background: rgba(255,255,255,0.2);
         }
+        
+        /* 프로그레스바 오버레이 */
+        .progress-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .progress-overlay.active {
+            display: flex;
+        }
+        
+        .progress-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .progress-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+            color: #111827;
+        }
+        
+        .progress-bar-wrapper {
+            background: #e5e7eb;
+            height: 8px;
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-bottom: 0.75rem;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: var(--primary, #16a34a);
+            transition: width 0.3s ease;
+            border-radius: 9999px;
+        }
+        
+        .progress-text {
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
     </style>
 </head>
 <body>
-    <div class="gallery-container">
-        <!-- 헤더 -->
-        <header class="admin-header">
-            <div class="header-title">
-                <span>🖼️</span>
-                <span>갤러리 관리</span>
-            </div>
-            <div class="header-actions">
-                <div class="user-info">
-                    <span>👤</span>
-                    <span id="user-name">관리자</span>
-                </div>
-                <button onclick="goBack()" class="btn btn-secondary">
-                    <span>←</span>
-                    <span>돌아가기</span>
-                </button>
-            </div>
-        </header>
+    <div class="header">
+        <div class="header-inner">
+            <h1>갤러리 관리</h1>
+            <button class="btn btn-secondary" onclick="goBack()">← 돌아가기</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- 탭 네비게이션 -->
+        <div class="tab-container">
+            <button class="tab-btn active" onclick="switchTab('gallery')">갤러리 관리</button>
+            <button class="tab-btn" onclick="switchTab('header')">페이지 헤더 설정</button>
+        </div>
         
-        <!-- 메인 컨텐츠 -->
-        <main class="main-content">
-            <div class="content-header">
-                <h2>갤러리 이미지 관리</h2>
-                <button onclick="openAddModal()" class="btn btn-primary">
-                    <span>+</span>
-                    <span>이미지 추가</span>
-                </button>
-            </div>
+        <!-- 갤러리 탭 -->
+        <div id="gallery-content" class="tab-content active">
+            <!-- 메인 컨텐츠 -->
+            <main class="main-content" style="margin: 0;">
+                <div class="content-header">
+                    <h2>갤러리 이미지 관리</h2>
+                    <button onclick="openAddModal()" class="btn btn-primary">
+                        <span>+</span>
+                        <span>이미지 추가</span>
+                    </button>
+                </div>
             
             <!-- 카테고리 필터 -->
             <div class="category-filter">
                 <button class="category-btn active" onclick="filterByCategory('all')">전체</button>
-                <button class="category-btn" onclick="filterByCategory('product')">제품</button>
+                <button class="category-btn" onclick="filterByCategory('product')">시그니처메뉴</button>
                 <button class="category-btn" onclick="filterByCategory('store')">매장</button>
                 <button class="category-btn" onclick="filterByCategory('event')">이벤트</button>
-                <button class="category-btn" onclick="filterByCategory('etc')">기타</button>
+                <button class="category-btn" onclick="filterByCategory('etc')">설비</button>
             </div>
             
             <!-- 갤러리 그리드 -->
@@ -512,7 +499,46 @@
                 <div class="empty-state-text">등록된 이미지가 없습니다.</div>
                 <button onclick="openAddModal()" class="btn btn-primary">첫 이미지 추가하기</button>
             </div>
-        </main>
+            </main>
+        </div>
+        
+        <!-- 페이지 헤더 설정 탭 -->
+        <div id="header-content" class="tab-content">
+            <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+                <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1.5rem;">페이지 헤더 설정</h2>
+                <form id="header-form">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">헤더 제목</label>
+                        <input type="text" id="header-title" placeholder="갤러리" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">헤더 부제목</label>
+                        <input type="text" id="header-subtitle" placeholder="이든푸드의 다양한 활동을 사진으로 만나보세요" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">헤더 배경 이미지</label>
+                        <div class="image-upload" id="headerImageUpload" 
+                             onclick="document.getElementById('header-image').click()"
+                             ondrop="handleHeaderDrop(event)"
+                             ondragover="handleDragOver(event)"
+                             ondragleave="handleDragLeave(event)"
+                             style="border: 2px dashed #d1d5db; border-radius: 0.5rem; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.2s; background: #f9fafb;">
+                            <input type="file" id="header-image" accept="image/*" style="display: none;" onchange="handleHeaderImageChange(event)">
+                            <img id="header-image-preview" class="image-preview" style="display: none; width: 100%; height: 200px; object-fit: contain; border-radius: 0.375rem;">
+                            <div id="headerImagePlaceholder">
+                                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin: 0 auto;">
+                                    <path d="M3 16l4-4m0 0l4 4m-4-4v12M13 6h8m0 0l-4-4m4 4l-4 4" />
+                                    <rect x="3" y="4" width="10" height="16" rx="2" />
+                                </svg>
+                                <p style="margin-top: 1rem; color: #6b7280; font-size: 0.875rem;">클릭하거나 이미지를 드래그하여 업로드</p>
+                                <p style="font-size: 0.813rem; color: #9ca3af;">권장 크기: 1920x400</p>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">헤더 설정 저장</button>
+                </form>
+            </div>
+        </div>
     </div>
     
     <!-- 이미지 추가/수정 모달 -->
@@ -533,10 +559,10 @@
                 <div class="form-group">
                     <label for="gallery-category">카테고리 *</label>
                     <select id="gallery-category" class="form-control" required>
-                        <option value="product">제품</option>
+                        <option value="product">시그니처메뉴</option>
                         <option value="store">매장</option>
                         <option value="event">이벤트</option>
-                        <option value="etc">기타</option>
+                        <option value="etc">설비</option>
                     </select>
                 </div>
                 
@@ -562,7 +588,7 @@
                     <div class="upload-area" id="upload-area">
                         <div class="upload-icon">📸</div>
                         <div class="upload-text">클릭하거나 이미지를 드래그하여 업로드</div>
-                        <div class="upload-hint">JPG, PNG, GIF (최대 10MB)</div>
+                        <div class="upload-hint">JPG, PNG, GIF (최대 100MB)</div>
                         <img id="preview-image" class="image-preview" style="display: none;">
                     </div>
                     <input type="file" id="image-file" accept="image/*" style="display: none;">
@@ -586,6 +612,17 @@
         <img id="viewer-image" class="viewer-image" src="" alt="">
     </div>
     
+    <!-- 프로그레스바 오버레이 -->
+    <div id="progressOverlay" class="progress-overlay">
+        <div class="progress-container">
+            <div class="progress-title">이미지 업로드 중...</div>
+            <div class="progress-bar-wrapper">
+                <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+            </div>
+            <div id="progressText" class="progress-text">0%</div>
+        </div>
+    </div>
+    
     <script>
         // 전역 변수
         let galleryImages = [];
@@ -606,9 +643,40 @@
         
         // 페이지 로드 시 초기화
         document.addEventListener('DOMContentLoaded', async () => {
+            // iframe 내에서 실행 중인지 확인
+            if (window.parent !== window) {
+                // iframe 내에서는 헤더 숨기기
+                const header = document.querySelector('.header');
+                if (header) {
+                    header.style.display = 'none';
+                }
+                // 컨테이너 상단 패딩 제거
+                const container = document.querySelector('.container');
+                if (container) {
+                    container.style.paddingTop = '1rem';
+                }
+            }
+            
             // 인증 체크
-            const token = localStorage.getItem('eden_token');
+            let token = localStorage.getItem('eden_token');
+            
+            // iframe 내에서 실행 중이고 토큰이 없는 경우, 부모에서 가져오기 시도
+            if (!token && window.parent !== window) {
+                try {
+                    token = window.parent.localStorage.getItem('eden_token');
+                    if (token) {
+                        localStorage.setItem('eden_token', token);
+                    }
+                } catch (e) {
+                    console.log('부모 창에서 토큰을 가져올 수 없습니다:', e);
+                }
+            }
+            
             if (!token) {
+                if (window.parent !== window) {
+                    console.error('인증 토큰이 없습니다. 관리자 페이지를 새로고침하세요.');
+                    return;
+                }
                 alert('로그인이 필요합니다.');
                 location.href = '/login';
                 return;
@@ -629,10 +697,16 @@
                     return;
                 }
                 
-                document.getElementById('user-name').textContent = authData.user.name || '관리자';
+                // 사용자 이름 표시 요소가 있으면 업데이트
+                const userNameElement = document.getElementById('user-name');
+                if (userNameElement) {
+                    userNameElement.textContent = authData.user.name || '관리자';
+                }
             } catch (error) {
                 console.error('인증 확인 실패:', error);
-                location.href = '/login';
+                if (window.parent === window) {
+                    location.href = '/login';
+                }
                 return;
             }
             
@@ -678,7 +752,7 @@
         // 갤러리 이미지 로드
         async function loadGalleryImages() {
             try {
-                const response = await fetch('/api/gallery');
+                const response = await authFetch('/api/gallery');
                 const data = await response.json();
                 
                 console.log('갤러리 API 응답:', data); // 디버깅용
@@ -720,10 +794,10 @@
             
             grid.innerHTML = filteredImages.map(image => {
                 const categoryNames = {
-                    product: '제품',
+                    product: '시그니처메뉴',
                     store: '매장',
                     event: '이벤트',
-                    etc: '기타'
+                    etc: '설비'
                 };
                 
                 const createdDate = new Date(image.created_at);
@@ -739,6 +813,7 @@
                             <img src="${image.thumbnail_url || image.image_url}" 
                                  alt="${image.title}" 
                                  class="gallery-image"
+                                 onerror="this.onerror=null; this.src='${image.image_url}';"
                                  onclick="viewImage('${image.image_url}')">
                         </div>
                         <div class="gallery-info">
@@ -760,7 +835,7 @@
         }
         
         // 카테고리 필터
-        function filterByCategory(category) {
+        window.filterByCategory = function(category) {
             currentCategory = category;
             
             // 버튼 활성화 상태 변경
@@ -773,7 +848,7 @@
         }
         
         // 이미지 추가 모달 열기
-        function openAddModal() {
+        window.openAddModal = function() {
             editingImageId = null;
             document.getElementById('modal-title').textContent = '이미지 추가';
             document.getElementById('submit-text').textContent = '추가';
@@ -783,7 +858,7 @@
         }
         
         // 이미지 수정
-        function editImage(id) {
+        window.editImage = function(id) {
             const image = galleryImages.find(img => img.id === id);
             if (!image) return;
             
@@ -833,6 +908,26 @@
             }
         }
         
+        // 프로그레스바 표시
+        function showProgress(percent) {
+            const progressOverlay = document.getElementById('progressOverlay');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            
+            progressOverlay.classList.add('active');
+            progressBar.style.width = percent + '%';
+            progressText.textContent = Math.round(percent) + '%';
+        }
+        
+        // 프로그레스바 숨기기
+        function hideProgress() {
+            setTimeout(() => {
+                document.getElementById('progressOverlay').classList.remove('active');
+                document.getElementById('progressBar').style.width = '0%';
+                document.getElementById('progressText').textContent = '0%';
+            }, 500);
+        }
+        
         // 파일 처리
         async function handleFile(file) {
             // 파일 유효성 검사
@@ -841,8 +936,8 @@
                 return;
             }
             
-            if (file.size > 10 * 1024 * 1024) {
-                alert('파일 크기는 10MB 이하여야 합니다.');
+            if (file.size > 100 * 1024 * 1024) {
+                alert('파일 크기는 100MB 이하여야 합니다.');
                 return;
             }
             
@@ -851,27 +946,50 @@
             formData.append('image', file);
             formData.append('type', 'gallery');
             
-            try {
-                const response = await authFetch('/api/upload/image', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                if (data.ok || data.success) {
-                    const imageUrl = data.imageUrl || data.data?.imageUrl || data.url;
-                    const thumbnailUrl = data.thumbnailUrl || data.data?.thumbnailUrl || imageUrl;
-                    document.getElementById('image-url').value = imageUrl;
-                    document.getElementById('thumbnail-url').value = thumbnailUrl;
-                    document.getElementById('preview-image').src = imageUrl;
-                    document.getElementById('preview-image').style.display = 'block';
-                } else {
-                    alert(data.message || data.error || '이미지 업로드에 실패했습니다.');
+            const token = localStorage.getItem('eden_token');
+            const xhr = new XMLHttpRequest();
+            
+            // 프로그레스 이벤트 리스너
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    showProgress(percentComplete);
                 }
-            } catch (error) {
-                console.error('이미지 업로드 실패:', error);
+            });
+            
+            xhr.onload = function() {
+                hideProgress();
+                
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.ok || data.success) {
+                            const imageUrl = data.imageUrl || data.data?.imageUrl || data.url;
+                            const thumbnailUrl = data.thumbnailUrl || data.data?.thumbnailUrl || imageUrl;
+                            document.getElementById('image-url').value = imageUrl;
+                            document.getElementById('thumbnail-url').value = thumbnailUrl;
+                            document.getElementById('preview-image').src = imageUrl;
+                            document.getElementById('preview-image').style.display = 'block';
+                        } else {
+                            alert(data.message || data.error || '이미지 업로드에 실패했습니다.');
+                        }
+                    } catch (error) {
+                        console.error('응답 파싱 오류:', error);
+                        alert('이미지 업로드 응답 처리 중 오류가 발생했습니다.');
+                    }
+                } else {
+                    alert('이미지 업로드에 실패했습니다.');
+                }
+            };
+            
+            xhr.onerror = function() {
+                hideProgress();
                 alert('이미지 업로드 중 오류가 발생했습니다.');
-            }
+            };
+            
+            xhr.open('POST', '/api/upload/image');
+            xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+            xhr.send(formData);
         }
         
         // 폼 제출 처리
@@ -942,7 +1060,7 @@
         }
         
         // 이미지 삭제
-        async function deleteImage(id, title) {
+        window.deleteImage = async function(id, title) {
             if (!confirm(`'${title}' 이미지를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
                 return;
             }
@@ -966,7 +1084,7 @@
         }
         
         // 이미지 뷰어
-        function viewImage(imageUrl) {
+        window.viewImage = function(imageUrl) {
             document.getElementById('viewer-image').src = imageUrl;
             document.getElementById('image-viewer-modal').classList.add('active');
         }
@@ -976,9 +1094,110 @@
             document.getElementById('image-viewer-modal').classList.remove('active');
         }
         
-        // 돌아가기
+        // 탭 전환
+        function switchTab(tab) {
+            // 탭 버튼 스타일 업데이트
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 클릭한 버튼 활성화
+            event.target.classList.add('active');
+            
+            // 탭 콘텐츠 표시/숨김
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            document.getElementById(tab + '-content').classList.add('active');
+        }
+        
+        // 돌아가기 - iframe 내에서는 사용하지 않음
         function goBack() {
-            location.href = '/admin';
+            if (window.parent !== window) {
+                // iframe 내에서는 돌아가기 버튼을 숨김
+                const backBtn = document.querySelector('.btn-secondary');
+                if (backBtn && backBtn.textContent.includes('돌아가기')) {
+                    backBtn.style.display = 'none';
+                }
+            } else {
+                location.href = '/admin';
+            }
+        }
+
+        // 드래그 앤 드롭 핸들러
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            event.currentTarget.style.borderColor = '#16a34a';
+            event.currentTarget.style.background = '#f0fdf4';
+        }
+
+        function handleDragLeave(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            event.currentTarget.style.borderColor = '#d1d5db';
+            event.currentTarget.style.background = '#f9fafb';
+        }
+
+        function handleHeaderDrop(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // 드래그 스타일 초기화
+            event.currentTarget.style.borderColor = '#d1d5db';
+            event.currentTarget.style.background = '#f9fafb';
+            
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                
+                // 이미지 파일인지 확인
+                if (!file.type.startsWith('image/')) {
+                    showAlert('이미지 파일만 업로드 가능합니다.', 'error');
+                    return;
+                }
+                
+                // 파일 크기 체크 (100MB)
+                if (file.size > 100 * 1024 * 1024) {
+                    showAlert('파일 크기는 100MB를 초과할 수 없습니다.', 'error');
+                    return;
+                }
+                
+                // 파일 input에 파일 설정
+                const fileInput = document.getElementById('header-image');
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+                
+                // 미리보기 표시
+                displayHeaderImagePreview(file);
+            }
+        }
+
+        // 헤더 이미지 변경 핸들러
+        function handleHeaderImageChange(event) {
+            const file = event.target.files[0];
+            if (file) {
+                displayHeaderImagePreview(file);
+            }
+        }
+
+        // 헤더 이미지 미리보기 표시
+        function displayHeaderImagePreview(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const headerUpload = document.getElementById('headerImageUpload');
+                const headerPreview = document.getElementById('header-image-preview');
+                const headerPlaceholder = document.getElementById('headerImagePlaceholder');
+                
+                headerUpload.style.border = 'none';
+                headerUpload.style.padding = '0';
+                headerPreview.src = e.target.result;
+                headerPreview.style.display = 'block';
+                headerPlaceholder.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
         }
         
         // ESC 키로 모달 닫기

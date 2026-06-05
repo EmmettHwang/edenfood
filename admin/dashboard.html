@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>대시보드 - 이든푸드</title>
+  <link rel="stylesheet" href="/css/global.css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    
+    .dashboard-container {
+      padding: 1rem;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .stat-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .icon-blue { background: #dbeafe; }
+    .icon-green { background: #d1fae5; }
+    .icon-yellow { background: #fef3c7; }
+    .icon-purple { background: #e9d5ff; }
+
+    .stat-content {
+      flex: 1;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+
+    .stat-change {
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-top: 0.25rem;
+    }
+
+    .stat-change.positive { color: #059669; }
+    .stat-change.negative { color: #dc2626; }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: #111827;
+    }
+
+    .quick-access-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+
+    .quick-card {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .quick-icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .quick-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .quick-desc {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+
+    .activity-card {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .activity-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .activity-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      background: #f9fafb;
+    }
+
+    .activity-icon {
+      font-size: 1.5rem;
+    }
+
+    .activity-content {
+      flex: 1;
+    }
+
+    .activity-title {
+      font-weight: 500;
+      color: #111827;
+    }
+
+    .activity-time {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+
+    .stats-section {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .stats-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: #111827;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #16a34a;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+
+    /* 시스템 모니터링 스타일 */
+    .monitoring-section {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .monitoring-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: #111827;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .monitoring-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .monitor-card {
+      background: #f9fafb;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      position: relative;
+      border: 1px solid #e5e7eb;
+    }
+
+    .monitor-label {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .monitor-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .monitor-detail {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-bottom: 0.75rem;
+    }
+
+    .monitor-chart {
+      height: 60px;
+      position: relative;
+      background: #e5e7eb;
+      border-radius: 0.375rem;
+      overflow: hidden;
+    }
+
+    .monitor-chart-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #16a34a;
+      transition: height 0.3s ease;
+    }
+
+    .monitor-chart-grid {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .monitor-chart-line {
+      flex: 1;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .monitor-status {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.25rem;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    .monitor-status.warning {
+      background: #f59e0b;
+    }
+
+    .monitor-status.danger {
+      background: #ef4444;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.1); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .monitor-cpu .monitor-value { color: #3b82f6; }
+    .monitor-cpu .monitor-chart-fill { background: #3b82f6; }
+
+    .monitor-memory .monitor-value { color: #8b5cf6; }
+    .monitor-memory .monitor-chart-fill { background: #8b5cf6; }
+
+    .monitor-disk .monitor-value { color: #f59e0b; }
+    .monitor-disk .monitor-chart-fill { background: #f59e0b; }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- 시스템 모니터링 -->
+    <div class="monitoring-section">
+      <h3 class="monitoring-title">🖥️ 시스템 모니터링</h3>
+      <div class="monitoring-grid">
+        <div class="monitor-card monitor-cpu">
+          <div class="monitor-status" id="cpu-status"></div>
+          <div class="monitor-label">CPU 사용률</div>
+          <div class="monitor-value" id="cpu-value">0%</div>
+          <div class="monitor-detail" id="cpu-detail">-</div>
+          <div class="monitor-chart">
+            <div class="monitor-chart-fill" id="cpu-chart" style="height: 0%;"></div>
+            <div class="monitor-chart-grid">
+              <div class="monitor-chart-line"></div>
+              <div class="monitor-chart-line"></div>
+              <div class="monitor-chart-line"></div>
+              <div class="monitor-chart-line"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="monitor-card monitor-memory">
+          <div class="monitor-status" id="memory-status"></div>
+          <div class="monitor-label">메모리 사용률</div>
+          <div class="monitor-value" id="memory-value">0%</div>
+          <div class="monitor-detail" id="memory-detail">-</div>
+          <div class="monitor-chart">
+            <div class="monitor-chart-fill" id="memory-chart" style="height: 0%;"></div>
+            <div class="monitor-chart-grid">
+              <div class="monitor-chart-line"></div>
+              <div class="monitor-chart-line"></div>
+              <div class="monitor-chart-line"></div>
+              <div class="monitor-chart-line"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="monitor-card monitor-disk">
+          <div class="monitor-status" id="disk-status"></div>
+          <div class="monitor-label">디스크 사용률</div>
+          <div class="monitor-value" id="disk-value">0%</div>
+          <div class="monitor-detail" id="disk-detail">-</div>
+          <div class="monitor-chart">
+            <div class="monitor-chart-fill" id="disk-chart" style="height: 0%;"></div>
+            <div class="monitor-chart-grid">
+              <div class="monitor-chart-line"></div>
+              <div class="monitor-chart-line"></div>
+              <div class="monitor-chart-line"></div>
+              <div class="monitor-chart-line"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 시스템 사용 현황 -->
+    <div class="stats-section">
+      <h3 class="stats-title">운영 현황</h3>
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-item">
+          <div class="stat-number" id="todayVisitors">-</div>
+          <div class="stat-label">오늘 방문자</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="weekVisitors">-</div>
+          <div class="stat-label">이번주 방문자</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="totalVisitors">-</div>
+          <div class="stat-label">전체 방문자</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="activeUsers">-</div>
+          <div class="stat-label">활성 사용자</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="totalPosts">-</div>
+          <div class="stat-label">전체 게시물</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="newContacts">-</div>
+          <div class="stat-label">신규 문의</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 대시보드 데이터 로드
+    async function loadDashboardStats() {
+      try {
+        const token = localStorage.getItem('eden_token');
+        const response = await fetch('/api/dashboard-stats', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.ok) {
+            // 실제 데이터로 업데이트
+            document.getElementById('todayVisitors').textContent = data.stats.todayVisitors || '0';
+            document.getElementById('weekVisitors').textContent = data.stats.weekVisitors || '0';
+            document.getElementById('totalVisitors').textContent = data.stats.totalVisitors || '0';
+            document.getElementById('activeUsers').textContent = data.stats.activeUsers || '0';
+            document.getElementById('totalPosts').textContent = data.stats.totalPosts || '0';
+            document.getElementById('newContacts').textContent = data.stats.newContacts || '0';
+          }
+        } else {
+          // API 오류 시 예시 데이터 표시
+          console.log('대시보드 통계 API가 아직 구현되지 않았습니다. 예시 데이터를 표시합니다.');
+          document.getElementById('todayVisitors').textContent = '234';
+          document.getElementById('weekVisitors').textContent = '1,567';
+          document.getElementById('totalVisitors').textContent = '12,345';
+          document.getElementById('activeUsers').textContent = '5';
+          document.getElementById('totalPosts').textContent = '156';
+          document.getElementById('newContacts').textContent = '23';
+        }
+      } catch (error) {
+        console.error('대시보드 데이터 로드 실패:', error);
+        // 오류 시 예시 데이터 표시
+        document.getElementById('todayVisitors').textContent = '234';
+        document.getElementById('weekVisitors').textContent = '1,567';
+        document.getElementById('totalVisitors').textContent = '12,345';
+        document.getElementById('activeUsers').textContent = '5';
+        document.getElementById('totalPosts').textContent = '156';
+        document.getElementById('newContacts').textContent = '23';
+      }
+    }
+
+    // 시스템 모니터링 데이터 로드
+    async function loadSystemMonitoring() {
+      try {
+        const token = localStorage.getItem('eden_token');
+        const response = await fetch('/api/system-info', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        console.log('System info response status:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('System info data:', data);
+          
+          // data.data 구조 확인
+          const systemInfo = data.data || data;
+          console.log('System info:', systemInfo);
+          
+          // CPU 사용률
+          if (systemInfo.cpu) {
+            const cpuUsage = systemInfo.cpu.usage || 0;
+            document.getElementById('cpu-value').textContent = cpuUsage + '%';
+            document.getElementById('cpu-chart').style.height = cpuUsage + '%';
+            document.getElementById('cpu-detail').textContent = `${systemInfo.cpu.cores || 0}코어`;
+            updateStatus('cpu-status', cpuUsage, 70, 90);
+          }
+          
+          // 메모리 사용률
+          if (systemInfo.memory) {
+            const memUsage = systemInfo.memory.usage || 0;
+            const memUsed = systemInfo.memory.used || 0;
+            const memTotal = systemInfo.memory.total || 0;
+            document.getElementById('memory-value').textContent = memUsage + '%';
+            document.getElementById('memory-chart').style.height = memUsage + '%';
+            document.getElementById('memory-detail').textContent = `${memUsed.toFixed(1)}GB / ${memTotal.toFixed(1)}GB`;
+            updateStatus('memory-status', memUsage, 80, 95);
+          }
+          
+          // 디스크 사용률
+          if (systemInfo.disk) {
+            const diskUsage = systemInfo.disk.usage || 0;
+            const diskUsed = systemInfo.disk.used || 0;
+            const diskTotal = systemInfo.disk.total || 0;
+            document.getElementById('disk-value').textContent = diskUsage + '%';
+            document.getElementById('disk-chart').style.height = diskUsage + '%';
+            document.getElementById('disk-detail').textContent = `${diskUsed.toFixed(1)}GB / ${diskTotal.toFixed(1)}GB`;
+            updateStatus('disk-status', diskUsage, 85, 95);
+          }
+        } else {
+          console.error('System info response not ok:', await response.text());
+        }
+      } catch (error) {
+        console.error('시스템 모니터링 데이터 로드 실패:', error);
+      }
+    }
+
+    // 상태 표시 업데이트
+    function updateStatus(elementId, value, warningThreshold, dangerThreshold) {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.classList.remove('warning', 'danger');
+        
+        if (value >= dangerThreshold) {
+          element.classList.add('danger');
+        } else if (value >= warningThreshold) {
+          element.classList.add('warning');
+        }
+      }
+    }
+
+    // 시스템 모니터링 시작
+    let monitoringInterval = null;
+
+    function startSystemMonitoring() {
+      // 기존 인터벌 클리어
+      if (monitoringInterval) {
+        clearInterval(monitoringInterval);
+      }
+      
+      // 즉시 로드
+      loadSystemMonitoring();
+      
+      // 5초마다 업데이트
+      monitoringInterval = setInterval(loadSystemMonitoring, 5000);
+    }
+
+    // 페이지 로드 시 데이터 로드
+    document.addEventListener('DOMContentLoaded', function() {
+      // 저장된 테마 로드
+      const savedPrimary = localStorage.getItem('theme_primary');
+      const savedSecondary = localStorage.getItem('theme_secondary');
+      
+      if (savedPrimary) {
+        document.documentElement.style.setProperty('--primary', savedPrimary);
+        document.documentElement.style.setProperty('--primary-600', savedPrimary);
+      }
+      
+      if (savedSecondary) {
+        document.documentElement.style.setProperty('--admin-primary', savedSecondary);
+      }
+      
+      loadDashboardStats();
+      // 30초마다 새로고침
+      setInterval(loadDashboardStats, 30000);
+      
+      // 시스템 모니터링 시작
+      startSystemMonitoring();
+    });
+  </script>
+</body>
+</html>

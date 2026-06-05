@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>로그인 — 주식회사 이든푸드 인트라넷</title>
+  <title>로그인 — 주식회사 이든푸드</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/global.css" />
@@ -341,7 +341,7 @@
       <span>주식회사 이든푸드</span>
     </div>
     <h2 class="visual-title">
-      신선함을<br /><span>이어가는</span><br />인트라넷
+      신선함을<br /><span>이어가는</span><br />시스템
     </h2>
     <p class="visual-desc">
       이든푸드 임직원 전용 업무 시스템입니다.<br />
@@ -362,7 +362,7 @@
     <a href="/" class="login-back">← 홈으로</a>
 
     <div class="login-header">
-      <h1>인트라넷 로그인</h1>
+      <h1>시스템 로그인</h1>
       <p>이든푸드 임직원만 접근 가능합니다</p>
     </div>
 
@@ -526,7 +526,7 @@ async function doLogin(e) {
       localStorage.setItem('eden_user',  JSON.stringify(data.user));
       console.log('토큰 저장 완료');
       
-      // 관리자는 관리자 페이지로, 일반 사용자는 인트라넷으로
+      // 관리자는 관리자 페이지로, 일반 사용자는 시스템으로
       if (data.user && data.user.role === 'admin') {
         console.log('관리자 로그인 - /admin으로 이동');
         window.location.href = '/admin';

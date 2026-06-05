@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Navigation Stability Test</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/landing.css?v=test" />
+  <style>
+    body {
+      padding-top: 72px;
+      height: 200vh; /* For scroll testing */
+      background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
+    }
+    .content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    .test-section {
+      background: white;
+      padding: 2rem;
+      margin: 2rem 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header" id="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo">
+      <img src="/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+    </a>
+    <nav class="main-nav-links">
+      <a href="/about" class="active">회사소개</a>
+      <a href="/products">제품소개</a>
+      <a href="/brands">브랜드·창업지원</a>
+      <a href="/logistics">물류·유통시스템</a>
+      <a href="/gallery">갤러리</a>
+      <a href="/documents">서식자료실</a>
+      <a href="/contact">문의</a>
+    </nav>
+    <div class="header-actions">
+      <a href="/intranet" class="btn-login">인트라넷</a>
+    </div>
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="메뉴">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobile-menu">
+    <a href="/about" class="active">회사소개</a>
+    <a href="/products">제품소개</a>
+    <a href="/brands">브랜드·창업지원</a>
+    <a href="/logistics">물류·유통시스템</a>
+    <a href="/gallery">갤러리</a>
+    <a href="/documents">서식자료실</a>
+    <a href="/contact">문의</a>
+    <a href="/intranet" class="mobile-login-btn">인트라넷 →</a>
+  </div>
+</header>
+
+<div class="content">
+  <div class="test-section">
+    <h1>Navigation Stability Test</h1>
+    <p>This page tests the navigation stability fixes:</p>
+    <ul>
+      <li>Fixed header height of 72px</li>
+      <li>No padding changes on scroll</li>
+      <li>Consistent font weights for active items</li>
+      <li>Stable intranet button styling</li>
+      <li>Smooth transitions without layout shifts</li>
+    </ul>
+  </div>
+  
+  <div class="test-section">
+    <h2>Scroll Test</h2>
+    <p>Scroll down to see the header transition. The navigation should remain stable without any wobbling or dimension changes.</p>
+  </div>
+  
+  <div class="test-section">
+    <h2>Active Menu Item</h2>
+    <p>The "회사소개" menu item is marked as active. It should have the same dimensions as other menu items, only the color should change.</p>
+  </div>
+</div>
+
+<script>
+// Add scrolled class on scroll
+window.addEventListener('scroll', function() {
+  const header = document.getElementById('site-header');
+  if (window.scrollY > 50) {
+    header.classList.add('scrolled');
+  } else {
+    header.classList.remove('scrolled');
+  }
+});
+
+// Mobile menu toggle
+document.getElementById('nav-hamburger').addEventListener('click', () => {
+  document.getElementById('mobile-menu').classList.toggle('open');
+});
+</script>
+
+</body>
+</html>

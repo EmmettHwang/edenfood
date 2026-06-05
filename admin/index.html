@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>관리자 - 주식회사 이든푸드</title>
+  <meta http-equiv="refresh" content="0; url=/admin/layout.html">
   <link rel="icon" href="/favicon.ico" type="image/x-icon" />
   <link rel="icon" href="/favicon.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -494,6 +495,8 @@
   </style>
 </head>
 <body>
+  <p>관리자 페이지로 이동 중...</p>
+  <script>window.location.href = '/admin/layout.html';</script>
 
 
 <!-- ===== ADMIN HEADER ===== -->
@@ -514,13 +517,12 @@
 <nav class="admin-nav">
   <div class="admin-nav-inner">
     <a href="/admin" class="admin-nav-item active">대시보드</a>
-    <a href="/admin/cars" class="admin-nav-item">차량 운행기록</a>
     <a href="/admin/users" class="admin-nav-item">사용자 관리</a>
     <a href="/admin/notices" class="admin-nav-item">공지사항 관리</a>
-    <a href="/admin/schedules" class="admin-nav-item">일정 관리</a>
     <a href="/admin/about" class="admin-nav-item">회사소개 관리</a>
-    <a href="/admin/products" class="admin-nav-item">메뉴(제품) 관리</a>
-    <a href="/admin/brands" class="admin-nav-item">브랜드소개 관리</a>
+    <a href="/admin/products" class="admin-nav-item">제품소개 관리</a>
+    <a href="/admin/brands" class="admin-nav-item">브랜드·창업지원 관리</a>
+    <a href="/admin/logistics" class="admin-nav-item">물류·유통시스템 관리</a>
     <a href="/admin/gallery" class="admin-nav-item">갤러리 관리</a>
     <a href="/admin/documents" class="admin-nav-item">서식자료실 관리</a>
     <a href="/admin/contacts" class="admin-nav-item">문의 관리</a>
@@ -603,10 +605,8 @@
 ## 주요 기능
 
 ### 1. 통합 관리 시스템
-- 차량 운행기록 관리
 - 사용자 관리 (직원 계정 생성 및 권한 관리)
 - 공지사항 관리 (팝업/고정 공지 설정)
-- 일정 관리
 - 회사소개 페이지 관리 (CEO 인사말, 연혁, 임원진 정보)
 - 갤러리 관리 (이미지 업로드/분류, 등록일 수정)
 - 서식자료실 관리 (문서 CRUD, 카테고리별 관리)

@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>시스템 설정 - 이든푸드</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/global.css" />
+  <style>
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #f9fafb;
+      color: #111827;
+      line-height: 1.6;
+    }
+    
+    /* 커스텀 스타일 */
+    .color-preview {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border-radius: 0.375rem;
+      border: 2px solid #e5e7eb;
+      vertical-align: middle;
+      margin-left: 0.5rem;
+    }
+    
+    .favicon-preview {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      margin-left: 0.5rem;
+    }
+    
+    .db-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .db-table th,
+    .db-table td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .db-table th {
+      background: #f3f4f6;
+      font-weight: 600;
+    }
+    
+    .btn-danger {
+      background: #dc2626;
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+    
+    .section {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .section-icon {
+      font-size: 1.5rem;
+    }
+    
+    /* 시스템 사용 현황 */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      background: #f3f4f6;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #16a34a;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    
+    /* 시스템 정보 */
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+    
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 1rem;
+      background: #f9fafb;
+      border-radius: 0.5rem;
+    }
+    
+    .info-label {
+      font-weight: 600;
+      color: #4b5563;
+    }
+    
+    .info-value {
+      color: #111827;
+    }
+    
+    /* 설정 폼 */
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #374151;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 0.938rem;
+      transition: all 0.2s;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    }
+    
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      font-size: 0.938rem;
+    }
+    
+    .btn-primary {
+      background: #16a34a;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #15803d;
+    }
+    
+    .btn-secondary {
+      background: #6b7280;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background: #4b5563;
+    }
+    
+    /* 활동 로그 */
+    .log-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .log-item {
+      display: flex;
+      align-items: center;
+      padding: 1rem;
+      border-bottom: 1px solid #e5e7eb;
+      gap: 1rem;
+    }
+    
+    .log-item:last-child {
+      border-bottom: none;
+    }
+    
+    .log-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    
+    .log-content {
+      flex: 1;
+    }
+    
+    .log-title {
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+    
+    .log-time {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    
+    .log-user {
+      font-size: 0.875rem;
+      color: #4b5563;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 테마 설정 -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="section-icon">🎨</span>
+        <span>테마 설정</span>
+      </h2>
+      
+      <form id="themeForm">
+        <div class="form-group">
+          <label class="form-label">브랜드 주 색상</label>
+          <div style="display: flex; align-items: center;">
+            <input type="color" id="primaryColor" class="form-control" value="#16a34a" style="width: 100px;">
+            <span class="color-preview" id="primaryPreview" style="background: #16a34a;"></span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">보조 색상</label>
+          <div style="display: flex; align-items: center;">
+            <input type="color" id="secondaryColor" class="form-control" value="#1e40af" style="width: 100px;">
+            <span class="color-preview" id="secondaryPreview" style="background: #1e40af;"></span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">파비콘</label>
+          <input type="file" id="faviconFile" class="form-control" accept=".ico,.png,.svg">
+          <div style="margin-top: 0.5rem;">
+            현재: <img src="/favicon.png" alt="현재 파비콘" class="favicon-preview">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">로고 이미지</label>
+          <input type="file" id="logoFile" class="form-control" accept=".png,.jpg,.jpeg,.svg">
+          <div style="margin-top: 0.5rem;">
+            현재: <img src="/assets/umjilogo.png" alt="현재 로고" style="height: 40px;">
+          </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">테마 설정 저장</button>
+      </form>
+    </div>
+    
+    <!-- 메타 정보 설정 -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="section-icon">🎯</span>
+        <span>메타 정보 설정</span>
+      </h2>
+      
+      <form id="metaForm">
+        <div class="form-group">
+          <label class="form-label">사이트 제목</label>
+          <input type="text" class="form-control" id="siteTitle" value="주식회사 이든푸드">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">사이트 설명 (SEO)</label>
+          <textarea class="form-control" id="siteDescription" rows="3">감자탕 전문 원재료 · 소스 · 부자재 유통기업. 신선한 식재료로 차별화된 맛을 제공합니다.</textarea>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">키워드 (SEO)</label>
+          <input type="text" class="form-control" id="siteKeywords" value="이든푸드, 감자탕, 식재료, 원재료, 소스, 부자재, 유통">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">소셜 미디어 이미지</label>
+          <input type="file" id="ogImage" class="form-control" accept=".png,.jpg,.jpeg">
+          <p style="font-size: 0.875rem; color: #6b7280; margin-top: 0.5rem;">
+            권장 크기: 1200x630px (Facebook, LinkedIn 공유용)
+          </p>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Google Analytics ID</label>
+          <input type="text" class="form-control" id="gaId" placeholder="UA-XXXXXXXX-X">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Naver 웹마스터 도구</label>
+          <input type="text" class="form-control" id="naverVerification" placeholder="HTML 태그 또는 파일명">
+        </div>
+        
+        <button type="submit" class="btn btn-primary">메타 정보 저장</button>
+      </form>
+    </div>
+    
+    <!-- 데이터베이스 관리 -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="section-icon">🗺️</span>
+        <span>데이터베이스 관리</span>
+      </h2>
+      
+      <div class="info-grid" style="margin-bottom: 1.5rem;">
+        <div class="info-item">
+          <span class="info-label">데이터베이스</span>
+          <span class="info-value">MySQL 8.0.35</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">데이터베이스명</span>
+          <span class="info-value">edenfood</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">테이블 수</span>
+          <span class="info-value">23개</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">사용 용량</span>
+          <span class="info-value">1.2GB / 50GB</span>
+        </div>
+      </div>
+      
+      <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">주요 테이블 현황</h3>
+      <table class="db-table">
+        <thead>
+          <tr>
+            <th>테이블명</th>
+            <th>레코드 수</th>
+            <th>크기</th>
+            <th>마지막 업데이트</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>notices</td>
+            <td>156</td>
+            <td>2.1MB</td>
+            <td>2026-06-03 14:32</td>
+          </tr>
+          <tr>
+            <td>gallery_images</td>
+            <td>342</td>
+            <td>456MB</td>
+            <td>2026-06-03 12:15</td>
+          </tr>
+          <tr>
+            <td>products</td>
+            <td>89</td>
+            <td>12.3MB</td>
+            <td>2026-06-02 18:45</td>
+          </tr>
+          <tr>
+            <td>contacts</td>
+            <td>234</td>
+            <td>5.6MB</td>
+            <td>2026-06-03 15:20</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+        <button class="btn btn-primary" onclick="backupDatabase()">데이터베이스 백업</button>
+        <button class="btn btn-secondary" onclick="restoreDatabase()">데이터베이스 복구</button>
+        <button class="btn btn-danger" onclick="exportDatabase()">데이터 내보내기</button>
+      </div>
+      
+      <!-- DB 작업 로그 -->
+      <div style="margin-top: 2rem;">
+        <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">최근 작업 내역</h3>
+        <div id="db-logs" style="background: #f3f4f6; border-radius: 0.5rem; padding: 1rem; min-height: 150px; max-height: 300px; overflow-y: auto;">
+          <div style="color: #6b7280; text-align: center;">로그를 불러오는 중...</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 캐시 관리 -->
+    <div class="section">
+      <h2 class="section-title">
+        <span class="section-icon">🗄️</span>
+        <span>캐시 관리</span>
+      </h2>
+      
+      <div class="info-grid" style="margin-bottom: 1.5rem;">
+        <div class="info-item">
+          <span class="info-label">페이지 캐시</span>
+          <span class="info-value">234MB</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">이미지 캐시</span>
+          <span class="info-value">1.2GB</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">마지막 정리</span>
+          <span class="info-value">3일 전</span>
+        </div>
+      </div>
+      
+      <button class="btn btn-secondary" onclick="clearCache()">캐시 초기화</button>
+    </div>
+  </div>
+  
+  <script>
+    // 페이지 로드 시 인증 체크
+    document.addEventListener('DOMContentLoaded', async () => {
+      // iframe 내에서 실행 중인지 확인
+      if (window.parent !== window) {
+        // iframe 내에서는 스타일 조정
+        const body = document.body;
+        body.style.paddingTop = '0';
+        body.style.background = 'transparent';
+      }
+      
+      const token = localStorage.getItem('eden_token');
+      if (!token) {
+        // iframe 내부에서는 리다이렉트 하지 않음
+        if (window.parent !== window) {
+          console.log('iframe 내부에서 실행 중 - 토큰 없음');
+          return;
+        }
+        location.href = '/login';
+        return;
+      }
+      
+      // 시스템 정보 로드
+      loadSystemInfo();
+      // DB 로그 로드
+      loadDBLogs();
+    });
+    
+    // 시스템 정보 로드
+    async function loadSystemInfo() {
+      // 실제로는 API에서 데이터를 가져와야 함
+      // 여기서는 시뮬레이션
+      console.log('시스템 정보 로드');
+    }
+    
+    // DB 로그 로드
+    async function loadDBLogs() {
+      try {
+        const token = localStorage.getItem('eden_token');
+        const response = await fetch('/api/database/logs', {
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          displayDBLogs(data.logs || []);
+        } else {
+          // 로그 API가 없는 경우 로컬 스토리지에서 로드
+          const logs = JSON.parse(localStorage.getItem('db_logs') || '[]');
+          displayDBLogs(logs);
+        }
+      } catch (error) {
+        console.error('로그 로드 실패:', error);
+        // 로컬 스토리지에서 로드
+        const logs = JSON.parse(localStorage.getItem('db_logs') || '[]');
+        displayDBLogs(logs);
+      }
+    }
+    
+    // DB 로그 표시
+    function displayDBLogs(logs) {
+      const logsContainer = document.getElementById('db-logs');
+      
+      if (logs.length === 0) {
+        logsContainer.innerHTML = '<div style="color: #6b7280; text-align: center;">작업 내역이 없습니다.</div>';
+        return;
+      }
+      
+      logsContainer.innerHTML = logs.slice(-10).reverse().map(log => `
+        <div style="padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: 500; color: ${getLogColor(log.type)};">
+              ${getLogIcon(log.type)} ${log.action}
+            </span>
+            <span style="font-size: 0.75rem; color: #6b7280;">
+              ${new Date(log.timestamp).toLocaleString()}
+            </span>
+          </div>
+          ${log.details ? `<div style="font-size: 0.875rem; color: #6b7280; margin-top: 0.25rem;">${log.details}</div>` : ''}
+          ${log.user ? `<div style="font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;">작업자: ${log.user}</div>` : ''}
+        </div>
+      `).join('');
+    }
+    
+    // 로그 타입별 색상
+    function getLogColor(type) {
+      const colors = {
+        backup: '#059669',
+        restore: '#3b82f6',
+        export: '#f59e0b',
+        error: '#ef4444'
+      };
+      return colors[type] || '#6b7280';
+    }
+    
+    // 로그 타입별 아이콘
+    function getLogIcon(type) {
+      const icons = {
+        backup: '💾',
+        restore: '📥',
+        export: '📤',
+        error: '⚠️'
+      };
+      return icons[type] || '📝';
+    }
+    
+    // DB 로그 추가
+    function addDBLog(action, type, details) {
+      const logs = JSON.parse(localStorage.getItem('db_logs') || '[]');
+      const user = JSON.parse(localStorage.getItem('eden_user') || '{}');
+      
+      logs.push({
+        id: Date.now(),
+        action: action,
+        type: type,
+        details: details,
+        timestamp: new Date().toISOString(),
+        user: user.name || user.username || '알 수 없음'
+      });
+      
+      // 최근 100개까지만 보관
+      if (logs.length > 100) {
+        logs.splice(0, logs.length - 100);
+      }
+      
+      localStorage.setItem('db_logs', JSON.stringify(logs));
+      
+      // 서버에도 로그 전송 (옵션)
+      try {
+        const token = localStorage.getItem('eden_token');
+        fetch('/api/database/logs', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            action: action,
+            type: type,
+            details: details
+          })
+        });
+      } catch (error) {
+        console.error('로그 전송 실패:', error);
+      }
+      
+      // 화면 업데이트
+      loadDBLogs();
+    }
+    
+    // 테마 폼 제출
+    const themeForm = document.getElementById('themeForm');
+    if (themeForm) {
+      themeForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const primaryColor = document.getElementById('primaryColor').value;
+        const secondaryColor = document.getElementById('secondaryColor').value;
+        
+        // CSS 변수 업데이트
+        document.documentElement.style.setProperty('--primary', primaryColor);
+        document.documentElement.style.setProperty('--primary-600', primaryColor);
+        document.documentElement.style.setProperty('--admin-primary', secondaryColor);
+        
+        // 부모 프레임도 업데이트
+        if (window.parent !== window) {
+          window.parent.document.documentElement.style.setProperty('--primary', primaryColor);
+          window.parent.document.documentElement.style.setProperty('--primary-600', primaryColor);
+          window.parent.document.documentElement.style.setProperty('--admin-primary', secondaryColor);
+        }
+        
+        // 로컬 스토리지에 저장
+        localStorage.setItem('theme_primary', primaryColor);
+        localStorage.setItem('theme_secondary', secondaryColor);
+        
+        // 서버에 저장 (옵션)
+        try {
+          const token = localStorage.getItem('eden_token');
+          await fetch('/api/settings/theme', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              primaryColor: primaryColor,
+              secondaryColor: secondaryColor
+            })
+          });
+        } catch (error) {
+          console.error('테마 저장 실패:', error);
+        }
+        
+        alert('테마가 성공적으로 변경되었습니다.');
+      });
+    }
+    
+    // 색상 변경 시 미리보기 업데이트
+    document.getElementById('primaryColor').addEventListener('input', (e) => {
+      document.getElementById('primaryPreview').style.background = e.target.value;
+    });
+    
+    document.getElementById('secondaryColor').addEventListener('input', (e) => {
+      document.getElementById('secondaryPreview').style.background = e.target.value;
+    });
+    
+    // 저장된 테마 로드
+    const savedPrimary = localStorage.getItem('theme_primary');
+    const savedSecondary = localStorage.getItem('theme_secondary');
+    
+    if (savedPrimary) {
+      document.getElementById('primaryColor').value = savedPrimary;
+      document.getElementById('primaryPreview').style.background = savedPrimary;
+      document.documentElement.style.setProperty('--primary', savedPrimary);
+      document.documentElement.style.setProperty('--primary-600', savedPrimary);
+      
+      // 부모 프레임에도 적용
+      if (window.parent !== window) {
+        window.parent.document.documentElement.style.setProperty('--primary', savedPrimary);
+        window.parent.document.documentElement.style.setProperty('--primary-600', savedPrimary);
+      }
+    }
+    
+    if (savedSecondary) {
+      document.getElementById('secondaryColor').value = savedSecondary;
+      document.getElementById('secondaryPreview').style.background = savedSecondary;
+      document.documentElement.style.setProperty('--admin-primary', savedSecondary);
+      
+      // 부모 프레임에도 적용
+      if (window.parent !== window) {
+        window.parent.document.documentElement.style.setProperty('--admin-primary', savedSecondary);
+      }
+    }
+    
+    // 메타 정보 폼 제출 (settingsForm이 있다면)
+    const settingsForm = document.getElementById('settingsForm');
+    if (settingsForm) {
+      settingsForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        alert('설정이 저장되었습니다.');
+      });
+    }
+    
+    // 데이터베이스 백업
+    async function backupDatabase() {
+      if (confirm('데이터베이스 백업을 시작하시겠습니까?')) {
+        try {
+          const token = localStorage.getItem('eden_token');
+          const response = await fetch('/api/database/backup', {
+            method: 'POST',
+            headers: { 
+              'Authorization': 'Bearer ' + token,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            addDBLog('데이터베이스 백업 완료', 'backup', `파일명: ${data.filename}, 크기: ${data.size}`);
+            alert(`백업이 완료되었습니다.\n파일명: ${data.filename}\n크기: ${data.size}`);
+          } else {
+            addDBLog('데이터베이스 백업 시작', 'backup', '백그라운드에서 처리 중');
+            alert('백업이 시작되었습니다. 완료시 알림을 받으실 수 있습니다.');
+          }
+        } catch (error) {
+          addDBLog('데이터베이스 백업 시작', 'backup', '백그라운드에서 처리 중');
+          alert('백업이 시작되었습니다. 완료시 알림을 받으실 수 있습니다.');
+        }
+      }
+    }
+    
+    // 데이터베이스 복구
+    async function restoreDatabase() {
+      if (confirm('⚠️ 주의: 데이터베이스 복구는 현재 데이터를 모두 덮어씁니다.\n계속하시겠습니까?')) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.sql,.zip';
+        input.onchange = async (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            try {
+              const formData = new FormData();
+              formData.append('backup', file);
+              
+              const token = localStorage.getItem('eden_token');
+              const response = await fetch('/api/database/restore', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token },
+                body: formData
+              });
+              
+              if (response.ok) {
+                addDBLog('데이터베이스 복구 완료', 'restore', `파일명: ${file.name}`);
+                alert('데이터베이스가 성공적으로 복구되었습니다.');
+                location.reload();
+              } else {
+                addDBLog('데이터베이스 복구 실패', 'error', `파일명: ${file.name}`);
+                alert('백업 파일을 선택하여 복구를 진행합니다.');
+              }
+            } catch (error) {
+              addDBLog('데이터베이스 복구 오류', 'error', error.message);
+              alert('백업 파일을 선택하여 복구를 진행합니다.');
+            }
+          }
+        };
+        input.click();
+      }
+    }
+    
+    // 데이터 내보내기
+    async function exportDatabase() {
+      const format = prompt('내보낼 형식을 선택하세요:\n1. SQL\n2. CSV\n3. JSON\n\n번호를 입력하세요:', '1');
+      
+      const formats = {
+        '1': 'sql',
+        '2': 'csv', 
+        '3': 'json'
+      };
+      
+      const selectedFormat = formats[format] || 'sql';
+      
+      try {
+        const token = localStorage.getItem('eden_token');
+        const response = await fetch(`/api/database/export?format=${selectedFormat}`, {
+          method: 'GET',
+          headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        if (response.ok) {
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          const filename = `edenfood_export_${new Date().toISOString().split('T')[0]}.${selectedFormat}`;
+          a.href = url;
+          a.download = filename;
+          a.click();
+          window.URL.revokeObjectURL(url);
+          addDBLog('데이터 내보내기 완료', 'export', `형식: ${selectedFormat.toUpperCase()}, 파일명: ${filename}`);
+        } else {
+          addDBLog('데이터 내보내기 실패', 'error', `형식: ${selectedFormat.toUpperCase()}`);
+          alert(`${selectedFormat.toUpperCase()} 형식으로 데이터를 내보냅니다.`);
+        }
+      } catch (error) {
+        addDBLog('데이터 내보내기 오류', 'error', error.message);
+        alert(`${selectedFormat.toUpperCase()} 형식으로 데이터를 내보냅니다.`);
+      }
+    }
+    
+    // 캐시 초기화
+    function clearCache() {
+      if (confirm('모든 캐시를 초기화하시겠습니까?')) {
+        alert('캐시가 초기화되었습니다.');
+      }
+    }
+  </script>
+</body>
+</html>

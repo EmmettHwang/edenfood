@@ -3,20 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>회사소개 관리 - 관리자</title>
-  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-  <link rel="icon" href="/favicon.png" type="image/png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <title>회사소개 관리 - 이든푸드</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/landing.css?v=2.0" />
-  <link rel="stylesheet" href="/css/global.css?v=2.0" />
+  <link rel="stylesheet" href="/css/global.css" />
+  <link rel="stylesheet" href="/css/admin-common.css" />
   <style>
-    /* 헤더 공간 확보 */
-    body {
-      padding-top: 60px;
-      background: #f9fafb;
-    }
-    
     /* 프로그레스바 스타일 */
     .progress-overlay {
       position: fixed;
@@ -72,122 +64,9 @@
       color: #6b7280;
     }
     
-    /* 관리자 페이지 스타일 */
-    .admin-header {
-      background: #111827;
-      color: white;
-      padding: 1.5rem 0;
-      margin-bottom: 2rem;
-    }
+    /* 탭 스타일은 admin-common.css 사용 */
     
-    .admin-header-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .admin-header h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
-    
-    .btn-back {
-      padding: 0.5rem 1rem;
-      background: #374151;
-      color: white;
-      border: none;
-      border-radius: 0.375rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .btn-back:hover {
-      background: #4b5563;
-    }
-    
-    .admin-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 1rem 3rem;
-    }
-    
-    /* 탭 네비게이션 */
-    .tabs {
-      display: flex;
-      gap: 2rem;
-      border-bottom: 2px solid #e5e7eb;
-      margin-bottom: 2rem;
-    }
-    
-    .tab {
-      padding: 0.75rem 0;
-      border: none;
-      background: none;
-      font-size: 1rem;
-      font-weight: 500;
-      color: #6b7280;
-      cursor: pointer;
-      position: relative;
-      transition: color 0.2s;
-    }
-    
-    .tab:hover {
-      color: #374151;
-    }
-    
-    .tab.active {
-      color: #16a34a;
-    }
-    
-    .tab.active::after {
-      content: '';
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: #16a34a;
-    }
-    
-    .tab-content {
-      display: none;
-      background: white;
-      padding: 2rem;
-      border-radius: 0.75rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-    
-    .tab-content.active {
-      display: block;
-    }
-    
-    /* 폼 스타일 */
-    .form-section {
-      margin-bottom: 2rem;
-    }
-    
-    .form-section-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-    }
-    
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-    
-    .form-label {
-      display: block;
-      font-size: 0.875rem;
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-      color: #374151;
-    }
+    /* 폼 스타일 - admin-common.css의 스타일 사용 */
     
     .form-input,
     .form-textarea {
@@ -301,38 +180,7 @@
       background: #dc2626;
     }
     
-    /* 버튼 스타일 */
-    .btn-primary {
-      padding: 0.75rem 1.5rem;
-      background: #16a34a;
-      color: white;
-      border: none;
-      border-radius: 0.375rem;
-      font-size: 0.938rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .btn-primary:hover {
-      background: #15803d;
-    }
-    
-    .btn-secondary {
-      padding: 0.75rem 1.5rem;
-      background: white;
-      color: #374151;
-      border: 1px solid #d1d5db;
-      border-radius: 0.375rem;
-      font-size: 0.938rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .btn-secondary:hover {
-      background: #f9fafb;
-    }
+    /* 추가 버튼 스타일 */
     
     /* 연혁 관리 */
     .history-list {
@@ -439,28 +287,21 @@
     }
   </style>
   <script>
-    // 모든 함수를 미리 전역으로 등록
-    function showTab(tabName) {
-      console.log('showTab called with:', tabName);
-      // DOM이 준비되지 않았으면 대기
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => showTab(tabName));
-        return;
-      }
-      
-      // 모든 탭과 컨텐츠 숨기기
-      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-      
-      // 선택한 탭 활성화 - data-tab 속성 기반
-      document.querySelectorAll('.tab').forEach(tab => {
-        if (tab.getAttribute('data-tab') === tabName) {
-          tab.classList.add('active');
-        }
+    // 탭 전환 함수
+    function switchTab(tabName) {
+      // 모든 탭 버튼과 컨텐츠 비활성화
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
       });
       
-      // 해당 컨텐츠 활성화 - ID 기반
-      const targetContent = document.getElementById(tabName + '-tab');
+      // 클릭된 탭 버튼 활성화
+      event.target.classList.add('active');
+      
+      // 해당 컨텐츠 활성화
+      const targetContent = document.getElementById(tabName + '-content');
       if (targetContent) {
         targetContent.classList.add('active');
       }
@@ -522,46 +363,55 @@
   </div>
 </div>
 
-<!-- ===== HEADER ===== -->
-<header class="site-header scrolled" id="site-header">
-  <div class="header-inner">
-    <a href="/" class="logo">
-      <img src="/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
-    </a>
-    <nav class="main-nav-links">
-      <a href="/about">회사소개</a>
-      <a href="/products">메뉴</a>
-      <a href="/brands">브랜드소개</a>
-      <a href="/gallery">갤러리</a>
-      <a href="/documents">서식자료실</a>
-      <a href="/contact">문의</a>
-    </nav>
-  </div>
-</header>
-
-<!-- ===== ADMIN HEADER ===== -->
-<div class="admin-header">
-  <div class="admin-header-inner">
-    <h1>회사소개 관리</h1>
-    <button class="btn-back" onclick="location.href='/admin'">← 대시보드</button>
-  </div>
-</div>
-
-<!-- ===== ADMIN CONTENT ===== -->
-<div class="admin-container">
-  <div id="alert-container"></div>
-  
-  <!-- 탭 네비게이션 -->
-  <div class="tabs">
-    <button class="tab active" data-tab="greeting">CEO 인사말</button>
-    <button class="tab" data-tab="history">연혁</button>
-    <button class="tab" data-tab="executives">임원진</button>
+  <div class="header">
+    <div class="header-inner">
+      <h1>회사소개 관리</h1>
+      <button class="btn btn-secondary" onclick="goBack()">← 돌아가기</button>
+    </div>
   </div>
   
-  <!-- CEO 인사말 탭 -->
-  <div id="greeting-tab" class="tab-content active">
-    <div class="form-section">
-      <h2 class="form-section-title">CEO 인사말</h2>
+  <div class="container">
+    <div id="alert-container"></div>
+    
+    <!-- 탭 네비게이션 -->
+    <div class="tab-container">
+    <button class="tab-btn active" onclick="switchTab('greeting')">CEO 인사말</button>
+    <button class="tab-btn" onclick="switchTab('history')">연혁</button>
+    <button class="tab-btn" onclick="switchTab('executives')">임원진</button>
+    <button class="tab-btn" onclick="switchTab('header')">페이지 헤더 설정</button>
+    </div>
+    
+    <!-- 페이지 헤더 설정 탭 -->
+    <div id="header-content" class="tab-content">
+      <div class="section-card">
+        <h2 class="section-title">페이지 헤더 설정</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">헤더 제목</label>
+          <input type="text" id="page-header-title" class="form-input" placeholder="회사소개" value="회사소개" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">헤더 부제목</label>
+          <input type="text" id="page-header-subtitle" class="form-input" placeholder="신선함을 잇는 가치, 이든푸드" value="신선함을 잇는 가치, 이든푸드" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">헤더 배경 이미지</label>
+        <div class="image-upload" onclick="document.getElementById('page-header-image').click()" ondrop="handleHeaderDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+          <p>클릭하거나 드래그하여 이미지 업로드</p>
+          <p class="form-hint">권장 크기: 1920x400px (JPG, PNG)</p>
+          <input type="file" id="page-header-image" style="display: none;" accept="image/*" />
+        </div>
+        <img id="page-header-preview" class="image-preview" style="max-width: 100%; margin-top: 1rem; display: none;">
+      </div>
+        <button class="btn btn-primary" onclick="savePageHeader()">헤더 설정 저장</button>
+      </div>
+    </div>
+    
+    <!-- CEO 인사말 탭 -->
+    <div id="greeting-content" class="tab-content active">
+      <div class="section-card">
+        <h2 class="section-title">CEO 인사말</h2>
       
       <div class="form-group">
         <label class="form-label">인사말 내용</label>
@@ -601,14 +451,14 @@
         <input type="file" id="ceo-image-input" accept="image/*" style="display: none;" onchange="handleCeoImageSelect(event)" />
       </div>
       
-      <button class="btn-primary" onclick="saveGreeting()">저장하기</button>
+        <button class="btn btn-primary" onclick="saveGreeting()">저장하기</button>
+      </div>
     </div>
-  </div>
-  
-  <!-- 연혁 탭 -->
-  <div id="history-tab" class="tab-content">
-    <div class="form-section">
-      <h2 class="form-section-title">회사 연혁</h2>
+    
+    <!-- 연혁 탭 -->
+    <div id="history-content" class="tab-content">
+      <div class="section-card">
+        <h2 class="section-title">회사 연혁</h2>
       
       <div class="history-list" id="history-list">
         <!-- 연혁 항목들이 여기 추가됩니다 -->
@@ -617,15 +467,15 @@
       <button class="btn-add" onclick="addHistoryItem()">+ 연혁 추가</button>
       
       <div style="margin-top: 2rem;">
-        <button class="btn-primary" onclick="saveHistory()">저장하기</button>
+          <button class="btn btn-primary" onclick="saveHistory()">저장하기</button>
+        </div>
       </div>
     </div>
-  </div>
-  
-  <!-- 조직 현황 탭 -->
-  <div id="organization-tab" class="tab-content">
-    <div class="form-section">
-      <h2 class="form-section-title">부서 관리</h2>
+    
+    <!-- 조직 현황 탭 -->
+    <div id="organization-tab" class="tab-content">
+      <div class="section-card">
+        <h2 class="section-title">부서 관리</h2>
       
       <div class="card-grid" id="department-list">
         <!-- 부서 카드들이 여기 추가됩니다 -->
@@ -634,15 +484,15 @@
       <button class="btn-add" onclick="addDepartment()">+ 부서 추가</button>
       
       <div style="margin-top: 2rem;">
-        <button class="btn-primary" onclick="saveDepartments()">저장하기</button>
+          <button class="btn btn-primary" onclick="saveDepartments()">저장하기</button>
+        </div>
       </div>
     </div>
-  </div>
-  
-  <!-- 임원진 탭 -->
-  <div id="executives-tab" class="tab-content">
-    <div class="form-section">
-      <h2 class="form-section-title">임원진 정보</h2>
+    
+    <!-- 임원진 탭 -->
+    <div id="executives-content" class="tab-content">
+      <div class="section-card">
+        <h2 class="section-title">임원진 정보</h2>
       
       <div class="card-grid" id="executives-list">
         <!-- 임원진 카드들이 여기 추가됩니다 -->
@@ -651,11 +501,11 @@
       <button class="btn-add" onclick="addExecutive()">+ 임원 추가</button>
       
       <div style="margin-top: 2rem;">
-        <button class="btn-primary" onclick="saveExecutives()">저장하기</button>
+          <button class="btn btn-primary" onclick="saveExecutives()">저장하기</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 <script>
 // aboutData 전역 변수 선언
@@ -671,9 +521,128 @@ let aboutData = {
 };
 
 // 페이지 초기화
+// 페이지 헤더 이미지 미리보기
+document.getElementById('page-header-image').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const preview = document.getElementById('page-header-preview');
+      preview.src = event.target.result;
+      preview.style.display = 'block';
+      document.getElementById('page-header-upload-text').textContent = file.name;
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+// 페이지 헤더 설정 불러오기
+async function loadPageHeaderSettings() {
+  try {
+    const response = await fetch('/api/page-settings/about', {
+      headers: {
+        'Authorization': `Bearer ${getToken()}`
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      const { setting } = data.data;
+      
+      document.getElementById('page-header-title').value = setting.header_title || '회사소개';
+      document.getElementById('page-header-subtitle').value = setting.header_subtitle || '신선함을 잇는 가치, 이든푸드';
+      
+      if (setting.header_image) {
+        const preview = document.getElementById('page-header-preview');
+        preview.src = setting.header_image;
+        preview.style.display = 'block';
+        document.getElementById('page-header-upload-text').textContent = '이미지가 업로드되었습니다';
+      }
+    }
+  } catch (error) {
+    console.error('페이지 헤더 설정 불러오기 실패:', error);
+  }
+}
+
+// 페이지 헤더 설정 저장
+async function savePageHeader() {
+  const headerFile = document.getElementById('page-header-image').files[0];
+  let headerImagePath = null;
+  
+  showProgress('헤더 설정 저장 중...');
+  
+  // 이미지가 선택된 경우 먼저 업로드
+  if (headerFile) {
+    const formData = new FormData();
+    formData.append('image', headerFile);
+    
+    try {
+      const uploadResponse = await fetch('/api/page-settings/about/upload-header', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${getToken()}`
+        },
+        body: formData
+      });
+      
+      if (uploadResponse.ok) {
+        const uploadData = await uploadResponse.json();
+        headerImagePath = uploadData.data.path;
+        updateProgress(50, '이미지 업로드 완료');
+      } else {
+        hideProgress();
+        showAlert('이미지 업로드 실패', 'error');
+        return;
+      }
+    } catch (error) {
+      console.error('이미지 업로드 오류:', error);
+      hideProgress();
+      showAlert('이미지 업로드 중 오류가 발생했습니다.', 'error');
+      return;
+    }
+  }
+  
+  // 페이지 설정 저장
+  const requestData = {
+    header_title: document.getElementById('page-header-title').value,
+    header_subtitle: document.getElementById('page-header-subtitle').value,
+    content: {}
+  };
+  
+  if (headerImagePath) {
+    requestData.header_image = headerImagePath;
+  }
+  
+  try {
+    const response = await fetch('/api/page-settings/about', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+      },
+      body: JSON.stringify(requestData)
+    });
+    
+    updateProgress(100, '저장 완료');
+    
+    if (response.ok) {
+      showAlert('헤더 설정이 저장되었습니다.', 'success');
+    } else {
+      const error = await response.json();
+      showAlert('저장 실패: ' + error.error, 'error');
+    }
+  } catch (error) {
+    console.error('저장 오류:', error);
+    showAlert('저장 중 오류가 발생했습니다.', 'error');
+  } finally {
+    hideProgress();
+  }
+}
+
 async function init() {
   console.log('=== About Admin Page Init ===');
   await checkAuth();
+  await loadPageHeaderSettings();
   await loadAboutData();
   
   // 탭 클릭 이벤트 리스너 추가
@@ -855,6 +824,37 @@ window.handleDrop = function(event) {
     console.log('Dropped file:', file.name, file.type);
     if (file.type.startsWith('image/')) {
       uploadCeoImage(file);
+    } else {
+      showAlert('이미지 파일만 업로드 가능합니다.', 'error');
+    }
+  }
+  return false;
+}
+
+// 헤더 이미지 드롭 핸들러
+window.handleHeaderDrop = function(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  event.currentTarget.classList.remove('drag-over');
+  
+  const files = event.dataTransfer.files;
+  if (files && files.length > 0) {
+    const file = files[0];
+    if (file.type.startsWith('image/')) {
+      // 파일 input에 파일 설정
+      const fileInput = document.getElementById('page-header-image');
+      const dataTransfer = new DataTransfer();
+      dataTransfer.items.add(file);
+      fileInput.files = dataTransfer.files;
+      
+      // 미리보기 표시
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById('page-header-preview');
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
     } else {
       showAlert('이미지 파일만 업로드 가능합니다.', 'error');
     }
@@ -1630,6 +1630,11 @@ window.saveDepartments = function() {
 loadDepartmentList = function() {};
 
 // 페이지 초기화 - DOM이 로드된 후에 실행
+// 돌아가기
+function goBack() {
+  location.href = '/admin';
+}
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {

@@ -21,6 +21,11 @@
   --radius:       16px;
   --radius-sm:    10px;
   --font:         'Noto Sans KR', -apple-system, sans-serif;
+  
+  /* Alias for consistency with page styles */
+  --primary:      #2d8a4e;
+  --primary-light: #4caf72;
+  --primary-dark: #1a5c33;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -125,18 +130,21 @@ img, video { display: block; max-width: 100%; }
   position: fixed;
   top: 0; left: 0; right: 0;
   z-index: 1000;
-  padding: 16px 0;
-  transition: all .3s;
+  height: 72px; /* Fixed height */
+  padding: 0;
+  display: flex;
+  align-items: center;
+  transition: background-color .3s, box-shadow .3s; /* Only transition necessary properties */
 }
 .site-header.scrolled {
   background: rgba(255,255,255,.97);
   box-shadow: 0 2px 20px rgba(0,0,0,.08);
-  padding: 10px 0;
 }
 .header-inner {
   max-width: 1180px;
   margin: 0 auto;
   padding: 0 24px;
+  height: 100%;
   display: flex;
   align-items: center;
   gap: 32px;
@@ -144,18 +152,26 @@ img, video { display: block; max-width: 100%; }
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 18px;
   font-weight: 800;
   color: #fff;
   transition: color .3s;
+  flex-shrink: 0; /* Prevent logo from shrinking */
 }
 .logo-image {
-  height: 40px;
+  height: 50px;
   width: auto;
   object-fit: contain;
 }
+.logo-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
 .site-header.scrolled .logo { color: var(--text); }
+.site-header.scrolled .logo-text { color: var(--text); }
 .logo-icon { font-size: 22px; }
 .main-nav-links {
   display: flex;
@@ -164,27 +180,53 @@ img, video { display: block; max-width: 100%; }
   flex: 1;
 }
 .main-nav-links a {
-  font-size: 21px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 500;
   color: rgba(255,255,255,.9);
   transition: color .2s;
   text-shadow: 0 1px 2px rgba(0,0,0,.15);
+  padding: 8px 0; /* Fixed padding to prevent layout shift */
+  line-height: 1;
+  display: inline-block;
+  text-decoration: none;
 }
 .site-header.scrolled .main-nav-links a { color: var(--text-sub); }
 .main-nav-links a:hover { color: var(--green-light); }
 .site-header.scrolled .main-nav-links a:hover { color: var(--green); }
 
+/* Active state - maintain same dimensions */
+.main-nav-links a.active {
+  color: var(--primary) !important;
+  font-weight: 600 !important; /* Slightly bolder for emphasis */
+  font-size: 16px !important; /* Same as normal size */
+  padding: 8px 0 !important; /* Same padding */
+}
+
 .btn-login {
   padding: 9px 22px;
   background: var(--green);
-  color: #fff;
+  color: #fff !important; /* Force color consistency */
   border-radius: 50px;
   font-size: 13px;
   font-weight: 700;
-  transition: all .2s;
+  transition: background-color .2s; /* Only transition background */
   white-space: nowrap;
+  line-height: 1;
+  display: inline-block;
+  text-decoration: none;
 }
-.btn-login:hover { background: var(--green-dark); transform: translateY(-1px); }
+.btn-login:hover { 
+  background: var(--green-dark);
+  color: #fff !important; /* Maintain color on hover */
+  padding: 9px 22px; /* Maintain padding on hover */
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0; /* Prevent shrinking */
+}
 
 .nav-hamburger {
   display: none;
@@ -218,7 +260,7 @@ img, video { display: block; max-width: 100%; }
 .mobile-menu a {
   padding: 10px 0;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text);
   border-bottom: 1px solid var(--gray-200);
 }
@@ -235,8 +277,8 @@ img, video { display: block; max-width: 100%; }
 /* ─── HERO ─── */
 .hero {
   position: relative;
-  height: 100vh;
-  min-height: 620px;
+  height: calc(100vh - 120px);
+  min-height: 500px;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -248,8 +290,9 @@ img, video { display: block; max-width: 100%; }
 }
 .hero-video {
   width: 100%;
-  height: 100%;
+  height: 120%;
   object-fit: cover;
+  object-position: center 20%;
 }
 .hero-image {
   position: absolute;
@@ -839,16 +882,7 @@ img, video { display: block; max-width: 100%; }
   color: rgba(255,255,255,.8);
 }
 
-/* ─── 애니메이션 ─── */
-.fade-in-up {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity .55s ease, transform .55s ease;
-}
-.fade-in-up.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
+/* ─── 애니메이션 제거 - 바로 표시 ─── */
 
 /* ─── 반응형 ─── */
 @media (max-width: 900px) {

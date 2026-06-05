@@ -3,108 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>메뉴(제품) 관리 - 관리자</title>
-  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-  <link rel="icon" href="/favicon.png" type="image/png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <title>메뉴(제품) 관리 - 이든푸드</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/landing.css?v=2.0" />
-  <link rel="stylesheet" href="/css/global.css?v=2.0" />
+  <link rel="stylesheet" href="/css/global.css" />
+  <link rel="stylesheet" href="/css/admin-common.css" />
   <style>
-    /* 헤더 공간 확보 */
-    body {
-      padding-top: 60px;
-      background: #f9fafb;
-    }
-    
-    /* 관리자 네비게이션 */
-    .admin-nav {
-      background: #1f2937;
-      border-bottom: 1px solid #374151;
-      position: sticky;
-      top: 60px;
-      z-index: 40;
-    }
-    
-    .admin-nav-inner {
-      max-width: 1400px;
-      margin: 0 auto;
-      display: flex;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    
-    .admin-nav-inner::-webkit-scrollbar {
-      display: none;
-    }
-    
-    .admin-nav-item {
-      padding: 1rem 1.5rem;
-      color: #9ca3af;
-      text-decoration: none;
-      white-space: nowrap;
-      font-weight: 500;
-      font-size: 0.875rem;
-      border-bottom: 3px solid transparent;
-      transition: all 0.2s;
-      position: relative;
-    }
-    
-    .admin-nav-item:hover {
-      color: #e5e7eb;
-      background: rgba(255, 255, 255, 0.05);
-    }
-    
-    .admin-nav-item.active {
-      color: #fff;
-      border-bottom-color: #10b981;
-      background: rgba(255, 255, 255, 0.1);
-    }
-    
-    /* 관리자 페이지 스타일 */
-    .admin-header {
-      background: #111827;
-      color: white;
-      padding: 1.5rem 0;
-      margin-bottom: 0;
-    }
-    
-    .admin-header-inner {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .admin-header h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
-    
-    .btn-back {
-      padding: 0.5rem 1rem;
-      background: #374151;
-      color: white;
-      border: none;
-      border-radius: 0.375rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .btn-back:hover {
-      background: #4b5563;
-    }
-    
-    .admin-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem 1rem;
-    }
     
     /* 액션 바 */
     .action-bar {
@@ -126,9 +30,16 @@
     .search-input {
       flex: 1;
       padding: 0.75rem 1rem;
-      border: 1px solid #d1d5db;
+      border: 1px solid var(--border);
       border-radius: 0.5rem;
       font-size: 0.875rem;
+      font-family: var(--font);
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
     }
     
     .btn-search {
@@ -144,7 +55,7 @@
     
     .btn-add {
       padding: 0.75rem 1.5rem;
-      background: #16a34a;
+      background: var(--primary, #16a34a);
       color: white;
       border: none;
       border-radius: 0.5rem;
@@ -157,7 +68,7 @@
     }
     
     .btn-add:hover {
-      background: #15803d;
+      background: var(--primary-dark, #15803d);
     }
     
     /* 카테고리 탭 */
@@ -546,58 +457,69 @@
   </div>
 </div>
 
-<!-- ===== HEADER ===== -->
-<header class="site-header scrolled" id="site-header">
-  <div class="header-inner">
-    <a href="/" class="logo">
-      <img src="/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
-    </a>
-    <nav class="main-nav-links">
-      <a href="/about">회사소개</a>
-      <a href="/products">메뉴</a>
-      <a href="/brands">브랜드소개</a>
-      <a href="/gallery">갤러리</a>
-      <a href="/documents">서식자료실</a>
-      <a href="/contact">문의</a>
-    </nav>
-    <div class="header-actions">
-      <a href="/intranet" class="btn-login">인트라넷</a>
+  <div class="header">
+    <div class="header-inner">
+      <h1>메뉴(제품) 관리</h1>
+      <button class="btn btn-secondary" onclick="goBack()">← 돌아가기</button>
     </div>
-    <button class="nav-hamburger" id="nav-hamburger" aria-label="메뉴">
-      <span></span><span></span><span></span>
-    </button>
   </div>
-</header>
-
-<!-- ===== ADMIN HEADER ===== -->
-<div class="admin-header">
-  <div class="admin-header-inner">
-    <h1>메뉴(제품) 관리</h1>
-    <button class="btn-back" onclick="location.href='/admin'">관리자 홈으로</button>
-  </div>
-</div>
-
-<!-- ===== ADMIN NAVIGATION ===== -->
-<nav class="admin-nav">
-  <div class="admin-nav-inner">
-    <a href="/admin" class="admin-nav-item">대시보드</a>
-    <a href="/admin/notices" class="admin-nav-item">공지사항 관리</a>
-    <a href="/admin/about" class="admin-nav-item">회사소개 관리</a>
-    <a href="/admin/products" class="admin-nav-item active">메뉴(제품) 관리</a>
-    <a href="/admin/brands" class="admin-nav-item">브랜드소개 관리</a>
-    <a href="/admin/gallery" class="admin-nav-item">갤러리 관리</a>
-    <a href="/admin/documents" class="admin-nav-item">서식자료실 관리</a>
-    <a href="/admin/faq" class="admin-nav-item">FAQ&문의 관리</a>
-  </div>
-</nav>
-
-<!-- ===== ADMIN CONTENT ===== -->
-<div class="admin-container">
+  
+  <div class="container">
   <!-- 알림 컨테이너 -->
   <div id="alert-container" class="alert-container"></div>
 
-  <!-- 액션 바 -->
-  <div class="action-bar">
+  <!-- 탭 네비게이션 -->
+  <div class="tab-container">
+    <button class="tab-btn active" onclick="switchTab('products')">제품 관리</button>
+    <button class="tab-btn" onclick="switchTab('header')">페이지 헤더 설정</button>
+  </div>
+  
+  <!-- 페이지 헤더 설정 탭 -->
+  <div id="header-content" class="tab-content">
+    <div class="section-card" style="background: white; border-radius: 0.75rem; padding: 2rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+      <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem;">
+        페이지 헤더 설정
+      </h2>
+    
+    <div class="form-group" style="margin-bottom: 1.25rem;">
+      <label class="form-label" style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">헤더 제목</label>
+      <input type="text" class="form-control" id="headerTitle" placeholder="제품소개" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 0.375rem;">
+    </div>
+    
+    <div class="form-group" style="margin-bottom: 1.25rem;">
+      <label class="form-label" style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">헤더 부제목</label>
+      <input type="text" class="form-control" id="headerSubtitle" placeholder="신선한 재료로 만든 프리미엄 제품을 소개합니다" style="width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 0.375rem;">
+    </div>
+    
+    <div class="form-group" style="margin-bottom: 1.25rem;">
+      <label class="form-label" style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">헤더 배경 이미지</label>
+      <div class="image-upload" id="headerImageArea" 
+           onclick="document.getElementById('headerImageInput').click()"
+           ondrop="handleHeaderDrop(event)"
+           ondragover="handleDragOver(event)"
+           ondragleave="handleDragLeave(event)"
+           style="min-height: 200px; display: flex; align-items: center; justify-content: center; position: relative;">
+        <input type="file" id="headerImageInput" accept="image/*" style="display: none;" onchange="handleHeaderImageChange(event)">
+        <div id="headerImagePreview" style="position: absolute; inset: 0; display: none;">
+          <img style="width: 100%; height: 100%; object-fit: cover; border-radius: 0.5rem;">
+        </div>
+        <div id="headerImagePlaceholder">
+          <p style="color: #6b7280; margin-bottom: 0.5rem;">이미지를 드래그하거나 클릭하여 업로드</p>
+          <p style="font-size: 0.813rem; color: #6b7280;">권장 크기: 1920x400px</p>
+        </div>
+      </div>
+    </div>
+    
+    <button class="btn btn-primary" onclick="savePageSettings()" style="padding: 0.75rem 1.5rem;">
+      <span id="saveSettingsText">페이지 설정 저장</span>
+    </button>
+    </div>
+  </div>
+
+  <!-- 제품 관리 탭 -->
+  <div id="products-content" class="tab-content active">
+    <!-- 액션 바 -->
+    <div class="action-bar">
     <div class="search-box">
       <input type="text" class="search-input" placeholder="제품명으로 검색..." id="searchInput">
       <button class="btn-search" onclick="searchProducts()">검색</button>
@@ -611,9 +533,9 @@
   <div class="category-tabs">
     <button class="category-tab active" data-category="all" onclick="filterByCategory('all')">전체</button>
     <button class="category-tab" data-category="signature" onclick="filterByCategory('signature')">시그니처</button>
-    <button class="category-tab" data-category="gamjatang" onclick="filterByCategory('gamjatang')">감자탕/해장국</button>
-    <button class="category-tab" data-category="side" onclick="filterByCategory('side')">사이드 메뉴</button>
-    <button class="category-tab" data-category="drink" onclick="filterByCategory('drink')">음료/주류</button>
+    <button class="category-tab" data-category="import" onclick="filterByCategory('import')">수입목뼈유통</button>
+    <button class="category-tab" data-category="sauce" onclick="filterByCategory('sauce')">소스.스프유통(OEM)</button>
+    <button class="category-tab" data-category="domestic" onclick="filterByCategory('domestic')">국내산 우거지무청</button>
   </div>
 
   <!-- 제품 리스트 -->
@@ -633,6 +555,7 @@
         <!-- 제품 목록이 여기에 동적으로 추가됩니다 -->
       </tbody>
     </table>
+  </div>
   </div>
 </div>
 
@@ -657,9 +580,9 @@
           <select class="form-select" id="productCategory" required>
             <option value="">선택하세요</option>
             <option value="signature">시그니처</option>
-            <option value="gamjatang">감자탕/해장국</option>
-            <option value="side">사이드 메뉴</option>
-            <option value="drink">음료/주류</option>
+            <option value="import">수입목뼈유통</option>
+            <option value="sauce">소스.스프유통(OEM)</option>
+            <option value="domestic">국내산 우거지무청</option>
           </select>
         </div>
 
@@ -687,7 +610,7 @@
           <label class="form-label">제품 이미지</label>
           <div class="image-upload" id="imageUpload" onclick="document.getElementById('imageInput').click()">
             <p>클릭하여 이미지 업로드</p>
-            <p style="font-size: 0.813rem; color: #6b7280;">JPG, PNG (최대 50MB)</p>
+            <p style="font-size: 0.813rem; color: #6b7280;">JPG, PNG (최대 100MB)</p>
           </div>
           <input type="file" id="imageInput" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
         </div>
@@ -716,6 +639,7 @@ let editingProductId = null;
 // 페이지 초기화
 async function init() {
   await checkAuth();
+  await loadPageSettings();
   await loadProducts();
 }
 
@@ -819,9 +743,9 @@ function renderProducts() {
 function getCategoryName(category) {
   const names = {
     'signature': '시그니처',
-    'gamjatang': '감자탕/해장국',
-    'side': '사이드 메뉴',
-    'drink': '음료/주류'
+    'import': '수입목뼈유통',
+    'sauce': '소스.스프유통(OEM)',
+    'domestic': '국내산 우거지무청'
   };
   return names[category] || category;
 }
@@ -871,7 +795,7 @@ function showAddModal() {
   document.getElementById('imageUpload').classList.remove('has-image');
   document.getElementById('imageUpload').innerHTML = `
     <p>클릭하여 이미지 업로드</p>
-    <p style="font-size: 0.813rem; color: #6b7280;">JPG, PNG (최대 50MB)</p>
+    <p style="font-size: 0.813rem; color: #6b7280;">JPG, PNG (최대 100MB)</p>
   `;
   document.getElementById('productModal').classList.add('active');
 }
@@ -955,8 +879,8 @@ async function handleImageSelect(event) {
   if (!file) return;
   
   // 파일 크기 체크
-  if (file.size > 50 * 1024 * 1024) {
-    showAlert('이미지 파일은 50MB 이하만 가능합니다.', 'error');
+  if (file.size > 100 * 1024 * 1024) {
+    showAlert('이미지 파일은 100MB 이하만 가능합니다.', 'error');
     return;
   }
   
@@ -1119,6 +1043,154 @@ function showAlert(message, type = 'success') {
   }, 3000);
 }
 
+// 페이지 설정 로드
+async function loadPageSettings() {
+  try {
+    const response = await fetch('/api/page-settings/products');
+    const data = await response.json();
+    
+    if (data.ok && data.settings) {
+      document.getElementById('headerTitle').value = data.settings.header_title || '';
+      document.getElementById('headerSubtitle').value = data.settings.header_subtitle || '';
+      
+      if (data.settings.header_image) {
+        const preview = document.getElementById('headerImagePreview');
+        const placeholder = document.getElementById('headerImagePlaceholder');
+        preview.querySelector('img').src = data.settings.header_image;
+        preview.style.display = 'block';
+        placeholder.style.display = 'none';
+      }
+    }
+  } catch (error) {
+    console.error('페이지 설정 로드 실패:', error);
+  }
+}
+
+// 헤더 이미지 변경 처리
+async function handleHeaderImageChange(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  if (file.size > 100 * 1024 * 1024) {
+    showAlert('파일 크기는 100MB 이하여야 합니다.', 'error');
+    return;
+  }
+  
+  // 미리보기 표시
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const preview = document.getElementById('headerImagePreview');
+    const placeholder = document.getElementById('headerImagePlaceholder');
+    preview.querySelector('img').src = e.target.result;
+    preview.style.display = 'block';
+    placeholder.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+// 드래그 오버 처리
+function handleDragOver(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  event.currentTarget.style.backgroundColor = '#f3f4f6';
+  event.currentTarget.style.border = '2px dashed #16a34a';
+}
+
+// 드래그 떠남 처리
+function handleDragLeave(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  event.currentTarget.style.backgroundColor = '';
+  event.currentTarget.style.border = '';
+}
+
+// 헤더 이미지 드롭 처리
+function handleHeaderDrop(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  event.currentTarget.style.backgroundColor = '';
+  event.currentTarget.style.border = '';
+  
+  const files = event.dataTransfer.files;
+  if (files.length > 0 && files[0].type.startsWith('image/')) {
+    const input = document.getElementById('headerImageInput');
+    input.files = files;
+    handleHeaderImageChange({ target: input });
+  }
+}
+
+// 페이지 설정 저장
+async function savePageSettings() {
+  const token = localStorage.getItem('eden_token');
+  const saveButton = document.querySelector('#saveSettingsText');
+  const originalText = saveButton.textContent;
+  
+  try {
+    saveButton.textContent = '저장 중...';
+    
+    // 헤더 이미지 업로드
+    let headerImageUrl = null;
+    const headerImageInput = document.getElementById('headerImageInput');
+    
+    if (headerImageInput.files[0]) {
+      const formData = new FormData();
+      formData.append('image', headerImageInput.files[0]);
+      
+      showProgress(30);
+      
+      const uploadResponse = await fetch('/api/page-settings/products/upload-header', {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token
+        },
+        body: formData
+      });
+      
+      showProgress(70);
+      
+      const uploadData = await uploadResponse.json();
+      if (uploadData.ok) {
+        headerImageUrl = uploadData.imageUrl;
+      }
+    }
+    
+    showProgress(90);
+    
+    // 설정 저장
+    const settings = {
+      header_title: document.getElementById('headerTitle').value,
+      header_subtitle: document.getElementById('headerSubtitle').value
+    };
+    
+    if (headerImageUrl) {
+      settings.header_image = headerImageUrl;
+    }
+    
+    const response = await fetch('/api/page-settings/products', {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(settings)
+    });
+    
+    const data = await response.json();
+    
+    if (data.ok) {
+      showAlert('페이지 설정이 저장되었습니다.');
+    } else {
+      showAlert('저장 실패: ' + (data.message || '알 수 없는 오류'), 'error');
+    }
+  } catch (error) {
+    console.error('페이지 설정 저장 실패:', error);
+    showAlert('저장 중 오류가 발생했습니다.', 'error');
+  } finally {
+    hideProgress();
+    saveButton.textContent = originalText;
+  }
+}
+
 // ESC 키로 모달 닫기
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
@@ -1132,6 +1204,29 @@ document.getElementById('productModal').addEventListener('mousedown', (e) => {
     closeModal();
   }
 });
+
+// 탭 전환
+function switchTab(tab) {
+  // 탭 버튼 스타일 업데이트
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // 클릭한 버튼 활성화
+  event.target.classList.add('active');
+  
+  // 탭 콘텐츠 표시/숨김
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.classList.remove('active');
+  });
+  
+  document.getElementById(tab + '-content').classList.add('active');
+}
+
+// 돌아가기
+function goBack() {
+  location.href = '/admin';
+}
 
 // 초기화
 init();

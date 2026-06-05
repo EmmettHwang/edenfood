@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>물류·유통시스템 관리 - 이든푸드</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/global.css" />
+  <link rel="stylesheet" href="/css/admin-common.css" />
+  <style>
+    
+    /* 탭 네비게이션 스타일 - admin-common.css의 tab-container, tab-btn 사용 */
+    
+    /* 섹션 관리 - section-card 사용 */
+    
+    /* 폼 스타일 - admin-common.css 사용 */
+    .form-control:focus {
+      outline: none;
+      border-color: #16a34a;
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    }
+    
+    /* 이미지 업로드 */
+    .image-upload-area {
+      border: 2px dashed #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .image-upload-area:hover {
+      border-color: #16a34a;
+      background: #f0fdf4;
+    }
+    
+    .image-preview {
+      max-width: 100%;
+      max-height: 300px;
+      margin-top: 1rem;
+      border-radius: 0.5rem;
+    }
+    
+    /* 콘텐츠 아이템 */
+    .content-item {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    
+    .content-item-actions {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .btn-sm {
+      padding: 0.375rem 0.75rem;
+      font-size: 0.813rem;
+    }
+    
+    .btn-danger {
+      background: #dc2626;
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+    
+    /* 프로그레스바 오버레이 */
+    .progress-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    
+    .progress-overlay.active {
+      display: flex;
+    }
+    
+    .progress-container {
+      background: white;
+      padding: 2rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      max-width: 400px;
+      width: 90%;
+    }
+    
+    .progress-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-align: center;
+      color: #111827;
+    }
+    
+    .progress-bar-wrapper {
+      background: #e5e7eb;
+      height: 8px;
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: var(--green, #16a34a);
+      transition: width 0.3s ease;
+      border-radius: 9999px;
+    }
+    
+    .progress-text {
+      text-align: center;
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    
+    /* 반응형 */
+    @media (max-width: 768px) {
+      .admin-nav-inner {
+        padding: 0 1rem;
+      }
+      
+      .section-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== ADMIN HEADER ===== -->
+  <div class="header">
+    <div class="header-inner">
+      <h1>물류·유통시스템 관리</h1>
+      <button class="btn btn-secondary" onclick="goBack()">← 돌아가기</button>
+    </div>
+  </div>
+
+  
+  <div class="container">
+    <!-- 탭 네비게이션 -->
+    <div class="tab-container">
+      <button class="tab-btn active" onclick="switchTab('features')">주요 특징</button>
+      <button class="tab-btn" onclick="switchTab('process')">물류 프로세스</button>
+      <button class="tab-btn" onclick="switchTab('coldchain')">콜드체인 시스템</button>
+      <button class="tab-btn" onclick="switchTab('header')">페이지 헤더 설정</button>
+    </div>
+    
+    <!-- 주요 특징 탭 -->
+    <div id="features-content" class="tab-content active">
+      <div class="section-card">
+        <div class="section-header">
+          <h2 class="section-title">주요 특징</h2>
+          <button class="btn btn-primary" onclick="addFeature()">+ 특징 추가</button>
+        </div>
+        <div id="features-list">
+          <!-- 주요 특징이 여기에 동적으로 로드됩니다 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 물류 프로세스 탭 -->
+    <div id="process-content" class="tab-content">
+      <div class="section-card">
+        <div class="section-header">
+          <h2 class="section-title">물류 프로세스</h2>
+          <button class="btn btn-primary" onclick="addProcess()">+ 프로세스 추가</button>
+        </div>
+        <div id="process-list">
+          <!-- 물류 프로세스가 여기에 동적으로 로드됩니다 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 콜드체인 시스템 탭 -->
+    <div id="coldchain-content" class="tab-content">
+      <div class="section-card">
+        <div class="section-header">
+          <h2 class="section-title">콜드체인 온도 관리</h2>
+        </div>
+      <form id="coldchain-form">
+        <div class="form-group">
+          <label class="form-label">섹션 제목</label>
+          <input type="text" class="form-control" id="coldchain-title" value="콜드체인 온도 관리 시스템">
+        </div>
+        <div class="form-group">
+          <label class="form-label">섹션 설명</label>
+          <textarea class="form-control" id="coldchain-desc" rows="3">이든푸드는 식품의 종류와 특성에 맞는 최적의 온도를 유지하여 생산지에서 고객에게 전달되는 모든 과정에서 신선함을 보장합니다.</textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">온도별 제품 관리</label>
+          <div class="content-item">
+            <h4>냉동 제품 (-18°C 이하)</h4>
+            <input type="text" class="form-control" placeholder="냉동육류, 냉동수산물, 아이스크림" value="냉동육류, 냉동수산물, 아이스크림">
+          </div>
+          <div class="content-item">
+            <h4>냉장 제품 (0~4°C)</h4>
+            <input type="text" class="form-control" placeholder="신선육, 유제품, 신선채소" value="신선육, 유제품, 신선채소">
+          </div>
+          <div class="content-item">
+            <h4>정온 제품 (10~15°C)</h4>
+            <input type="text" class="form-control" placeholder="과일류, 가공식품, 음료" value="과일류, 가공식품, 음료">
+          </div>
+          <div class="content-item">
+            <h4>상온 제품</h4>
+            <input type="text" class="form-control" placeholder="건조식품, 통조림, 조미료" value="건조식품, 통조림, 조미료">
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="saveColdchain()">저장</button>
+      </form>
+      </div>
+    </div>
+    
+    <!-- 페이지 헤더 설정 탭 -->
+    <div id="header-content" class="tab-content">
+      <div class="section-card">
+        <div class="section-header">
+          <h2 class="section-title">페이지 헤더 설정</h2>
+        </div>
+        <form id="header-form">
+          <div class="form-group">
+            <label class="form-label">헤더 제목</label>
+            <input type="text" class="form-control" id="header-title" placeholder="물류·유통시스템" value="물류·유통시스템">
+          </div>
+          <div class="form-group">
+            <label class="form-label">헤더 부제목</label>
+            <input type="text" class="form-control" id="header-subtitle" placeholder="최첨단 콜드체인 시스템으로 신선함을 그대로 전달합니다" value="최첨단 콜드체인 시스템으로 신선함을 그대로 전달합니다">
+          </div>
+          <div class="form-group">
+            <label class="form-label">헤더 배경 이미지</label>
+            <div class="image-upload-area" 
+                 onclick="document.getElementById('header-image').click()"
+                 ondrop="handleHeaderDrop(event)"
+                 ondragover="handleDragOver(event)"
+                 ondragleave="handleDragLeave(event)">
+              <input type="file" id="header-image" style="display: none;" accept="image/*" onchange="previewImage(event, 'header-preview')">
+              <div id="headerImagePlaceholder">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin: 0 auto;">
+                  <path d="M3 16l4-4m0 0l4 4m-4-4v12M13 6h8m0 0l-4-4m4 4l-4 4" />
+                  <rect x="3" y="4" width="10" height="16" rx="2" />
+                </svg>
+                <p style="margin-top: 1rem;">이미지를 클릭하거나 드래그하여 업로드</p>
+                <p style="font-size: 0.875rem; color: #6b7280;">권장 크기: 1920x400</p>
+              </div>
+              <img id="header-preview" class="image-preview" style="display: none;">
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary" onclick="saveHeader()">저장</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 프로그레스바 오버레이 -->
+  <div id="progressOverlay" class="progress-overlay">
+    <div class="progress-container">
+      <div class="progress-title">이미지 업로드 중...</div>
+      <div class="progress-bar-wrapper">
+        <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+      </div>
+      <div id="progressText" class="progress-text">0%</div>
+    </div>
+  </div>
+
+  <script>
+    // 탭 전환 함수
+    function switchTab(tab) {
+      // 모든 탭 버튼 비활성화
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // 모든 탭 컨텐츠 숨기기
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      // 선택된 탭 활성화
+      event.target.classList.add('active');
+      document.getElementById(tab + '-content').classList.add('active');
+    }
+  </script>
+
+  <script>
+    // 토큰 가져오기
+    function getToken() {
+      return localStorage.getItem('eden_token');
+    }
+
+    // 페이지 로드시 데이터 불러오기
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadPageSettings();
+    });
+
+    // 기본 콘텐츠 로드
+    function loadDefaultContent() {
+      // 기본 주요 특징 추가
+      const defaultFeatures = [
+        {
+          title: '직배송 시스템',
+          description: '자체 냉동/냉장 차량 20대 보유로 서울, 경기, 인천 지역 직배송 서비스를 제공합니다.'
+        },
+        {
+          title: '실시간 온도 모니터링',
+          description: '차량 내부 온도를 실시간으로 모니터링하여 최적의 신선도를 유지합니다.'
+        },
+        {
+          title: '통합 물류 시스템',
+          description: 'WMS와 TMS를 통합하여 효율적인 재고 관리와 배송 관리를 실현합니다.'
+        }
+      ];
+      
+      const featuresList = document.getElementById('features-list');
+      featuresList.innerHTML = '';
+      defaultFeatures.forEach(feature => {
+        addFeatureElement(feature.title, feature.description);
+      });
+      
+      // 기본 물류 프로세스 추가
+      const defaultProcesses = [
+        {
+          title: '주문 접수',
+          description: '온라인/전화 주문 접수 및 자동 재고 확인'
+        },
+        {
+          title: '피킹 및 패킹',
+          description: '창고에서 상품 픽업 및 포장 작업'
+        },
+        {
+          title: '배송 준비',
+          description: '온도별 적재 및 배송 루트 최적화'
+        },
+        {
+          title: '배송 및 모니터링',
+          description: '실시간 차량 위치 및 온도 추적'
+        },
+        {
+          title: '배송 완료',
+          description: '고객 인수 확인 및 피드백 수집'
+        }
+      ];
+      
+      const processList = document.getElementById('process-list');
+      processList.innerHTML = '';
+      defaultProcesses.forEach((process, index) => {
+        addProcessElement(process.title, process.description, index + 1);
+      });
+      
+      // 기본값 저장
+      setTimeout(() => {
+        saveAllContent();
+      }, 1000);
+    }
+    
+    // 페이지 설정 불러오기
+    async function loadPageSettings() {
+      try {
+        const response = await fetch('/api/page-settings/logistics', {
+          headers: {
+            'Authorization': `Bearer ${getToken()}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const { setting } = data.data;
+          
+          // 헤더 정보 설정
+          document.getElementById('header-title').value = setting.header_title || '물류·유통시스템';
+          document.getElementById('header-subtitle').value = setting.header_subtitle || '최첨단 콜드체인 시스템으로 신선함을 그대로 전달합니다';
+          
+          // 헤더 이미지 미리보기
+          if (setting.header_image) {
+            const preview = document.getElementById('header-preview');
+            preview.src = setting.header_image;
+            preview.style.display = 'block';
+          }
+          
+          // 콘텐츠 불러오기
+          if (setting.content) {
+            // 주요 특징
+            if (setting.content.features && setting.content.features.length > 0) {
+              const featuresList = document.getElementById('features-list');
+              featuresList.innerHTML = '';
+              setting.content.features.forEach(feature => {
+                addFeatureElement(feature.title, feature.description);
+              });
+            } else {
+              // 기본 주요 특징 추가
+              const defaultFeatures = [
+                {
+                  title: '직배송 시스템',
+                  description: '자체 냉동/냉장 차량 20대 보유로 서울, 경기, 인천 지역 직배송 서비스를 제공합니다.'
+                },
+                {
+                  title: '실시간 온도 모니터링',
+                  description: '차량 내부 온도를 실시간으로 모니터링하여 최적의 신선도를 유지합니다.'
+                },
+                {
+                  title: '통합 물류 시스템',
+                  description: 'WMS와 TMS를 통합하여 효율적인 재고 관리와 배송 관리를 실현합니다.'
+                }
+              ];
+              
+              const featuresList = document.getElementById('features-list');
+              featuresList.innerHTML = '';
+              defaultFeatures.forEach(feature => {
+                addFeatureElement(feature.title, feature.description);
+              });
+              
+              // 기본값을 DB에 저장
+              setting.content = setting.content || {};
+              setting.content.features = defaultFeatures;
+              saveAllContent();
+            }
+            
+            // 콜드체인 정보
+            if (setting.content.coldchain) {
+              document.getElementById('coldchain-title').value = setting.content.coldchain.title || '콜드체인 온도 관리 시스템';
+              document.getElementById('coldchain-desc').value = setting.content.coldchain.description || '';
+              
+              // 온도별 제품 관리
+              if (setting.content.coldchain.temperatures) {
+                const temps = setting.content.coldchain.temperatures;
+                document.querySelector('.content-item:nth-child(1) input').value = temps.frozen || '';
+                document.querySelector('.content-item:nth-child(2) input').value = temps.chilled || '';
+                document.querySelector('.content-item:nth-child(3) input').value = temps.cool || '';
+                document.querySelector('.content-item:nth-child(4) input').value = temps.room || '';
+              }
+            }
+            
+            // 물류 프로세스
+            if (setting.content.processes && setting.content.processes.length > 0) {
+              const processList = document.getElementById('process-list');
+              processList.innerHTML = '';
+              setting.content.processes.forEach((process, index) => {
+                addProcessElement(process.title, process.description, index + 1);
+              });
+            } else {
+              // 기본 물류 프로세스 추가
+              const defaultProcesses = [
+                {
+                  title: '주문 접수',
+                  description: '온라인/전화 주문 접수 및 자동 재고 확인'
+                },
+                {
+                  title: '피킹 및 패킹',
+                  description: '창고에서 상품 픽업 및 포장 작업'
+                },
+                {
+                  title: '배송 준비',
+                  description: '온도별 적재 및 배송 루트 최적화'
+                },
+                {
+                  title: '배송 및 모니터링',
+                  description: '실시간 차량 위치 및 온도 추적'
+                },
+                {
+                  title: '배송 완료',
+                  description: '고객 인수 확인 및 피드백 수집'
+                }
+              ];
+              
+              const processList = document.getElementById('process-list');
+              processList.innerHTML = '';
+              defaultProcesses.forEach((process, index) => {
+                addProcessElement(process.title, process.description, index + 1);
+              });
+              
+              // 기본값을 DB에 저장
+              setting.content = setting.content || {};
+              setting.content.processes = defaultProcesses;
+              saveAllContent();
+            }
+          } else {
+            // setting.content가 없는 경우 기본값 설정
+            loadDefaultContent();
+          }
+        }
+      } catch (error) {
+        console.error('페이지 설정 불러오기 실패:', error);
+      }
+    }
+
+    // 이미지 미리보기
+    function previewImage(event, previewId) {
+      const file = event.target.files[0];
+      const preview = document.getElementById(previewId);
+      
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.style.display = 'block';
+          
+          // 헤더 이미지 미리보기인 경우 placeholder 숨기기
+          if (previewId === 'header-preview') {
+            const placeholder = document.getElementById('headerImagePlaceholder');
+            if (placeholder) {
+              placeholder.style.display = 'none';
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // 프로그레스바 표시
+    function showProgress(percent, title = '이미지 업로드 중...') {
+      const progressOverlay = document.getElementById('progressOverlay');
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+      const progressTitle = document.querySelector('.progress-title');
+      
+      if (progressTitle) progressTitle.textContent = title;
+      progressOverlay.classList.add('active');
+      progressBar.style.width = percent + '%';
+      progressText.textContent = Math.round(percent) + '%';
+    }
+    
+    // 프로그레스바 숨기기
+    function hideProgress() {
+      setTimeout(() => {
+        document.getElementById('progressOverlay').classList.remove('active');
+        document.getElementById('progressBar').style.width = '0%';
+        document.getElementById('progressText').textContent = '0%';
+      }, 500);
+    }
+    
+    // 헤더 저장
+    async function saveHeader() {
+      const headerFile = document.getElementById('header-image').files[0];
+      let headerImagePath = null;
+      
+      // 이미지가 선택된 경우 먼저 업로드
+      if (headerFile) {
+        const formData = new FormData();
+        formData.append('image', headerFile);
+        
+        const xhr = new XMLHttpRequest();
+        
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const percentComplete = (e.loaded / e.total) * 100;
+            showProgress(percentComplete, '헤더 이미지 업로드 중...');
+          }
+        });
+        
+        xhr.onload = async function() {
+          if (xhr.status === 200) {
+            try {
+              const uploadData = JSON.parse(xhr.responseText);
+              if (uploadData.ok || uploadData.success) {
+                headerImagePath = uploadData.data?.path || uploadData.path;
+                showProgress(90, '설정 저장 중...');
+                await saveAllContent(headerImagePath);
+              } else {
+                hideProgress();
+                alert('이미지 업로드 실패: ' + (uploadData.message || uploadData.error || '알 수 없는 오류'));
+              }
+            } catch (error) {
+              hideProgress();
+              console.error('업로드 응답 파싱 오류:', error);
+              alert('이미지 업로드 중 오류가 발생했습니다.');
+            }
+          } else {
+            hideProgress();
+            alert('이미지 업로드에 실패했습니다.');
+          }
+        };
+        
+        xhr.onerror = function() {
+          hideProgress();
+          alert('이미지 업로드 중 오류가 발생했습니다.');
+        };
+        
+        xhr.open('POST', '/api/page-settings/logistics/upload-header');
+        xhr.setRequestHeader('Authorization', 'Bearer ' + getToken());
+        xhr.send(formData);
+      } else {
+        // 이미지가 없으면 바로 설정 저장
+        await saveAllContent(null);
+      }
+    }
+    
+    // 전체 콘텐츠 저장
+    async function saveAllContent(headerImagePath) {
+      const content = {
+        features: [],
+        coldchain: {
+          title: document.getElementById('coldchain-title').value,
+          description: document.getElementById('coldchain-desc').value,
+          temperatures: {
+            frozen: document.querySelector('.content-item:nth-child(1) input').value,
+            chilled: document.querySelector('.content-item:nth-child(2) input').value,
+            cool: document.querySelector('.content-item:nth-child(3) input').value,
+            room: document.querySelector('.content-item:nth-child(4) input').value
+          }
+        },
+        processes: []
+      };
+      
+      // 특징 수집
+      document.querySelectorAll('#features-list .content-item').forEach(item => {
+        const title = item.querySelector('h3').textContent;
+        const description = item.querySelector('p').textContent;
+        content.features.push({ title, description });
+      });
+      
+      // 프로세스 수집
+      document.querySelectorAll('#process-list .content-item').forEach(item => {
+        const fullTitle = item.querySelector('h3').textContent;
+        const [, title] = fullTitle.split('. ');
+        const description = item.querySelector('p').textContent;
+        content.processes.push({ title, description });
+      });
+      
+      const requestData = {
+        header_title: document.getElementById('header-title').value,
+        header_subtitle: document.getElementById('header-subtitle').value,
+        content: content
+      };
+      
+      // 헤더 이미지 경로가 있으면 추가
+      if (headerImagePath) {
+        requestData.header_image = headerImagePath;
+      }
+      
+      try {
+        const response = await fetch('/api/page-settings/logistics', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getToken()}`
+          },
+          body: JSON.stringify(requestData)
+        });
+        
+        hideProgress();
+        
+        if (response.ok) {
+          alert('페이지 설정이 저장되었습니다.');
+        } else {
+          const error = await response.json();
+          alert('저장 실패: ' + error.error);
+        }
+      } catch (error) {
+        hideProgress();
+        console.error('저장 오류:', error);
+        alert('저장 중 오류가 발생했습니다.');
+      }
+    }
+
+    // 특징 요소 추가
+    function addFeatureElement(title, description) {
+      const featuresList = document.getElementById('features-list');
+      const newFeature = document.createElement('div');
+      newFeature.className = 'content-item';
+      newFeature.innerHTML = `
+        <div class="content-item-actions">
+          <button class="btn btn-sm btn-secondary" onclick="editFeature(this)">수정</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteFeature(this)">삭제</button>
+        </div>
+        <h3>${title}</h3>
+        <p>${description}</p>
+      `;
+      featuresList.appendChild(newFeature);
+    }
+    
+    // 특징 추가
+    function addFeature() {
+      const title = prompt('특징 제목을 입력하세요:');
+      if (!title) return;
+      
+      const desc = prompt('특징 설명을 입력하세요:');
+      if (!desc) return;
+      
+      addFeatureElement(title, desc);
+      saveAllContent();
+    }
+
+    // 특징 수정
+    function editFeature(btn) {
+      const item = btn.closest('.content-item');
+      const title = item.querySelector('h3').textContent;
+      const desc = item.querySelector('p').textContent;
+      
+      const newTitle = prompt('제목을 수정하세요:', title);
+      if (newTitle) {
+        item.querySelector('h3').textContent = newTitle;
+      }
+      
+      const newDesc = prompt('설명을 수정하세요:', desc);
+      if (newDesc) {
+        item.querySelector('p').textContent = newDesc;
+      }
+    }
+
+    // 특징 삭제
+    function deleteFeature(btn) {
+      if (confirm('이 특징을 삭제하시겠습니까?')) {
+        btn.closest('.content-item').remove();
+        saveAllContent();
+      }
+    }
+
+    // 콜드체인 저장
+    async function saveColdchain() {
+      await saveAllContent();
+    }
+
+    // 프로세스 요소 추가
+    function addProcessElement(title, description, number) {
+      const processList = document.getElementById('process-list');
+      const newProcess = document.createElement('div');
+      newProcess.className = 'content-item';
+      newProcess.innerHTML = `
+        <div class="content-item-actions">
+          <button class="btn btn-sm btn-secondary" onclick="editProcess(this)">수정</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteProcess(this)">삭제</button>
+        </div>
+        <h3>${number}. ${title}</h3>
+        <p>${description}</p>
+      `;
+      processList.appendChild(newProcess);
+    }
+    
+    // 프로세스 추가
+    function addProcess() {
+      const number = document.querySelectorAll('#process-list .content-item').length + 1;
+      const title = prompt('프로세스 제목을 입력하세요:');
+      if (!title) return;
+      
+      const desc = prompt('프로세스 설명을 입력하세요:');
+      if (!desc) return;
+      
+      addProcessElement(title, desc, number);
+      saveAllContent();
+    }
+
+    // 프로세스 수정
+    function editProcess(btn) {
+      const item = btn.closest('.content-item');
+      const fullTitle = item.querySelector('h3').textContent;
+      const [number, ...titleParts] = fullTitle.split('. ');
+      const title = titleParts.join('. ');
+      const desc = item.querySelector('p').textContent;
+      
+      const newTitle = prompt('제목을 수정하세요:', title);
+      if (newTitle) {
+        item.querySelector('h3').textContent = `${number}. ${newTitle}`;
+      }
+      
+      const newDesc = prompt('설명을 수정하세요:', desc);
+      if (newDesc) {
+        item.querySelector('p').textContent = newDesc;
+      }
+    }
+
+    // 프로세스 삭제
+    function deleteProcess(btn) {
+      if (confirm('이 프로세스를 삭제하시겠습니까?')) {
+        btn.closest('.content-item').remove();
+        // 번호 재정렬
+        const items = document.querySelectorAll('#process-list .content-item');
+        items.forEach((item, index) => {
+          const h3 = item.querySelector('h3');
+          const text = h3.textContent;
+          const parts = text.split('. ');
+          if (parts.length > 1) {
+            h3.textContent = `${index + 1}. ${parts.slice(1).join('. ')}`;
+          }
+        });
+        saveAllContent();
+      }
+    }
+    
+    // 돌아가기
+    function goBack() {
+      location.href = '/admin';
+    }
+
+    // 드래그 앤 드롭 핸들러
+    function handleDragOver(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.style.borderColor = '#16a34a';
+      event.currentTarget.style.background = '#f0fdf4';
+    }
+
+    function handleDragLeave(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.style.borderColor = '#d1d5db';
+      event.currentTarget.style.background = '#f9fafb';
+    }
+
+    function handleHeaderDrop(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      // 드래그 스타일 초기화
+      event.currentTarget.style.borderColor = '#d1d5db';
+      event.currentTarget.style.background = '#f9fafb';
+      
+      const files = event.dataTransfer.files;
+      if (files.length > 0) {
+        const file = files[0];
+        
+        // 이미지 파일인지 확인
+        if (!file.type.startsWith('image/')) {
+          showAlert('이미지 파일만 업로드 가능합니다.', 'error');
+          return;
+        }
+        
+        // 파일 크기 체크 (100MB)
+        if (file.size > 100 * 1024 * 1024) {
+          showAlert('파일 크기는 100MB를 초과할 수 없습니다.', 'error');
+          return;
+        }
+        
+        // 파일 input에 파일 설정
+        const fileInput = document.getElementById('header-image');
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+        
+        // 미리보기 표시
+        previewImage({ target: fileInput }, 'header-preview');
+      }
+    }
+  </script>
+</body>
+</html>

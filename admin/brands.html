@@ -3,108 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>브랜드소개 관리 - 관리자</title>
-  <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-  <link rel="icon" href="/favicon.png" type="image/png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <title>브랜드소개 관리 - 이든푸드</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/landing.css?v=2.0" />
-  <link rel="stylesheet" href="/css/global.css?v=2.0" />
+  <link rel="stylesheet" href="/css/global.css" />
+  <link rel="stylesheet" href="/css/admin-common.css" />
   <style>
-    /* 헤더 공간 확보 */
-    body {
-      padding-top: 60px;
-      background: #f9fafb;
-    }
-    
-    /* 관리자 네비게이션 */
-    .admin-nav {
-      background: #1f2937;
-      border-bottom: 1px solid #374151;
-      position: sticky;
-      top: 60px;
-      z-index: 40;
-    }
-    
-    .admin-nav-inner {
-      max-width: 1400px;
-      margin: 0 auto;
-      display: flex;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    
-    .admin-nav-inner::-webkit-scrollbar {
-      display: none;
-    }
-    
-    .admin-nav-item {
-      padding: 1rem 1.5rem;
-      color: #9ca3af;
-      text-decoration: none;
-      white-space: nowrap;
-      font-weight: 500;
-      font-size: 0.875rem;
-      border-bottom: 3px solid transparent;
-      transition: all 0.2s;
-      position: relative;
-    }
-    
-    .admin-nav-item:hover {
-      color: #e5e7eb;
-      background: rgba(255, 255, 255, 0.05);
-    }
-    
-    .admin-nav-item.active {
-      color: #fff;
-      border-bottom-color: #10b981;
-      background: rgba(255, 255, 255, 0.1);
-    }
-    
-    /* 관리자 페이지 스타일 */
-    .admin-header {
-      background: #111827;
-      color: white;
-      padding: 1.5rem 0;
-      margin-bottom: 0;
-    }
-    
-    .admin-header-inner {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 1rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .admin-header h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
-    
-    .btn-back {
-      padding: 0.5rem 1rem;
-      background: #374151;
-      color: white;
-      border: none;
-      border-radius: 0.375rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .btn-back:hover {
-      background: #4b5563;
-    }
-    
-    .admin-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 2rem 1rem;
-    }
     
     /* 액션 바 */
     .action-bar {
@@ -116,7 +20,7 @@
     
     .btn-add {
       padding: 0.75rem 1.5rem;
-      background: #16a34a;
+      background: var(--primary, #16a34a);
       color: white;
       border: none;
       border-radius: 0.5rem;
@@ -129,7 +33,7 @@
     }
     
     .btn-add:hover {
-      background: #15803d;
+      background: var(--primary-dark, #15803d);
     }
     
     /* 브랜드 리스트 */
@@ -160,12 +64,18 @@
       background: #f3f4f6;
       position: relative;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
     }
     
     .brand-image img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      max-width: 280px;
+      max-height: 160px;
     }
     
     .brand-content {
@@ -538,6 +448,17 @@
       object-fit: contain;
       background: #f9fafb;
       border-radius: 0.5rem;
+      padding: 1rem;
+      display: block;
+      margin: 0 auto;
+    }
+    
+    .image-upload.has-image {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background: #f9fafb;
     }
   </style>
 </head>
@@ -554,56 +475,25 @@
   </div>
 </div>
 
-<!-- ===== HEADER ===== -->
-<header class="site-header scrolled" id="site-header">
-  <div class="header-inner">
-    <a href="/" class="logo">
-      <img src="/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
-    </a>
-    <nav class="main-nav-links">
-      <a href="/about">회사소개</a>
-      <a href="/products">메뉴</a>
-      <a href="/brands">브랜드소개</a>
-      <a href="/gallery">갤러리</a>
-      <a href="/documents">서식자료실</a>
-      <a href="/contact">문의</a>
-    </nav>
-    <div class="header-actions">
-      <a href="/intranet" class="btn-login">인트라넷</a>
+  <div class="header">
+    <div class="header-inner">
+      <h1>브랜드소개 관리</h1>
+      <button class="btn btn-secondary" onclick="goBack()">← 돌아가기</button>
     </div>
-    <button class="nav-hamburger" id="nav-hamburger" aria-label="메뉴">
-      <span></span><span></span><span></span>
-    </button>
   </div>
-</header>
-
-<!-- ===== ADMIN HEADER ===== -->
-<div class="admin-header">
-  <div class="admin-header-inner">
-    <h1>브랜드소개 관리</h1>
-    <button class="btn-back" onclick="location.href='/admin'">관리자 홈으로</button>
-  </div>
-</div>
-
-<!-- ===== ADMIN NAVIGATION ===== -->
-<nav class="admin-nav">
-  <div class="admin-nav-inner">
-    <a href="/admin" class="admin-nav-item">대시보드</a>
-    <a href="/admin/notices" class="admin-nav-item">공지사항 관리</a>
-    <a href="/admin/about" class="admin-nav-item">회사소개 관리</a>
-    <a href="/admin/products" class="admin-nav-item">메뉴(제품) 관리</a>
-    <a href="/admin/brands" class="admin-nav-item active">브랜드소개 관리</a>
-    <a href="/admin/gallery" class="admin-nav-item">갤러리 관리</a>
-    <a href="/admin/documents" class="admin-nav-item">서식자료실 관리</a>
-    <a href="/admin/faq" class="admin-nav-item">FAQ&문의 관리</a>
-  </div>
-</nav>
-
-<!-- ===== ADMIN CONTENT ===== -->
-<div class="admin-container">
+  
+  <div class="container">
   <!-- 알림 컨테이너 -->
   <div id="alert-container" class="alert-container"></div>
 
+  <!-- 탭 네비게이션 -->
+  <div class="tab-container">
+    <button class="tab-btn active" onclick="switchTab('brands')">브랜드 관리</button>
+    <button class="tab-btn" onclick="switchTab('header')">페이지 헤더 설정</button>
+  </div>
+
+  <!-- 브랜드 관리 탭 -->
+  <div id="brands-content" class="tab-content active">
   <!-- 액션 바 -->
   <div class="action-bar">
     <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0;">등록된 브랜드</h2>
@@ -624,6 +514,46 @@
     <button class="btn-add" onclick="showAddModal()">
       <span>+</span> 첫 브랜드 추가하기
     </button>
+  </div>
+  </div>
+  
+  <!-- 페이지 헤더 설정 탭 -->
+  <div id="header-content" class="tab-content">
+    <div class="section-manager">
+      <div class="section-header">
+        <h2 class="section-title" style="font-size: 1.125rem; font-weight: 600;">페이지 헤더 설정</h2>
+      </div>
+      <form id="header-form" style="background: white; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+        <div class="form-group">
+          <label class="form-label">헤더 제목</label>
+          <input type="text" class="form-input" id="header-title" placeholder="브랜드·창업지원">
+        </div>
+        <div class="form-group">
+          <label class="form-label">헤더 부제목</label>
+          <input type="text" class="form-input" id="header-subtitle" placeholder="성공적인 창업을 위한 최고의 파트너">
+        </div>
+        <div class="form-group">
+          <label class="form-label">헤더 배경 이미지</label>
+          <div class="image-upload" id="headerImageUpload" 
+               onclick="document.getElementById('header-image').click()"
+               ondrop="handleHeaderDrop(event)"
+               ondragover="handleDragOver(event)"
+               ondragleave="handleDragLeave(event)">
+            <input type="file" class="form-input" id="header-image" accept="image/*" style="display: none;" onchange="handleHeaderImageChange(event)">
+            <img id="header-image-preview" class="image-preview" style="display: none;">
+            <div id="headerImagePlaceholder">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5">
+                <path d="M3 16l4-4m0 0l4 4m-4-4v12M13 6h8m0 0l-4-4m4 4l-4 4" />
+                <rect x="3" y="4" width="10" height="16" rx="2" />
+              </svg>
+              <p style="margin-top: 1rem; color: #6b7280; font-size: 0.875rem;">클릭하거나 이미지를 드래그하여 업로드</p>
+              <p style="font-size: 0.813rem; color: #9ca3af;">권장 크기: 1920x400</p>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">헤더 설정 저장</button>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -650,7 +580,18 @@
 
         <div class="form-group">
           <label class="form-label">설명</label>
-          <textarea class="form-textarea" id="brandDesc" rows="3"></textarea>
+          <div style="margin-bottom: 0.5rem;">
+            <button type="button" class="btn btn-sm" onclick="showGalleryModal()" style="padding: 0.25rem 0.75rem; font-size: 0.813rem; background: #16a34a; color: white;">
+              🖼️ 갤러리에서 선택
+            </button>
+            <button type="button" class="btn btn-sm" onclick="insertImage()" style="padding: 0.25rem 0.75rem; font-size: 0.813rem; background: #e5e7eb; color: #374151; margin-left: 0.25rem;">
+              🔗 URL로 삽입
+            </button>
+            <span style="font-size: 0.75rem; color: #6b7280; margin-left: 0.5rem;">
+              이미지는 ![설명](URL) 형식으로 입력됩니다
+            </span>
+          </div>
+          <textarea class="form-textarea" id="brandDesc" rows="8" placeholder="브랜드 설명을 입력하세요.&#10;&#10;이미지 삽입 예시:&#10;![메뉴 이미지](https://example.com/menu.jpg)&#10;&#10;줄바꿈과 들여쓰기가 그대로 유지됩니다."></textarea>
         </div>
 
         <div class="form-group">
@@ -683,16 +624,21 @@
 
         <div class="form-group">
           <label class="form-label">로고 이미지</label>
-          <div class="image-upload" id="logoUpload" onclick="document.getElementById('logoInput').click()">
+          <div class="image-upload" id="logoUpload" 
+               onclick="document.getElementById('logoInput').click()"
+               ondrop="handleLogoDrop(event)"
+               ondragover="handleDragOver(event)"
+               ondragleave="handleDragLeave(event)">
             <input type="file" id="logoInput" accept="image/*" style="display: none;" onchange="handleLogoChange(event)">
             <img id="logoPreview" class="image-preview" style="display: none;">
             <div id="logoPlaceholder">
               <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5">
-                <path d="M3 9a2 2 0 012-2h1a1 1 0 011 1v4a1 1 0 01-1 1H5a2 2 0 01-2-2V9zM14 9a2 2 0 012-2h1a1 1 0 011 1v4a1 1 0 01-1 1h-1a2 2 0 01-2-2V9z" />
-                <path d="M7 11h4M18 11h4M9 16c0 1.657 1.343 3 3 3s3-1.343 3-3" />
-                <rect x="2" y="5" width="20" height="14" rx="2" />
+                <path d="M3 16l4-4m0 0l4 4m-4-4v12M13 6h8m0 0l-4-4m4 4l-4 4" />
+                <rect x="3" y="4" width="10" height="16" rx="2" />
               </svg>
-              <p style="margin-top: 1rem; color: #6b7280; font-size: 0.875rem;">클릭하여 로고 업로드</p>
+              <p style="margin-top: 1rem; color: #374151; font-weight: 500;">브랜드 로고를 클릭하거나 드래그하여 업로드</p>
+              <p style="font-size: 0.813rem; color: #6b7280;">권장 크기: 400x400 (PNG, JPG, SVG)</p>
+              <p style="font-size: 0.75rem; color: #9ca3af;">최대 100MB</p>
             </div>
           </div>
           <input type="hidden" id="brandLogoUrl">
@@ -781,15 +727,26 @@ function renderBrands() {
   brandList.innerHTML = brands.map(brand => {
     // description을 HTML로 변환 (줄바꿈과 bullet point 처리)
     let formattedDesc = brand.description || '설명이 없습니다.';
-    if (formattedDesc.includes('•')) {
-      const lines = formattedDesc.split('\n');
-      formattedDesc = lines.map(line => {
-        if (line.trim().startsWith('•')) {
-          return line.trim();
-        }
-        return line;
-      }).join('\n');
-    }
+    
+    // HTML 이스케이프 처리 (이미지 마크다운은 제외)
+    formattedDesc = formattedDesc
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+    
+    // 이미지 마크다운을 HTML로 변환 ![alt](url)
+    formattedDesc = formattedDesc.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, 
+      '<img src="$2" alt="$1" style="max-width: 100%; height: auto; margin: 0.5rem 0; border-radius: 0.5rem;">');
+    
+    // 줄바꿈을 <br> 태그로 변환
+    formattedDesc = formattedDesc.replace(/\n/g, '<br>');
+    
+    // 공백 2개 이상을 &nbsp;로 변환하여 들여쓰기 유지
+    formattedDesc = formattedDesc.replace(/ {2,}/g, (match) => {
+      return '&nbsp;'.repeat(match.length);
+    });
     
     return `
     <div class="brand-card">
@@ -802,7 +759,7 @@ function renderBrands() {
       <div class="brand-content">
         <h3 class="brand-name">${brand.name}</h3>
         ${brand.tagline ? `<p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.5rem;">${brand.tagline}</p>` : ''}
-        <p class="brand-desc">${formattedDesc}</p>
+        <p class="brand-desc" style="white-space: pre-wrap;">${formattedDesc}</p>
         <div style="font-size: 0.813rem; color: #6b7280; margin-bottom: 0.5rem;">
           ${brand.website ? `<a href="${brand.website}" target="_blank" style="color: ${brand.color_primary || '#16a34a'}; text-decoration: none;">🌐 웹사이트</a>` : ''}
         </div>
@@ -924,9 +881,9 @@ function handleLogoChange(event) {
   const file = event.target.files[0];
   if (!file) return;
   
-  // 파일 크기 체크 (50MB)
-  if (file.size > 50 * 1024 * 1024) {
-    showAlert('파일 크기는 50MB를 초과할 수 없습니다.', 'error');
+  // 파일 크기 체크 (100MB)
+  if (file.size > 100 * 1024 * 1024) {
+    showAlert('파일 크기는 100MB를 초과할 수 없습니다.', 'error');
     event.target.value = '';
     return;
   }
@@ -1002,13 +959,17 @@ document.getElementById('brandForm').addEventListener('submit', async (e) => {
         
         if (xhr.status === 200) {
           const uploadData = JSON.parse(xhr.responseText);
+          console.log('Upload response:', uploadData); // 디버깅용
+          
           if (uploadData.ok || uploadData.success) {
             // 업로드 성공 시 로고 URL 설정
-            document.getElementById('brandLogoUrl').value = uploadData.imageUrl || uploadData.url;
+            const logoUrl = uploadData.data?.imageUrl || uploadData.data?.url || uploadData.imageUrl || uploadData.url;
+            console.log('Logo URL:', logoUrl); // 디버깅용
+            document.getElementById('brandLogoUrl').value = logoUrl;
             // 브랜드 저장 진행
             await saveBrand();
           } else {
-            showAlert('로고 업로드 실패: ' + (uploadData.message || '알 수 없는 오류'), 'error');
+            showAlert('로고 업로드 실패: ' + (uploadData.message || uploadData.error || '알 수 없는 오류'), 'error');
           }
         } else {
           showAlert('로고 업로드 실패', 'error');
@@ -1098,6 +1059,28 @@ function showAlert(message, type = 'success') {
   }, 3000);
 }
 
+// 이미지 삽입 함수
+function insertImage() {
+  const textarea = document.getElementById('brandDesc');
+  const url = prompt('이미지 URL을 입력하세요:');
+  
+  if (url) {
+    const description = prompt('이미지 설명을 입력하세요 (선택사항):', '이미지');
+    const imageMarkdown = `![${description || '이미지'}](${url})`;
+    
+    // 현재 커서 위치에 삽입
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    
+    textarea.value = text.substring(0, start) + imageMarkdown + text.substring(end);
+    
+    // 커서를 삽입한 텍스트 뒤로 이동
+    textarea.selectionStart = textarea.selectionEnd = start + imageMarkdown.length;
+    textarea.focus();
+  }
+}
+
 // ESC 키로 모달 닫기
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
@@ -1112,9 +1095,336 @@ document.getElementById('brandModal').addEventListener('mousedown', (e) => {
   }
 });
 
+// 탭 전환
+function switchTab(tab) {
+  // 탭 버튼 스타일 업데이트
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  
+  // 클릭한 버튼 활성화
+  event.target.classList.add('active');
+  
+  // 탭 콘텐츠 표시/숨김
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.classList.remove('active');
+  });
+  
+  document.getElementById(tab + '-content').classList.add('active');
+}
+
+// 돌아가기
+function goBack() {
+  location.href = '/admin';
+}
+
+// 드래그 앤 드롭 핸들러
+function handleDragOver(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  event.currentTarget.style.borderColor = '#16a34a';
+  event.currentTarget.style.background = '#f0fdf4';
+}
+
+function handleDragLeave(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  event.currentTarget.style.borderColor = '#d1d5db';
+  event.currentTarget.style.background = '#f9fafb';
+}
+
+function handleLogoDrop(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  
+  // 드래그 스타일 초기화
+  event.currentTarget.style.borderColor = '#d1d5db';
+  event.currentTarget.style.background = 'transparent';
+  
+  const files = event.dataTransfer.files;
+  if (files.length > 0) {
+    const file = files[0];
+    
+    // 이미지 파일인지 확인
+    if (!file.type.startsWith('image/')) {
+      showAlert('이미지 파일만 업로드 가능합니다.', 'error');
+      return;
+    }
+    
+    // 파일 크기 체크 (100MB)
+    if (file.size > 100 * 1024 * 1024) {
+      showAlert('파일 크기는 100MB를 초과할 수 없습니다.', 'error');
+      return;
+    }
+    
+    // 파일 input에 파일 설정
+    const fileInput = document.getElementById('logoInput');
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    fileInput.files = dataTransfer.files;
+    
+    // 파일 변경 이벤트 트리거
+    handleLogoChange({ target: fileInput });
+  }
+}
+
+function handleHeaderDrop(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  
+  // 드래그 스타일 초기화
+  event.currentTarget.style.borderColor = '#d1d5db';
+  event.currentTarget.style.background = '#f9fafb';
+  
+  const files = event.dataTransfer.files;
+  if (files.length > 0) {
+    const file = files[0];
+    
+    // 이미지 파일인지 확인
+    if (!file.type.startsWith('image/')) {
+      showAlert('이미지 파일만 업로드 가능합니다.', 'error');
+      return;
+    }
+    
+    // 파일 크기 체크 (100MB)
+    if (file.size > 100 * 1024 * 1024) {
+      showAlert('파일 크기는 100MB를 초과할 수 없습니다.', 'error');
+      return;
+    }
+    
+    // 파일 input에 파일 설정
+    const fileInput = document.getElementById('header-image');
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    fileInput.files = dataTransfer.files;
+    
+    // 미리보기 표시
+    displayHeaderImagePreview(file);
+  }
+}
+
+// 헤더 이미지 변경 핸들러
+function handleHeaderImageChange(event) {
+  const file = event.target.files[0];
+  if (file) {
+    displayHeaderImagePreview(file);
+  }
+}
+
+// 헤더 이미지 미리보기 표시
+function displayHeaderImagePreview(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const headerUpload = document.getElementById('headerImageUpload');
+    const headerPreview = document.getElementById('header-image-preview');
+    const headerPlaceholder = document.getElementById('headerImagePlaceholder');
+    
+    headerUpload.classList.add('has-image');
+    headerPreview.src = e.target.result;
+    headerPreview.style.display = 'block';
+    headerPlaceholder.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+// 갤러리 모달 표시
+async function showGalleryModal() {
+  document.getElementById('galleryModal').classList.add('active');
+  await loadGalleryImages();
+}
+
+// 갤러리 모달 닫기
+function closeGalleryModal() {
+  document.getElementById('galleryModal').classList.remove('active');
+}
+
+// 갤러리 이미지 불러오기
+async function loadGalleryImages() {
+  try {
+    allGalleryImages = [];
+    
+    // 갤러리 이미지 가져오기
+    const galleryResponse = await fetch('/api/gallery', {
+      headers: {
+        'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+      }
+    });
+    
+    if (galleryResponse.ok) {
+      const galleryData = await galleryResponse.json();
+      const galleryImages = galleryData.data?.images || galleryData.images || [];
+      allGalleryImages = [...allGalleryImages, ...galleryImages];
+    }
+    
+    // 제품 이미지 추가
+    const productsResponse = await fetch('/api/products', {
+      headers: {
+        'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+      }
+    });
+    
+    if (productsResponse.ok) {
+      const productsData = await productsResponse.json();
+      const products = productsData.data?.products || productsData.products || [];
+      products.forEach(product => {
+        if (product.image_url) {
+          allGalleryImages.push({
+            id: 'product-' + product.id,
+            title: product.name,
+            image_url: product.image_url,
+            category: 'products'
+          });
+        }
+      });
+    }
+    
+    // 브랜드 이미지 추가
+    const brandsResponse = await fetch('/api/brands', {
+      headers: {
+        'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+      }
+    });
+    
+    if (brandsResponse.ok) {
+      const brandsData = await brandsResponse.json();
+      const brands = brandsData.data?.brands || brandsData.brands || [];
+      brands.forEach(brand => {
+        if (brand.logo_url) {
+          allGalleryImages.push({
+            id: 'brand-' + brand.id,
+            title: brand.name + ' 로고',
+            image_url: brand.logo_url,
+            category: 'brands'
+          });
+        }
+      });
+    }
+    
+    // 중복 제거
+    const imageMap = new Map();
+    allGalleryImages.forEach(img => {
+      if (!imageMap.has(img.image_url)) {
+        imageMap.set(img.image_url, img);
+      }
+    });
+    allGalleryImages = Array.from(imageMap.values());
+    
+    displayGalleryImages(allGalleryImages);
+  } catch (error) {
+    console.error('갤러리 이미지 로드 실패:', error);
+  }
+}
+
+// 갤러리 이미지 표시
+function displayGalleryImages(images) {
+  const grid = document.getElementById('galleryImageGrid');
+  
+  if (!images || images.length === 0) {
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: #6b7280;">이미지가 없습니다.</div>';
+    return;
+  }
+  
+  grid.innerHTML = images.map(img => `
+    <div class="gallery-item" style="cursor: pointer; border: 2px solid transparent; border-radius: 0.5rem; overflow: hidden; transition: all 0.2s;"
+         onclick="selectGalleryImage('${img.image_url}', '${img.title || '이미지'}')"
+         onmouseover="this.style.borderColor='#16a34a'" 
+         onmouseout="this.style.borderColor='transparent'">
+      <img src="${img.thumbnail_url || img.image_url}" 
+           alt="${img.title || '이미지'}" 
+           style="width: 100%; height: 150px; object-fit: cover;">
+      <div style="padding: 0.5rem; background: white; font-size: 0.75rem; color: #374151; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+        ${img.title || '이미지'}
+      </div>
+    </div>
+  `).join('');
+}
+
+// 갤러리 이미지 필터링
+function filterGalleryImages() {
+  const category = document.getElementById('galleryCategory').value;
+  
+  if (category === 'all') {
+    displayGalleryImages(allGalleryImages);
+  } else {
+    const filtered = allGalleryImages.filter(img => {
+      if (category === 'gallery') {
+        // gallery 카테고리이거나 /uploads/gallery/ 경로를 포함하는 이미지
+        return img.category === 'gallery' || 
+               img.image_url.includes('/uploads/gallery/') || 
+               img.image_url.includes('/assets/') ||
+               (!img.image_url.includes('/products/') && 
+                !img.image_url.includes('/brands/') && 
+                !img.image_url.includes('/about/'));
+      }
+      if (category === 'products') {
+        return img.category === 'products' || img.image_url.includes('/products/');
+      }
+      if (category === 'brands') {
+        return img.category === 'brands' || img.image_url.includes('/brands/');
+      }
+      if (category === 'about') {
+        return img.category === 'about' || img.image_url.includes('/about/');
+      }
+      return true;
+    });
+    displayGalleryImages(filtered);
+  }
+}
+
+// 갤러리 이미지 선택
+function selectGalleryImage(url, title) {
+  const textarea = document.getElementById('brandDesc');
+  const imageMarkdown = `![${title}](${url})`;
+  
+  // 현재 커서 위치에 삽입
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const text = textarea.value;
+  
+  textarea.value = text.substring(0, start) + '\n' + imageMarkdown + '\n' + text.substring(end);
+  
+  // 커서를 삽입한 텍스트 뒤로 이동
+  textarea.selectionStart = textarea.selectionEnd = start + imageMarkdown.length + 2;
+  textarea.focus();
+  
+  // 모달 닫기
+  closeGalleryModal();
+}
+
+let allGalleryImages = [];
+
 // 초기화
 init();
 </script>
+
+<!-- 갤러리 선택 모달 -->
+<div id="galleryModal" class="modal">
+  <div class="modal-content" style="max-width: 1000px; max-height: 90vh;">
+    <div class="modal-header">
+      <h2 class="modal-title">갤러리에서 이미지 선택</h2>
+      <button type="button" class="modal-close" onclick="closeGalleryModal()">&times;</button>
+    </div>
+    <div class="modal-body" style="padding: 0;">
+      <div style="padding: 1rem; border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
+        <select id="galleryCategory" onchange="filterGalleryImages()" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem;">
+          <option value="all">전체 이미지</option>
+          <option value="gallery">갤러리</option>
+          <option value="products">제품</option>
+          <option value="brands">브랜드</option>
+          <option value="about">회사소개</option>
+        </select>
+      </div>
+      <div id="galleryImageGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; padding: 1rem; max-height: 60vh; overflow-y: auto;">
+        <div style="grid-column: 1/-1; text-align: center; padding: 2rem; color: #6b7280;">
+          이미지를 불러오는 중...
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-cancel" onclick="closeGalleryModal()">취소</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>

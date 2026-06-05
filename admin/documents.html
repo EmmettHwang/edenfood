@@ -7,83 +7,8 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/global.css" />
+  <link rel="stylesheet" href="/css/admin-common.css" />
   <style>
-    :root {
-      --green: var(--primary);
-      --green-dark: var(--primary-dark);
-      --green-light: var(--primary-light);
-      --text: var(--gray-800);
-      --text-sub: var(--gray-500);
-      --border: var(--gray-200);
-      --bg: var(--gray-50);
-      --font: var(--font-family);
-    }
-    
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
-    }
-    
-    .header {
-      background: white;
-      border-bottom: 1px solid var(--border);
-      padding: 1rem;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    
-    .header-inner {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .header h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
-    
-    .btn {
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 0.5rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    
-    .btn-primary {
-      background: var(--green);
-      color: white;
-    }
-    
-    .btn-primary:hover {
-      background: var(--green-dark);
-    }
-    
-    .btn-secondary {
-      background: white;
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    
-    .btn-secondary:hover {
-      background: #f3f4f6;
-    }
-    
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 2rem 1rem;
-    }
     
     .toolbar {
       display: flex;
@@ -208,15 +133,16 @@
     .form-control {
       width: 100%;
       padding: 0.5rem 0.75rem;
-      border: 1px solid var(--border);
+      border: 1px solid #d1d5db;
       border-radius: 0.5rem;
       font-size: 0.875rem;
       font-family: var(--font);
+      background: #ffffff;
     }
     
     .form-control:focus {
       outline: none;
-      border-color: var(--green);
+      border-color: #16a34a;
       box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
     }
     
@@ -243,6 +169,48 @@
     .file-upload-area.dragging {
       border-color: var(--green);
       background: rgba(22, 163, 74, 0.05);
+    }
+    
+    /* 탭 네비게이션 스타일 */
+    .tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      background: white;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .tab-button {
+      padding: 0.75rem 1.5rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+      color: var(--text);
+    }
+    
+    .tab-button.active {
+      background: #16a34a;
+      color: white !important;
+      border-color: #16a34a;
+      font-weight: 600;
+    }
+    
+    .tab-button:hover:not(.active) {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
     }
     
     .file-list {
@@ -305,6 +273,62 @@
       transition: width 0.3s;
     }
     
+    /* 프로그레스바 오버레이 */
+    .progress-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    
+    .progress-overlay.active {
+      display: flex;
+    }
+    
+    .progress-container {
+      background: white;
+      padding: 2rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      max-width: 400px;
+      width: 90%;
+    }
+    
+    .progress-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-align: center;
+      color: #111827;
+    }
+    
+    .progress-bar-wrapper {
+      background: #e5e7eb;
+      height: 8px;
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      background: var(--green, #16a34a);
+      transition: width 0.3s ease;
+      border-radius: 9999px;
+    }
+    
+    .progress-text {
+      text-align: center;
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+    
     @media (max-width: 640px) {
       .toolbar {
         flex-direction: column;
@@ -333,14 +357,94 @@
   </div>
   
   <div class="container">
-    <div class="toolbar">
-      <h2>문서 목록</h2>
-      <button class="btn btn-primary" onclick="showAddModal()">+ 새 문서 업로드</button>
+    <!-- 탭 네비게이션 -->
+    <div class="tab-container">
+      <button class="tab-btn active" onclick="switchTab('documents')">문서 관리</button>
+      <button class="tab-btn" onclick="switchTab('header')">페이지 헤더 설정</button>
     </div>
     
-    <div id="document-list" class="document-list">
-      <div class="empty-state">
-        <p>문서를 불러오는 중...</p>
+    <!-- 문서 관리 탭 -->
+    <div id="documents-content" class="tab-content active">
+      <div class="toolbar">
+        <h2>문서 목록</h2>
+        <button class="btn btn-primary" onclick="showAddModal()">+ 새 문서 업로드</button>
+      </div>
+      
+      <!-- 문서 필터 탭 -->
+      <div class="tabs">
+        <button class="tab-button active" onclick="filterDocuments('all')">전체</button>
+        <button class="tab-button" onclick="filterDocuments('public')">공개용</button>
+        <button class="tab-button" onclick="filterDocuments('internal')">내부용</button>
+      </div>
+      
+      <div id="document-list" class="document-list">
+        <div class="empty-state">
+          <p>문서를 불러오는 중...</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 페이지 헤더 설정 탭 -->
+    <div id="header-content" class="tab-content">
+      <div style="background: white; padding: 1.5rem; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+        <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1.5rem;">페이지 헤더 설정</h2>
+      <form id="header-form">
+        <div class="form-group">
+          <label class="form-label">헤더 제목</label>
+          <input type="text" class="form-control" id="header-title" placeholder="서식자료실">
+        </div>
+        <div class="form-group">
+          <label class="form-label">헤더 부제목</label>
+          <input type="text" class="form-control" id="header-subtitle" placeholder="유용한 문서와 자료를 다운로드하세요">
+        </div>
+        <div class="form-group">
+          <label class="form-label">헤더 배경 이미지</label>
+          <div class="image-upload" id="headerImageUpload"
+               onclick="document.getElementById('header-image').click()"
+               ondrop="handleHeaderDrop(event)"
+               ondragover="handleDragOver(event)"
+               ondragleave="handleDragLeave(event)"
+               style="border: 2px dashed #d1d5db; border-radius: 0.5rem; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.2s; background: #f9fafb;">
+            <input type="file" class="form-control" id="header-image" accept="image/*" style="display: none;" onchange="handleHeaderImageChange(event)">
+            <img id="header-image-preview" class="image-preview" style="display: none; width: 100%; height: 200px; object-fit: contain; border-radius: 0.375rem;">
+            <div id="headerImagePlaceholder">
+              <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" style="margin: 0 auto;">
+                <path d="M3 16l4-4m0 0l4 4m-4-4v12M13 6h8m0 0l-4-4m4 4l-4 4" />
+                <rect x="3" y="4" width="10" height="16" rx="2" />
+              </svg>
+              <p style="margin-top: 1rem; color: #6b7280; font-size: 0.875rem;">클릭하거나 이미지를 드래그하여 업로드</p>
+              <p style="font-size: 0.813rem; color: #9ca3af;">권장 크기: 1920x400</p>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" onclick="saveHeaderSettings(event)">헤더 설정 저장</button>
+      </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 문서 보기 모달 -->
+  <div id="view-modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="view-modal-title">문서 상세</h2>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">설명</label>
+          <p id="view-description" style="padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem; min-height: 3rem;">-</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">공개 설정</label>
+          <p id="view-visibility" style="padding: 0.75rem; background: #f9fafb; border-radius: 0.5rem;">-</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label">첨부 파일</label>
+          <div id="view-files-list" class="file-list"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="hideViewModal()">닫기</button>
       </div>
     </div>
   </div>
@@ -354,10 +458,17 @@
       <form id="document-form" onsubmit="saveDocument(event)">
         <div class="modal-body">
           <div class="form-group">
-            <label class="form-label">카테고리</label>
-            <select id="category_id" name="category_id" class="form-control">
-              <option value="">카테고리 선택</option>
-            </select>
+            <label class="form-label">공개 설정 *</label>
+            <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+              <label style="display: flex; align-items: center; cursor: pointer;">
+                <input type="radio" name="visibility" value="public" checked style="margin-right: 0.5rem;">
+                <span>공개용</span>
+              </label>
+              <label style="display: flex; align-items: center; cursor: pointer;">
+                <input type="radio" name="visibility" value="internal" style="margin-right: 0.5rem;">
+                <span>내부용</span>
+              </label>
+            </div>
           </div>
           
           <div class="form-group">
@@ -368,11 +479,6 @@
           <div class="form-group">
             <label class="form-label">설명</label>
             <textarea id="description" name="description" class="form-control" rows="3"></textarea>
-          </div>
-          
-          <div class="form-group">
-            <label class="form-label">썸네일 이미지 URL (선택)</label>
-            <input type="text" id="thumbnail" name="thumbnail" class="form-control" placeholder="https://...">
           </div>
           
           <div class="form-group">
@@ -387,7 +493,7 @@
             >
               <p>파일을 드래그하거나 클릭하여 업로드</p>
               <p style="font-size: 0.875rem; color: var(--text-sub); margin-top: 0.5rem;">
-                최대 파일 크기: 10MB
+                최대 파일 크기: 100MB
               </p>
               <input 
                 type="file" 
@@ -416,10 +522,23 @@
     </div>
   </div>
   
+  <!-- 프로그레스바 오버레이 -->
+  <div id="progressOverlay" class="progress-overlay">
+    <div class="progress-container">
+      <div class="progress-title">업로드 중...</div>
+      <div class="progress-bar-wrapper">
+        <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+      </div>
+      <div id="progressText" class="progress-text">0%</div>
+    </div>
+  </div>
+  
   <script>
     let categories = [];
     let uploadedFiles = [];
     let currentDocumentId = null;
+    let allDocuments = [];
+    let currentFilter = 'all';
     
     // 페이지 초기화
     async function init() {
@@ -447,39 +566,12 @@
         return;
       }
       
-      await loadCategories();
       loadDocuments();
     }
     
-    // 카테고리 로드
+    // 카테고리 로드 - 더 이상 사용하지 않음
     async function loadCategories() {
-      try {
-        const response = await fetch('/api/documents/categories', {
-          headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
-          }
-        });
-        const data = await response.json();
-        
-        if (data.ok && data.categories) {
-          categories = data.categories;
-          const selectEl = document.getElementById('category_id');
-          selectEl.innerHTML = '<option value="">전체</option>' + 
-            categories.map(cat => `
-              <option value="${cat.id}">${escapeHtml(cat.name)}</option>
-            `).join('');
-          
-          // 카테고리가 없으면 전체를 기본으로
-          if (categories.length === 0) {
-            selectEl.innerHTML = '<option value="" selected>전체</option>';
-          }
-        }
-      } catch (error) {
-        console.error('카테고리 로드 실패:', error);
-        // 오류 시에도 전체 옵션 표시
-        const selectEl = document.getElementById('category_id');
-        selectEl.innerHTML = '<option value="" selected>전체</option>';
-      }
+      // 카테고리 기능 제거됨
     }
     
     // 문서 목록 불러오기
@@ -492,8 +584,14 @@
         });
         const data = await response.json();
         
-        if (data.ok && data.documents) {
-          renderDocuments(data.documents);
+        console.log('받은 문서 목록:', data);
+        
+        if (data.ok) {
+          // data.documents 또는 data.data.documents 처리
+          allDocuments = data.documents || (data.data && data.data.documents) || [];
+          console.log('전체 문서 수:', allDocuments.length);
+          console.log('내부용 문서 수:', allDocuments.filter(d => d.visibility === 'internal').length);
+          renderDocuments();
         }
       } catch (error) {
         console.error('문서 로드 실패:', error);
@@ -501,23 +599,27 @@
     }
     
     // 문서 목록 렌더링
-    function renderDocuments(documents) {
+    function renderDocuments() {
       const listEl = document.getElementById('document-list');
       
-      if (!documents || !Array.isArray(documents)) {
-        documents = [];
+      // 필터링
+      let filteredDocs = allDocuments;
+      if (currentFilter !== 'all') {
+        filteredDocs = allDocuments.filter(doc => doc.visibility === currentFilter);
       }
       
-      if (documents.length === 0) {
+      if (filteredDocs.length === 0) {
         listEl.innerHTML = `
           <div class="empty-state">
-            <p>등록된 문서가 없습니다.</p>
+            <p>${currentFilter === 'all' ? '등록된 문서가 없습니다.' : 
+                currentFilter === 'public' ? '공개용 문서가 없습니다.' : 
+                '내부용 문서가 없습니다.'}</p>
           </div>
         `;
         return;
       }
       
-      listEl.innerHTML = documents.map(doc => `
+      listEl.innerHTML = filteredDocs.map(doc => `
         <div class="document-item">
           <div class="document-thumb">
             ${doc.thumbnail ? '🖼️' : '📄'}
@@ -525,18 +627,36 @@
           <div class="document-info">
             <div class="document-title">${escapeHtml(doc.title)}</div>
             <div class="document-meta">
-              ${doc.category_name || '전체'} · 
+              ${doc.visibility === 'internal' ? '🔒 내부용' : '🌐 공개용'} · 
               파일 ${doc.file_count || 0}개 · 
               다운로드 ${doc.download_count || 0}회 · 
               ${new Date(doc.created_at).toLocaleDateString()}
             </div>
           </div>
           <div class="document-actions">
+            <button class="btn btn-sm btn-primary" onclick="viewDocument(${doc.id})">보기</button>
             <button class="btn btn-sm btn-primary" onclick="editDocument(${doc.id})">수정</button>
             <button class="btn btn-sm btn-secondary" onclick="deleteDocument(${doc.id})">삭제</button>
           </div>
         </div>
       `).join('');
+    }
+    
+    // 탭 전환 함수
+    function switchTab(tab) {
+      // 모든 탭 버튼 비활성화
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // 모든 탭 컨텐츠 숨기기
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      // 선택된 탭 활성화
+      event.target.classList.add('active');
+      document.getElementById(tab + '-content').classList.add('active');
     }
     
     // 추가 모달 표시
@@ -553,35 +673,50 @@
     
     // 문서 수정
     async function editDocument(id) {
-      const response = await fetch(`/api/documents/${id}`, {
-        headers: {
-          'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+      try {
+        const response = await fetch(`/api/documents/${id}`, {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+          }
+        });
+        
+        if (!response.ok) {
+          console.error('HTTP 에러:', response.status, response.statusText);
+          alert(`문서를 불러올 수 없습니다. (상태: ${response.status})`);
+          return;
         }
-      });
-      const data = await response.json();
+        
+        const data = await response.json();
+        
+        // API 응답 구조 확인 - data.document 또는 data.data.document
+        const doc = data.document || (data.data && data.data.document);
+        const files = data.files || (data.data && data.data.files) || [];
+        
+        if (!data.ok || !doc) {
+          console.error('문서 로드 실패:', data);
+          alert('문서를 불러올 수 없습니다.\n' + (data.error || '알 수 없는 오류'));
+          return;
+        }
       
-      if (!data.ok || !data.document) {
-        alert('문서를 불러올 수 없습니다.');
-        return;
-      }
-      
-      const doc = data.document;
       currentDocumentId = id;
       
       // 폼에 데이터 채우기
-      document.getElementById('category_id').value = doc.category_id || '';
+      const visibilityValue = doc.visibility || 'public';
+      const visibilityRadio = document.querySelector(`input[name="visibility"][value="${visibilityValue}"]`);
+      if (visibilityRadio) {
+        visibilityRadio.checked = true;
+      }
       document.getElementById('title').value = doc.title || '';
       document.getElementById('description').value = doc.description || '';
-      document.getElementById('thumbnail').value = doc.thumbnail || '';
       
       // 파일 목록은 비우고 기존 파일 표시
       uploadedFiles = [];
-      if (data.files && data.files.length > 0) {
+      if (files && files.length > 0) {
         const fileListEl = document.getElementById('file-list');
         fileListEl.innerHTML = `
           <div style="margin-bottom: 1rem; padding: 1rem; background: #f3f4f6; border-radius: 0.5rem;">
-            <p style="font-weight: 600; margin-bottom: 0.5rem;">기존 파일 (${data.files.length}개)</p>
-            ${data.files.map(file => `
+            <p style="font-weight: 600; margin-bottom: 0.5rem;">기존 파일 (${files.length}개)</p>
+            ${files.map(file => `
               <div style="margin-bottom: 0.5rem; font-size: 0.875rem; color: #6b7280;">
                 • ${escapeHtml(file.original_name)} (${formatFileSize(file.file_size)})
               </div>
@@ -596,6 +731,10 @@
       document.querySelector('.modal-header h2').textContent = '문서 수정';
       document.getElementById('submit-btn').textContent = '수정';
       document.getElementById('document-modal').classList.add('active');
+      } catch (error) {
+        console.error('문서 수정 에러:', error);
+        alert('문서를 불러오는 중 오류가 발생했습니다.');
+      }
     }
     
     // 모달 닫기
@@ -637,11 +776,11 @@
     
     // 파일 처리
     function processFiles(files) {
-      const maxSize = 10 * 1024 * 1024; // 10MB
+      const maxSize = 100 * 1024 * 1024; // 100MB
       
       files.forEach(file => {
         if (file.size > maxSize) {
-          alert(`${file.name}: 파일 크기가 10MB를 초과합니다.`);
+          alert(`${file.name}: 파일 크기가 100MB를 초과합니다.`);
           return;
         }
         
@@ -706,10 +845,9 @@
       
       const formData = new FormData(event.target);
       const data = {
-        category_id: formData.get('category_id') || null,
+        visibility: formData.get('visibility') || 'public',
         title: formData.get('title'),
-        description: formData.get('description'),
-        thumbnail: formData.get('thumbnail')
+        description: formData.get('description')
       };
       
       // 새 파일이 있는 경우에만 files 추가
@@ -841,13 +979,348 @@
       return div.innerHTML;
     }
     
+    // 문서 보기
+    async function viewDocument(id) {
+      try {
+        const response = await fetch(`/api/documents/${id}`, {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+          }
+        });
+        
+        if (!response.ok) {
+          alert('문서를 불러올 수 없습니다.');
+          return;
+        }
+        
+        const data = await response.json();
+        const doc = data.document || (data.data && data.data.document);
+        const files = data.files || (data.data && data.data.files) || [];
+        
+        if (!doc) {
+          alert('문서 정보를 찾을 수 없습니다.');
+          return;
+        }
+        
+        // 모달에 정보 표시
+        document.getElementById('view-modal-title').textContent = doc.title || '문서 상세';
+        document.getElementById('view-description').textContent = doc.description || '(설명 없음)';
+        document.getElementById('view-visibility').innerHTML = doc.visibility === 'internal' 
+          ? '<span style="color: #ef4444;">🔒 내부용</span>' 
+          : '<span style="color: #16a34a;">🌐 공개용</span>';
+        
+        // 파일 목록 표시
+        const filesListEl = document.getElementById('view-files-list');
+        if (files.length === 0) {
+          filesListEl.innerHTML = '<p style="color: #6b7280; text-align: center;">첨부된 파일이 없습니다.</p>';
+        } else {
+          filesListEl.innerHTML = files.map(file => {
+            const ext = getFileExtension(file.original_name);
+            const typeClass = getFileTypeClass(ext);
+            const size = formatFileSize(file.file_size);
+            
+            return `
+              <div class="file-item">
+                <div class="file-info">
+                  <span class="file-type-badge ${typeClass}">${ext}</span>
+                  <div>
+                    <div>${escapeHtml(file.original_name)}</div>
+                    <div style="font-size: 0.813rem; color: #6b7280;">${size}</div>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-primary" onclick="downloadFile(${file.id}, '${escapeHtml(file.original_name)}')">
+                  다운로드
+                </button>
+              </div>
+            `;
+          }).join('');
+        }
+        
+        document.getElementById('view-modal').classList.add('active');
+      } catch (error) {
+        console.error('문서 보기 에러:', error);
+        alert('문서를 불러오는 중 오류가 발생했습니다.');
+      }
+    }
+    
+    // 보기 모달 닫기
+    function hideViewModal() {
+      document.getElementById('view-modal').classList.remove('active');
+    }
+    
+    // 파일 다운로드
+    function downloadFile(fileId, fileName) {
+      const token = localStorage.getItem('eden_token');
+      if (!token) {
+        alert('로그인이 필요합니다.');
+        return;
+      }
+      
+      const url = `/api/documents/files/${fileId}/download?token=${encodeURIComponent(token)}`;
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      a.click();
+    }
+    
+    // 문서 필터링
+    function filterDocuments(filter) {
+      currentFilter = filter;
+      
+      // 탭 활성화 상태 변경
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      renderDocuments();
+    }
+    
     // 돌아가기
     function goBack() {
       location.href = '/admin';
     }
+
+    // 드래그 앤 드롭 핸들러
+    function handleDragOver(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.style.borderColor = '#16a34a';
+      event.currentTarget.style.background = '#f0fdf4';
+    }
+
+    function handleDragLeave(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.currentTarget.style.borderColor = '#d1d5db';
+      event.currentTarget.style.background = '#f9fafb';
+    }
+
+    function handleHeaderDrop(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      // 드래그 스타일 초기화
+      event.currentTarget.style.borderColor = '#d1d5db';
+      event.currentTarget.style.background = '#f9fafb';
+      
+      const files = event.dataTransfer.files;
+      if (files.length > 0) {
+        const file = files[0];
+        
+        // 이미지 파일인지 확인
+        if (!file.type.startsWith('image/')) {
+          showAlert('이미지 파일만 업로드 가능합니다.', 'error');
+          return;
+        }
+        
+        // 파일 크기 체크 (100MB)
+        if (file.size > 100 * 1024 * 1024) {
+          showAlert('파일 크기는 100MB를 초과할 수 없습니다.', 'error');
+          return;
+        }
+        
+        // 파일 input에 파일 설정
+        const fileInput = document.getElementById('header-image');
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+        
+        // 미리보기 표시
+        displayHeaderImagePreview(file);
+      }
+    }
+
+    // 헤더 이미지 변경 핸들러
+    function handleHeaderImageChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        displayHeaderImagePreview(file);
+      }
+    }
+
+    // 헤더 이미지 미리보기 표시
+    function displayHeaderImagePreview(file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const headerUpload = document.getElementById('headerImageUpload');
+        const headerPreview = document.getElementById('header-image-preview');
+        const headerPlaceholder = document.getElementById('headerImagePlaceholder');
+        
+        headerUpload.style.border = 'none';
+        headerUpload.style.padding = '0';
+        headerPreview.src = e.target.result;
+        headerPreview.style.display = 'block';
+        headerPlaceholder.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    // 프로그레스바 표시
+    function showProgress(percent, title = '업로드 중...') {
+      const progressOverlay = document.getElementById('progressOverlay');
+      const progressBar = document.getElementById('progressBar');
+      const progressText = document.getElementById('progressText');
+      const progressTitle = document.querySelector('.progress-title');
+      
+      if (progressTitle) progressTitle.textContent = title;
+      progressOverlay.classList.add('active');
+      progressBar.style.width = percent + '%';
+      progressText.textContent = Math.round(percent) + '%';
+    }
+    
+    // 프로그레스바 숨기기
+    function hideProgress() {
+      setTimeout(() => {
+        document.getElementById('progressOverlay').classList.remove('active');
+        document.getElementById('progressBar').style.width = '0%';
+        document.getElementById('progressText').textContent = '0%';
+      }, 500);
+    }
+    
+    // 헤더 설정 저장
+    async function saveHeaderSettings(event) {
+      event.preventDefault();
+      
+      const headerFile = document.getElementById('header-image').files[0];
+      let headerImageUrl = null;
+      
+      // 이미지가 선택된 경우 먼저 업로드
+      if (headerFile) {
+        const formData = new FormData();
+        formData.append('type', 'page_header');
+        formData.append('image', headerFile);
+        
+        const xhr = new XMLHttpRequest();
+        
+        xhr.upload.addEventListener('progress', (e) => {
+          if (e.lengthComputable) {
+            const percentComplete = (e.loaded / e.total) * 100;
+            showProgress(percentComplete, '헤더 이미지 업로드 중...');
+          }
+        });
+        
+        xhr.onload = async function() {
+          if (xhr.status === 200) {
+            try {
+              const uploadData = JSON.parse(xhr.responseText);
+              if (uploadData.ok || uploadData.success) {
+                headerImageUrl = uploadData.data?.imageUrl || uploadData.data?.url || uploadData.imageUrl || uploadData.url;
+                // 페이지 설정 저장
+                await savePageSettings(headerImageUrl);
+              } else {
+                hideProgress();
+                alert('이미지 업로드 실패: ' + (uploadData.message || uploadData.error || '알 수 없는 오류'));
+              }
+            } catch (error) {
+              hideProgress();
+              console.error('업로드 응답 파싱 오류:', error);
+              alert('이미지 업로드 중 오류가 발생했습니다.');
+            }
+          } else {
+            hideProgress();
+            alert('이미지 업로드에 실패했습니다.');
+          }
+        };
+        
+        xhr.onerror = function() {
+          hideProgress();
+          alert('이미지 업로드 중 오류가 발생했습니다.');
+        };
+        
+        const token = localStorage.getItem('eden_token');
+        xhr.open('POST', '/api/upload/image');
+        xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+        xhr.send(formData);
+      } else {
+        // 이미지가 없으면 바로 설정 저장
+        await savePageSettings(null);
+      }
+    }
+    
+    // 페이지 설정 저장
+    async function savePageSettings(headerImageUrl) {
+      const data = {
+        page_type: 'documents',
+        header_title: document.getElementById('header-title').value || '서식자료실',
+        header_subtitle: document.getElementById('header-subtitle').value || '유용한 문서와 자료를 다운로드하세요'
+      };
+      
+      if (headerImageUrl) {
+        data.header_image = headerImageUrl;
+      }
+      
+      try {
+        showProgress(90, '설정 저장 중...');
+        
+        const response = await fetch('/api/page-settings/documents', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+          },
+          body: JSON.stringify(data)
+        });
+        
+        hideProgress();
+        
+        if (response.ok) {
+          alert('헤더 설정이 저장되었습니다.');
+        } else {
+          const result = await response.json();
+          alert('설정 저장 실패: ' + (result.error || '알 수 없는 오류'));
+        }
+      } catch (error) {
+        hideProgress();
+        console.error('설정 저장 오류:', error);
+        alert('설정 저장 중 오류가 발생했습니다.');
+      }
+    }
+    
+    // 페이지 설정 불러오기
+    async function loadPageSettings() {
+      try {
+        const response = await fetch('/api/page-settings/documents', {
+          headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          if (data.data && data.data.setting) {
+            const setting = data.data.setting;
+            
+            // 헤더 정보 설정
+            if (setting.header_title) {
+              document.getElementById('header-title').value = setting.header_title;
+            }
+            if (setting.header_subtitle) {
+              document.getElementById('header-subtitle').value = setting.header_subtitle;
+            }
+            
+            // 헤더 이미지 미리보기
+            if (setting.header_image) {
+              const headerPreview = document.getElementById('header-image-preview');
+              const headerPlaceholder = document.getElementById('headerImagePlaceholder');
+              const headerUpload = document.getElementById('headerImageUpload');
+              
+              headerPreview.src = setting.header_image;
+              headerPreview.style.display = 'block';
+              headerPlaceholder.style.display = 'none';
+              headerUpload.style.border = 'none';
+              headerUpload.style.padding = '0';
+            }
+          }
+        }
+      } catch (error) {
+        console.error('페이지 설정 불러오기 실패:', error);
+      }
+    }
     
     // 초기화
     init();
+    loadPageSettings();
   </script>
 </body>
 </html>

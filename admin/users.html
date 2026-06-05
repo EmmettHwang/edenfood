@@ -234,6 +234,95 @@
       gap: 0.5rem;
     }
     
+    /* 모달 스타일 */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .modal.active {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 0.75rem;
+      padding: 2rem;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .modal-header h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: #6b7280;
+      cursor: pointer;
+    }
+    
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+      color: #374151;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
+    }
+    
+    .form-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+      justify-content: flex-end;
+    }
+    
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+    
     .empty-state {
       text-align: center;
       padding: 3rem;
@@ -295,7 +384,8 @@
         <h2>사용자 목록</h2>
         <div class="search-box">
           <input type="text" class="search-input" placeholder="이름 또는 아이디로 검색" id="search-input" onkeyup="filterUsers()">
-          <button class="btn btn-primary" onclick="loadUsers()">새로고침</button>
+          <button class="btn btn-primary" onclick="showAddUserModal()">+ 사용자 추가</button>
+          <button class="btn btn-secondary" onclick="loadUsers()">새로고침</button>
         </div>
       </div>
       
@@ -328,6 +418,25 @@
     
     // 페이지 초기화
     async function init() {
+      // iframe 내에서 실행 중인지 확인
+      if (window.parent !== window) {
+        // iframe 내에서는 헤더 숨기기
+        const header = document.querySelector('.header');
+        if (header) {
+          header.style.display = 'none';
+        }
+        // 컨테이너 상단 패딩 제거
+        const container = document.querySelector('.container');
+        if (container) {
+          container.style.paddingTop = '1rem';
+        }
+        // 돌아가기 버튼이 있는 경우 숨기기
+        const backBtn = document.querySelector('.btn-secondary');
+        if (backBtn && backBtn.textContent.includes('돌아가기')) {
+          backBtn.style.display = 'none';
+        }
+      }
+      
       const token = localStorage.getItem('eden_token');
       if (!token) {
         location.href = '/login';
@@ -358,9 +467,23 @@
     // 사용자 목록 불러오기
     async function loadUsers() {
       try {
+        let token = localStorage.getItem('eden_token');
+        
+        // iframe 내에서 실행 중이고 토큰이 없는 경우, 부모에서 가져오기 시도
+        if (!token && window.parent !== window) {
+          try {
+            token = window.parent.localStorage.getItem('eden_token');
+            if (token) {
+              localStorage.setItem('eden_token', token);
+            }
+          } catch (e) {
+            console.log('부모 창에서 토큰을 가져올 수 없습니다:', e);
+          }
+        }
+        
         const response = await fetch('/api/auth/users', {
           headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+            'Authorization': 'Bearer ' + token
           }
         });
         const data = await response.json();
@@ -435,6 +558,8 @@
           <td>${user.last_login ? new Date(user.last_login).toLocaleString() : '-'}</td>
           <td>
             <div class="action-buttons">
+              <button class="btn btn-sm btn-primary" onclick="showEditUserModal(${user.id})">수정</button>
+              <button class="btn btn-sm btn-warning" onclick="resetPassword(${user.id})">비밀번호 초기화</button>
               ${!user.is_approved ? `
                 <button class="btn btn-sm btn-primary" onclick="approveUser(${user.id})">승인</button>
               ` : ''}
@@ -444,7 +569,7 @@
                 <button class="btn btn-sm btn-secondary" onclick="toggleRole(${user.id}, 'staff')">일반 전환</button>
               ` : ''}
               ${user.username !== 'admin' ? `
-                <button class="btn btn-sm btn-secondary" onclick="deleteUser(${user.id})">삭제</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">삭제</button>
               ` : ''}
             </div>
           </td>
@@ -507,6 +632,53 @@
       }
     }
     
+    // 비밀번호 표시/숨기기 토글
+    function togglePasswordVisibility() {
+      const passwordInput = document.getElementById('password');
+      const toggleText = document.getElementById('password-toggle-text');
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleText.textContent = '🙈';
+      } else {
+        passwordInput.type = 'password';
+        toggleText.textContent = '👁️';
+      }
+    }
+    
+    // 비밀번호 초기화
+    async function resetPassword(userId) {
+      const user = allUsers.find(u => u.id === userId);
+      if (!user) return;
+      
+      // 임시 비밀번호 생성
+      const tempPassword = 'eden' + Math.random().toString(36).substring(2, 8);
+      
+      if (!confirm(`${user.name}님의 비밀번호를 초기화하시겠습니까?\n\n임시 비밀번호: ${tempPassword}\n\n이 비밀번호를 사용자에게 알려주세요.`)) return;
+      
+      try {
+        const response = await fetch(`/api/auth/users/${userId}/reset-password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + localStorage.getItem('eden_token')
+          },
+          body: JSON.stringify({ password: tempPassword })
+        });
+        
+        const result = await response.json();
+        
+        if (result.ok) {
+          alert(`비밀번호가 초기화되었습니다.\n\n임시 비밀번호: ${tempPassword}\n\n이 비밀번호를 사용자에게 알려주세요.`);
+        } else {
+          alert(result.message || '비밀번호 초기화에 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('비밀번호 초기화 실패:', error);
+        alert('비밀번호 초기화에 실패했습니다.');
+      }
+    }
+    
     // 사용자 삭제
     async function deleteUser(userId) {
       if (!confirm('이 사용자를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
@@ -548,11 +720,152 @@
     
     // 돌아가기
     function goBack() {
+      if (window.parent !== window) {
+        // iframe 내에서는 아무것도 하지 않음
+        return;
+      }
       location.href = '/admin';
     }
+    
+    // 사용자 추가 모달 표시
+    function showAddUserModal() {
+      document.getElementById('modal-title').textContent = '새 사용자 추가';
+      document.getElementById('user-form').reset();
+      document.getElementById('user-id').value = '';
+      document.getElementById('password').required = true;
+      document.getElementById('password-hint').style.display = 'none';
+      document.getElementById('user-modal').classList.add('active');
+    }
+    
+    // 사용자 수정 모달 표시
+    async function showEditUserModal(userId) {
+      const user = allUsers.find(u => u.id === userId);
+      if (!user) return;
+      
+      document.getElementById('modal-title').textContent = '사용자 수정';
+      document.getElementById('user-id').value = user.id;
+      document.getElementById('username').value = user.username;
+      document.getElementById('name').value = user.name;
+      document.getElementById('password').value = '';
+      document.getElementById('password').required = false;
+      document.getElementById('password-hint').style.display = 'block';
+      document.getElementById('role').value = user.role;
+      document.getElementById('status').value = user.status;
+      document.getElementById('user-modal').classList.add('active');
+    }
+    
+    // 모달 닫기
+    function closeUserModal() {
+      document.getElementById('user-modal').classList.remove('active');
+      document.getElementById('user-form').reset();
+    }
+    
+    // 사용자 폼 제출
+    document.getElementById('user-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const token = localStorage.getItem('eden_token');
+      const userId = document.getElementById('user-id').value;
+      const isEdit = !!userId;
+      
+      const userData = {
+        username: document.getElementById('username').value,
+        name: document.getElementById('name').value,
+        role: document.getElementById('role').value,
+        status: document.getElementById('status').value
+      };
+      
+      // 비밀번호는 입력된 경우에만 추가
+      const password = document.getElementById('password').value;
+      if (password || !isEdit) {
+        userData.password = password;
+      }
+      
+      try {
+        const url = isEdit ? `/api/users/${userId}` : '/api/auth/register';
+        const method = isEdit ? 'PUT' : 'POST';
+        
+        const res = await fetch(url, {
+          method: method,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+          },
+          body: JSON.stringify(userData)
+        });
+        
+        const data = await res.json();
+        
+        if (data.ok) {
+          alert(isEdit ? '사용자 정보가 수정되었습니다.' : '새 사용자가 추가되었습니다.');
+          closeUserModal();
+          loadUsers();
+        } else {
+          alert('오류: ' + (data.message || '처리 중 문제가 발생했습니다.'));
+        }
+      } catch (error) {
+        alert('오류: ' + error.message);
+      }
+    });
     
     // 초기화
     init();
   </script>
+  
+  <!-- 사용자 추가/수정 모달 -->
+  <div class="modal" id="user-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title">새 사용자 추가</h2>
+        <button class="modal-close" onclick="closeUserModal()">&times;</button>
+      </div>
+      
+      <form id="user-form">
+        <input type="hidden" id="user-id" value="">
+        
+        <div class="form-group">
+          <label for="username">사용자명 (아이디)</label>
+          <input type="text" id="username" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="name">이름</label>
+          <input type="text" id="name" class="form-control" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">비밀번호</label>
+          <div style="position: relative;">
+            <input type="password" id="password" class="form-control" style="padding-right: 2.5rem;">
+            <button type="button" class="btn btn-sm" onclick="togglePasswordVisibility()" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); padding: 0.25rem 0.5rem; background: #e5e7eb; border: none;">
+              <span id="password-toggle-text">👁️</span>
+            </button>
+          </div>
+          <small class="form-hint" id="password-hint">새 비밀번호를 입력하세요 (수정 시 비워두면 변경되지 않습니다)</small>
+        </div>
+        
+        <div class="form-group">
+          <label for="role">권한</label>
+          <select id="role" class="form-control" required>
+            <option value="staff">직원</option>
+            <option value="admin">관리자</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="status">상태</label>
+          <select id="status" class="form-control" required>
+            <option value="pending">승인 대기</option>
+            <option value="approved">승인됨</option>
+          </select>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeUserModal()">취소</button>
+          <button type="submit" class="btn btn-primary">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </body>
 </html>
