@@ -2874,6 +2874,18 @@ app.get('/api/system-info', authMiddleware, async (req, res) => {
       console.error('디스크 정보 조회 실패:', e);
     }
     
+    // Swap 사용률 (/proc/meminfo)
+    let swapTotal = 0, swapUsed = 0, swapFree = 0, swapUsage = 0;
+    try {
+      const meminfo = fs.readFileSync('/proc/meminfo', 'utf8');
+      const swapTotalKb = parseInt(meminfo.match(/SwapTotal:\s+(\d+)/)?.[1] || '0');
+      const swapFreeKb  = parseInt(meminfo.match(/SwapFree:\s+(\d+)/)?.[1] || '0');
+      swapTotal = Math.round(swapTotalKb / 1024 / 1024 * 10) / 10;
+      swapFree  = Math.round(swapFreeKb  / 1024 / 1024 * 10) / 10;
+      swapUsed  = Math.round((swapTotalKb - swapFreeKb) / 1024 / 1024 * 10) / 10;
+      swapUsage = swapTotalKb > 0 ? Math.round((1 - swapFreeKb / swapTotalKb) * 100) : 0;
+    } catch (e) { /* swap 없는 환경 무시 */ }
+
     // 시스템 정보
     const systemInfo = {
       cpu: {
@@ -2883,17 +2895,18 @@ app.get('/api/system-info', authMiddleware, async (req, res) => {
       },
       memory: {
         usage: memoryUsage,
-        total: Math.round(totalMemory / 1024 / 1024 / 1024 * 10) / 10, // GB
-        used: Math.round(usedMemory / 1024 / 1024 / 1024 * 10) / 10, // GB
-        free: Math.round(freeMemory / 1024 / 1024 / 1024 * 10) / 10 // GB
+        total: Math.round(totalMemory / 1024 / 1024 / 1024 * 10) / 10,
+        used: Math.round(usedMemory / 1024 / 1024 / 1024 * 10) / 10,
+        free: Math.round(freeMemory / 1024 / 1024 / 1024 * 10) / 10
       },
+      swap: { usage: swapUsage, total: swapTotal, used: swapUsed, free: swapFree },
       disk: {
         usage: diskUsage,
-        total: Math.round(diskTotal * 10) / 10, // GB
-        used: Math.round(diskUsed * 10) / 10, // GB
-        free: Math.round(diskFree * 10) / 10 // GB
+        total: Math.round(diskTotal * 10) / 10,
+        used: Math.round(diskUsed * 10) / 10,
+        free: Math.round(diskFree * 10) / 10
       },
-      uptime: Math.floor(os.uptime() / 60 / 60 / 24), // days
+      uptime: Math.floor(os.uptime() / 60 / 60 / 24),
       platform: os.platform(),
       hostname: os.hostname(),
       loadavg: os.loadavg()

@@ -68,7 +68,18 @@
 
     .monitor-cpu    .monitor-value { color: #3b82f6; }
     .monitor-memory .monitor-value { color: #8b5cf6; }
+    .monitor-swap   .monitor-value { color: #06b6d4; }
     .monitor-disk   .monitor-value { color: #f59e0b; }
+
+    .state-badge {
+      display: inline-block; padding: 0.18rem 0.55rem;
+      border-radius: 999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap;
+    }
+    .state-safe     { background: #dcfce7; color: #15803d; }
+    .state-good     { background: #dbeafe; color: #1d4ed8; }
+    .state-low      { background: #fef3c7; color: #b45309; }
+    .state-critical { background: #fee2e2; color: #b91c1c; }
+    .state-down     { background: #1f2937; color: #f9fafb; }
   </style>
 </head>
 <body>
@@ -130,7 +141,10 @@
         <div class="monitor-card monitor-cpu">
           <div class="monitor-header">
             <div class="monitor-label">CPU 사용률</div>
-            <div class="monitor-status" id="cpu-status"></div>
+            <div style="display:flex;align-items:center;gap:0.4rem;">
+              <span class="state-badge state-safe" id="cpu-state">-</span>
+              <div class="monitor-status" id="cpu-status"></div>
+            </div>
           </div>
           <div class="monitor-value" id="cpu-value">0%</div>
           <div class="monitor-detail" id="cpu-detail">-</div>
@@ -139,16 +153,34 @@
         <div class="monitor-card monitor-memory">
           <div class="monitor-header">
             <div class="monitor-label">메모리 사용률</div>
-            <div class="monitor-status" id="memory-status"></div>
+            <div style="display:flex;align-items:center;gap:0.4rem;">
+              <span class="state-badge state-safe" id="memory-state">-</span>
+              <div class="monitor-status" id="memory-status"></div>
+            </div>
           </div>
           <div class="monitor-value" id="memory-value">0%</div>
           <div class="monitor-detail" id="memory-detail">-</div>
           <div class="monitor-chart-wrap"><canvas id="memoryChart"></canvas></div>
         </div>
+        <div class="monitor-card monitor-swap">
+          <div class="monitor-header">
+            <div class="monitor-label">Swap 사용률</div>
+            <div style="display:flex;align-items:center;gap:0.4rem;">
+              <span class="state-badge state-safe" id="swap-state">-</span>
+              <div class="monitor-status" id="swap-status"></div>
+            </div>
+          </div>
+          <div class="monitor-value" id="swap-value">0%</div>
+          <div class="monitor-detail" id="swap-detail">-</div>
+          <div class="monitor-chart-wrap"><canvas id="swapChart"></canvas></div>
+        </div>
         <div class="monitor-card monitor-disk">
           <div class="monitor-header">
             <div class="monitor-label">디스크 사용률</div>
-            <div class="monitor-status" id="disk-status"></div>
+            <div style="display:flex;align-items:center;gap:0.4rem;">
+              <span class="state-badge state-safe" id="disk-state">-</span>
+              <div class="monitor-status" id="disk-status"></div>
+            </div>
           </div>
           <div class="monitor-value" id="disk-value">0%</div>
           <div class="monitor-detail" id="disk-detail">-</div>
@@ -284,11 +316,28 @@
 
     const cpuChart    = makeMonitorChart('cpuChart',    '#3b82f6');
     const memChart    = makeMonitorChart('memoryChart', '#8b5cf6');
+    const swapChart   = makeMonitorChart('swapChart',   '#06b6d4');
     const diskChart   = makeMonitorChart('diskChart',   '#f59e0b');
 
     function pushHistory(arr, val) {
       arr.push(val);
       if (arr.length > MAX_POINTS) arr.shift();
+    }
+
+    // 상태 기준: 안정(0~40) 여유(41~65) 부족(66~80) 긴급(81~95) 정지(96~100)
+    const STATE_LEVELS = [
+      { max: 40,  cls: 'state-safe',     label: '안정' },
+      { max: 65,  cls: 'state-good',     label: '여유' },
+      { max: 80,  cls: 'state-low',      label: '부족' },
+      { max: 95,  cls: 'state-critical', label: '긴급' },
+      { max: 100, cls: 'state-down',     label: '정지' }
+    ];
+
+    function applyStateBadge(id, val) {
+      const el = document.getElementById(id);
+      const st = STATE_LEVELS.find(s => val <= s.max) || STATE_LEVELS[STATE_LEVELS.length - 1];
+      el.className = 'state-badge ' + st.cls;
+      el.textContent = st.label;
     }
 
     function updateStatus(id, val, warn, danger) {
@@ -297,6 +346,8 @@
       if (val >= danger) el.classList.add('danger');
       else if (val >= warn) el.classList.add('warning');
     }
+
+    const swapHistory = [];
 
     async function loadSystemMonitoring() {
       try {
@@ -308,7 +359,6 @@
 
         const now = new Date();
         const label = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0') + ':' + now.getSeconds().toString().padStart(2,'0');
-
         if (historyLabels.length >= MAX_POINTS) historyLabels.shift();
         historyLabels.push(label);
 
@@ -316,7 +366,8 @@
           const v = s.cpu.usage || 0;
           document.getElementById('cpu-value').textContent = v + '%';
           document.getElementById('cpu-detail').textContent = (s.cpu.cores || 0) + '코어';
-          updateStatus('cpu-status', v, 70, 90);
+          applyStateBadge('cpu-state', v);
+          updateStatus('cpu-status', v, 66, 81);
           pushHistory(cpuHistory, v);
           cpuChart.data.datasets[0].data = [...cpuHistory];
           cpuChart.update('none');
@@ -325,16 +376,28 @@
           const v = s.memory.usage || 0;
           document.getElementById('memory-value').textContent = v + '%';
           document.getElementById('memory-detail').textContent = (s.memory.used||0).toFixed(1) + 'GB / ' + (s.memory.total||0).toFixed(1) + 'GB';
-          updateStatus('memory-status', v, 80, 95);
+          applyStateBadge('memory-state', v);
+          updateStatus('memory-status', v, 66, 81);
           pushHistory(memHistory, v);
           memChart.data.datasets[0].data = [...memHistory];
           memChart.update('none');
+        }
+        if (s.swap) {
+          const v = s.swap.usage || 0;
+          document.getElementById('swap-value').textContent = v + '%';
+          document.getElementById('swap-detail').textContent = (s.swap.used||0).toFixed(1) + 'GB / ' + (s.swap.total||0).toFixed(1) + 'GB';
+          applyStateBadge('swap-state', v);
+          updateStatus('swap-status', v, 66, 81);
+          pushHistory(swapHistory, v);
+          swapChart.data.datasets[0].data = [...swapHistory];
+          swapChart.update('none');
         }
         if (s.disk) {
           const v = s.disk.usage || 0;
           document.getElementById('disk-value').textContent = v + '%';
           document.getElementById('disk-detail').textContent = (s.disk.used||0).toFixed(1) + 'GB / ' + (s.disk.total||0).toFixed(1) + 'GB';
-          updateStatus('disk-status', v, 85, 95);
+          applyStateBadge('disk-state', v);
+          updateStatus('disk-status', v, 66, 81);
           pushHistory(diskHistory, v);
           diskChart.data.datasets[0].data = [...diskHistory];
           diskChart.update('none');
