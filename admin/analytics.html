@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>방문 통계 - 이든푸드</title>
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="stylesheet" href="/css/global.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f8fafc; font-family: 'Google Sans', 'Noto Sans KR', sans-serif; color: #202124; }
+    .page { padding: 1.25rem; }
+
+    /* 상단 헤더 */
+    .analytics-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.75rem;
+    }
+    .analytics-title { font-size: 1.1rem; font-weight: 700; color: #202124; }
+
+    /* 기간 선택 */
+    .period-selector {
+      display: flex; gap: 0; background: white;
+      border: 1px solid #dadce0; border-radius: 0.5rem; overflow: hidden;
+    }
+    .period-btn {
+      padding: 0.45rem 1rem; border: none; background: none;
+      font-size: 0.825rem; font-weight: 500; color: #5f6368; cursor: pointer;
+      border-right: 1px solid #dadce0; font-family: inherit; transition: all 0.15s;
+    }
+    .period-btn:last-child { border-right: none; }
+    .period-btn.active { background: #e8f0fe; color: #1a73e8; font-weight: 700; }
+    .period-btn:hover:not(.active) { background: #f1f3f4; }
+
+    /* 실시간 배지 */
+    .realtime-badge {
+      display: flex; align-items: center; gap: 0.4rem;
+      background: #e6f4ea; color: #137333; border-radius: 999px;
+      padding: 0.35rem 0.85rem; font-size: 0.825rem; font-weight: 600;
+    }
+    .rt-dot { width: 8px; height: 8px; border-radius: 50%; background: #34a853; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.3)} }
+
+    /* 핵심 지표 카드 */
+    .metric-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem; margin-bottom: 1.25rem;
+    }
+    .metric-card {
+      background: white; border: 1px solid #dadce0; border-radius: 0.75rem;
+      padding: 1.25rem; position: relative; overflow: hidden;
+    }
+    .metric-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    }
+    .metric-card.blue::before  { background: #1a73e8; }
+    .metric-card.green::before { background: #34a853; }
+    .metric-card.orange::before{ background: #fa7b17; }
+    .metric-card.purple::before{ background: #a142f4; }
+
+    .metric-label { font-size: 0.8rem; color: #5f6368; font-weight: 500; margin-bottom: 0.4rem; }
+    .metric-value { font-size: 2rem; font-weight: 700; color: #202124; line-height: 1.1; }
+    .metric-delta {
+      display: inline-flex; align-items: center; gap: 0.2rem;
+      font-size: 0.775rem; font-weight: 600; margin-top: 0.35rem;
+      padding: 0.15rem 0.4rem; border-radius: 0.25rem;
+    }
+    .delta-up   { background: #e6f4ea; color: #137333; }
+    .delta-down { background: #fce8e6; color: #c5221f; }
+    .delta-flat { background: #f1f3f4; color: #5f6368; }
+    .metric-sub { font-size: 0.775rem; color: #80868b; margin-top: 0.2rem; }
+
+    /* 트렌드 차트 */
+    .card {
+      background: white; border: 1px solid #dadce0; border-radius: 0.75rem;
+      padding: 1.25rem; margin-bottom: 1.25rem;
+    }
+    .card-title {
+      font-size: 0.9rem; font-weight: 700; color: #202124; margin-bottom: 1rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .chart-wrap { position: relative; height: 200px; }
+    .chart-wrap-sm { position: relative; height: 160px; }
+
+    /* 2컬럼 그리드 */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+    @media(max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* 히트맵 */
+    .heatmap-wrap { overflow-x: auto; }
+    .heatmap {
+      display: grid; grid-template-columns: 48px repeat(24, 1fr);
+      gap: 2px; min-width: 600px;
+    }
+    .heatmap-cell {
+      height: 22px; border-radius: 3px; background: #f1f3f4;
+      transition: background 0.2s; position: relative; cursor: default;
+    }
+    .heatmap-cell:hover::after {
+      content: attr(data-tip);
+      position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
+      background: #202124; color: white; font-size: 0.7rem; padding: 0.2rem 0.4rem;
+      border-radius: 0.25rem; white-space: nowrap; z-index: 10; pointer-events: none;
+    }
+    .heatmap-label { font-size: 0.7rem; color: #80868b; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+    .heatmap-hour  { font-size: 0.65rem; color: #80868b; text-align: center; }
+    .heatmap-legend { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.5rem; font-size: 0.75rem; color: #80868b; }
+    .legend-bar { display: flex; gap: 2px; }
+    .legend-swatch { width: 16px; height: 12px; border-radius: 2px; }
+
+    /* 인기 페이지 테이블 */
+    .pages-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .pages-table th { padding: 0.5rem 0.75rem; text-align: left; color: #5f6368; font-weight: 600; border-bottom: 2px solid #e8eaed; font-size: 0.775rem; }
+    .pages-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #f1f3f4; }
+    .pages-table tr:last-child td { border-bottom: none; }
+    .pages-table tr:hover td { background: #f8f9fa; }
+    .page-bar-wrap { background: #f1f3f4; border-radius: 999px; height: 6px; width: 100%; margin-top: 3px; }
+    .page-bar { height: 6px; border-radius: 999px; background: #1a73e8; }
+    .page-path { color: #1a73e8; font-family: monospace; font-size: 0.825rem; word-break: break-all; }
+
+    /* 도넛 차트 래퍼 */
+    .donut-wrap { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+    .donut-chart-wrap { position: relative; width: 140px; height: 140px; flex-shrink: 0; }
+    .donut-legend { flex: 1; min-width: 120px; }
+    .legend-item { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.825rem; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .legend-name { color: #5f6368; flex: 1; }
+    .legend-val  { font-weight: 700; color: #202124; }
+    .legend-pct  { color: #80868b; font-size: 0.75rem; }
+
+    .empty-msg { text-align: center; color: #80868b; padding: 2rem; font-size: 0.875rem; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- 헤더 -->
+  <div class="analytics-header">
+    <div style="display:flex;align-items:center;gap:1rem;">
+      <span class="analytics-title">📈 방문 통계</span>
+      <div class="realtime-badge">
+        <div class="rt-dot"></div>
+        <span id="rt-count">-</span>명 실시간
+      </div>
+    </div>
+    <div class="period-selector">
+      <button class="period-btn" data-days="1">오늘</button>
+      <button class="period-btn active" data-days="7">7일</button>
+      <button class="period-btn" data-days="28">28일</button>
+      <button class="period-btn" data-days="90">90일</button>
+    </div>
+  </div>
+
+  <!-- 핵심 지표 -->
+  <div class="metric-grid">
+    <div class="metric-card blue">
+      <div class="metric-label">사용자 (순방문자)</div>
+      <div class="metric-value" id="m-users">-</div>
+      <div id="m-users-delta"></div>
+      <div class="metric-sub" id="m-users-sub"></div>
+    </div>
+    <div class="metric-card green">
+      <div class="metric-label">페이지뷰</div>
+      <div class="metric-value" id="m-pageviews">-</div>
+      <div id="m-pageviews-delta"></div>
+    </div>
+    <div class="metric-card orange">
+      <div class="metric-label">신규 방문자</div>
+      <div class="metric-value" id="m-new">-</div>
+      <div class="metric-sub" id="m-new-sub"></div>
+    </div>
+    <div class="metric-card purple">
+      <div class="metric-label">재방문자</div>
+      <div class="metric-value" id="m-returning">-</div>
+      <div class="metric-sub" id="m-returning-sub"></div>
+    </div>
+  </div>
+
+  <!-- 트렌드 차트 -->
+  <div class="card">
+    <div class="card-title">
+      <span>방문자 트렌드</span>
+      <div style="display:flex;gap:1rem;font-size:0.775rem;font-weight:500;">
+        <span style="color:#1a73e8;">━ 사용자</span>
+        <span style="color:#34a853;">━ 페이지뷰</span>
+      </div>
+    </div>
+    <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+  </div>
+
+  <!-- 히트맵 + 인기페이지 -->
+  <div class="two-col">
+    <!-- 시간대별 히트맵 -->
+    <div class="card">
+      <div class="card-title">시간대별 방문 패턴</div>
+      <div class="heatmap-wrap">
+        <div class="heatmap" id="heatmap-grid"></div>
+      </div>
+      <div class="heatmap-legend" style="margin-top:0.75rem;">
+        <span>적음</span>
+        <div class="legend-bar" id="heatmap-legend-bar"></div>
+        <span>많음</span>
+      </div>
+    </div>
+
+    <!-- 기기/브라우저 -->
+    <div class="card">
+      <div class="card-title">기기 유형</div>
+      <div class="donut-wrap" id="device-wrap">
+        <div class="donut-chart-wrap"><canvas id="deviceChart"></canvas></div>
+        <div class="donut-legend" id="device-legend"></div>
+      </div>
+      <div class="card-title" style="margin-top:1.25rem;">브라우저</div>
+      <div class="donut-wrap" id="browser-wrap">
+        <div class="donut-chart-wrap"><canvas id="browserChart"></canvas></div>
+        <div class="donut-legend" id="browser-legend"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 인기 페이지 -->
+  <div class="card">
+    <div class="card-title">인기 페이지 TOP 10</div>
+    <div id="top-pages-wrap">
+      <div class="empty-msg">불러오는 중...</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function getToken() {
+    return localStorage.getItem('eden_token') ||
+      (window.parent !== window && window.parent.localStorage.getItem('eden_token')) || null;
+  }
+
+  const DEVICE_COLORS  = ['#1a73e8','#34a853','#fa7b17'];
+  const BROWSER_COLORS = ['#1a73e8','#34a853','#fa7b17','#a142f4','#e8710a','#80868b'];
+  const HEATMAP_COLORS = ['#f1f3f4','#d2e3fc','#a8c7fa','#7baaf7','#4285f4','#1a73e8','#1557b0'];
+  const DAY_LABELS = ['일','월','화','수','목','금','토'];
+
+  let currentDays = 7;
+  let trendChart = null, deviceChart = null, browserChart = null;
+
+  /* ── 기간 선택 ── */
+  document.querySelectorAll('.period-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentDays = parseInt(btn.dataset.days);
+      loadAll();
+    });
+  });
+
+  /* ── 전체 로드 ── */
+  function loadAll() {
+    loadSummary();
+    loadTrend();
+    loadHeatmap();
+    loadDevices();
+    loadTopPages();
+  }
+
+  /* ── 핵심 지표 ── */
+  async function loadSummary() {
+    try {
+      const res = await fetch(`/api/analytics/summary?days=${currentDays}`, { headers: { Authorization: 'Bearer ' + getToken() } });
+      const data = await res.json();
+      if (!data.ok) return;
+      const d = data.data;
+
+      document.getElementById('rt-count').textContent = d.realtime;
+      document.getElementById('m-users').textContent = d.users.value.toLocaleString();
+      document.getElementById('m-pageviews').textContent = d.pageviews.value.toLocaleString();
+      document.getElementById('m-new').textContent = d.newUsers.value.toLocaleString();
+      document.getElementById('m-returning').textContent = d.returning.value.toLocaleString();
+
+      const total = d.users.value || 1;
+      document.getElementById('m-new-sub').textContent = `전체의 ${Math.round(d.newUsers.value/total*100)}%`;
+      document.getElementById('m-returning-sub').textContent = `전체의 ${Math.round(d.returning.value/total*100)}%`;
+
+      renderDelta('m-users-delta', d.users.pct);
+      renderDelta('m-pageviews-delta', d.pageviews.pct);
+      document.getElementById('m-users-sub').textContent = `이전 ${currentDays}일 대비`;
+    } catch {}
+  }
+
+  function renderDelta(id, pct) {
+    const el = document.getElementById(id);
+    if (pct === null) { el.innerHTML = ''; return; }
+    const cls = pct > 0 ? 'delta-up' : pct < 0 ? 'delta-down' : 'delta-flat';
+    const arrow = pct > 0 ? '▲' : pct < 0 ? '▼' : '─';
+    el.innerHTML = `<span class="metric-delta ${cls}">${arrow} ${Math.abs(pct)}%</span>`;
+  }
+
+  /* ── 트렌드 차트 ── */
+  async function loadTrend() {
+    try {
+      const res = await fetch(`/api/analytics/trend?days=${currentDays}`, { headers: { Authorization: 'Bearer ' + getToken() } });
+      const data = await res.json();
+      if (!data.ok) return;
+      const rows = data.data;
+      const labels = rows.map(r => r.label);
+      const users  = rows.map(r => Number(r.users));
+      const pvs    = rows.map(r => Number(r.pageviews));
+
+      if (trendChart) trendChart.destroy();
+      const ctx = document.getElementById('trendChart').getContext('2d');
+      trendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: '사용자', data: users, borderColor: '#1a73e8', backgroundColor: 'rgba(26,115,232,0.08)', borderWidth: 2, pointRadius: 3, fill: true, tension: 0.3 },
+            { label: '페이지뷰', data: pvs, borderColor: '#34a853', backgroundColor: 'rgba(52,168,83,0.06)', borderWidth: 2, pointRadius: 3, fill: true, tension: 0.3 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: c => c.dataset.label + ': ' + c.parsed.y.toLocaleString() } }
+          },
+          scales: {
+            x: { grid: { color: '#f1f3f4' }, ticks: { font: { size: 11 } } },
+            y: { beginAtZero: true, grid: { color: '#f1f3f4' }, ticks: { font: { size: 11 } } }
+          }
+        }
+      });
+    } catch {}
+  }
+
+  /* ── 히트맵 ── */
+  async function loadHeatmap() {
+    try {
+      const res = await fetch(`/api/analytics/hourly?days=${currentDays}`, { headers: { Authorization: 'Bearer ' + getToken() } });
+      const data = await res.json();
+      if (!data.ok) return;
+      const rows = data.data;
+
+      const map = {};
+      let maxVal = 0;
+      rows.forEach(r => {
+        const key = `${r.dow}-${r.hour}`;
+        map[key] = Number(r.visitors);
+        if (map[key] > maxVal) maxVal = map[key];
+      });
+
+      const grid = document.getElementById('heatmap-grid');
+      grid.innerHTML = '';
+
+      const getColor = v => {
+        if (!v || maxVal === 0) return HEATMAP_COLORS[0];
+        const idx = Math.ceil((v / maxVal) * (HEATMAP_COLORS.length - 1));
+        return HEATMAP_COLORS[Math.min(idx, HEATMAP_COLORS.length - 1)];
+      };
+
+      // 시간 헤더
+      grid.appendChild(Object.assign(document.createElement('div'), { className: 'heatmap-label' }));
+      for (let h = 0; h < 24; h++) {
+        const el = document.createElement('div');
+        el.className = 'heatmap-hour';
+        el.textContent = h % 6 === 0 ? h + '시' : '';
+        grid.appendChild(el);
+      }
+
+      for (let d = 0; d < 7; d++) {
+        const label = document.createElement('div');
+        label.className = 'heatmap-label';
+        label.textContent = DAY_LABELS[d];
+        grid.appendChild(label);
+        for (let h = 0; h < 24; h++) {
+          const v = map[`${d}-${h}`] || 0;
+          const cell = document.createElement('div');
+          cell.className = 'heatmap-cell';
+          cell.style.background = getColor(v);
+          cell.setAttribute('data-tip', `${DAY_LABELS[d]} ${h}시 · ${v}명`);
+          grid.appendChild(cell);
+        }
+      }
+
+      // 범례
+      const bar = document.getElementById('heatmap-legend-bar');
+      bar.innerHTML = HEATMAP_COLORS.map(c => `<div class="legend-swatch" style="background:${c}"></div>`).join('');
+    } catch {}
+  }
+
+  /* ── 기기/브라우저 ── */
+  async function loadDevices() {
+    try {
+      const res = await fetch(`/api/analytics/devices?days=${currentDays}`, { headers: { Authorization: 'Bearer ' + getToken() } });
+      const data = await res.json();
+      if (!data.ok) return;
+      const { devices, browsers } = data.data;
+
+      renderDonut('deviceChart', deviceChart, devices, DEVICE_COLORS, 'device-legend', c => deviceChart = c);
+      renderDonut('browserChart', browserChart, browsers.slice(0, 5), BROWSER_COLORS, 'browser-legend', c => browserChart = c);
+    } catch {}
+  }
+
+  function renderDonut(canvasId, oldChart, items, colors, legendId, setChart) {
+    if (oldChart) oldChart.destroy();
+    const total = items.reduce((s, i) => s + i.value, 0) || 1;
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: items.map(i => i.name),
+        datasets: [{ data: items.map(i => i.value), backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '65%',
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.label + ': ' + c.parsed.toLocaleString() + '명' } } }
+      }
+    });
+    setChart(chart);
+
+    document.getElementById(legendId).innerHTML = items.map((item, i) => `
+      <div class="legend-item">
+        <div class="legend-dot" style="background:${colors[i % colors.length]}"></div>
+        <span class="legend-name">${item.name}</span>
+        <span class="legend-val">${item.value.toLocaleString()}</span>
+        <span class="legend-pct">(${Math.round(item.value/total*100)}%)</span>
+      </div>
+    `).join('');
+  }
+
+  /* ── 인기 페이지 ── */
+  async function loadTopPages() {
+    const wrap = document.getElementById('top-pages-wrap');
+    try {
+      const res = await fetch(`/api/analytics/top-pages?days=${currentDays}&limit=10`, { headers: { Authorization: 'Bearer ' + getToken() } });
+      const data = await res.json();
+      if (!data.ok || !data.data.length) { wrap.innerHTML = '<div class="empty-msg">데이터가 없습니다.</div>'; return; }
+
+      const rows = data.data;
+      const maxPv = Math.max(...rows.map(r => Number(r.pageviews))) || 1;
+
+      wrap.innerHTML = `
+        <table class="pages-table">
+          <thead><tr>
+            <th>페이지</th>
+            <th style="text-align:right;">페이지뷰</th>
+            <th style="text-align:right;">사용자</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map((r, i) => `
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span style="color:#80868b;font-size:0.775rem;width:1.2rem;">${i+1}</span>
+                    <div style="flex:1;">
+                      <div class="page-path">${r.path || '/'}</div>
+                      <div class="page-bar-wrap"><div class="page-bar" style="width:${Math.round(Number(r.pageviews)/maxPv*100)}%"></div></div>
+                    </div>
+                  </div>
+                </td>
+                <td style="text-align:right;font-weight:700;">${Number(r.pageviews).toLocaleString()}</td>
+                <td style="text-align:right;color:#5f6368;">${Number(r.users).toLocaleString()}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    } catch { wrap.innerHTML = '<div class="empty-msg">불러오기 실패</div>'; }
+  }
+
+  /* ── 초기화 ── */
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.parent !== window) document.body.style.background = 'transparent';
+    const savedPrimary = localStorage.getItem('theme_primary');
+    if (savedPrimary) document.documentElement.style.setProperty('--primary', savedPrimary);
+    loadAll();
+    setInterval(loadSummary, 30000);
+  });
+</script>
+</body>
+</html>

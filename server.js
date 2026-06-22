@@ -3096,6 +3096,164 @@ app.get('/api/visitor-chart', authMiddleware, async (req, res) => {
 });
 
 /* ─────────────────────────────────────────
+   API: 방문 통계 (Analytics)
+───────────────────────────────────────── */
+
+// 핵심 지표 요약 (GA4: 사용자/세션/페이지뷰/평균세션시간)
+app.get('/api/analytics/summary', authMiddleware, async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 28;
+    const interval = `INTERVAL ${days} DAY`;
+    const prevInterval = `INTERVAL ${days * 2} DAY`;
+
+    // 현재 기간
+    const [[cur]] = await pool.query(`
+      SELECT
+        COUNT(DISTINCT ip_address) as users,
+        COUNT(*) as pageviews
+      FROM access_logs
+      WHERE created_at >= DATE_SUB(NOW(), ${interval})
+    `);
+    // 이전 기간 (비교용)
+    const [[prev]] = await pool.query(`
+      SELECT
+        COUNT(DISTINCT ip_address) as users,
+        COUNT(*) as pageviews
+      FROM access_logs
+      WHERE created_at >= DATE_SUB(NOW(), ${prevInterval})
+        AND created_at < DATE_SUB(NOW(), ${interval})
+    `);
+    // 신규 방문자 (해당 기간 이전에 방문 기록 없는 IP)
+    const [[newUsers]] = await pool.query(`
+      SELECT COUNT(DISTINCT a.ip_address) as count
+      FROM access_logs a
+      WHERE a.created_at >= DATE_SUB(NOW(), ${interval})
+        AND NOT EXISTS (
+          SELECT 1 FROM access_logs b
+          WHERE b.ip_address = a.ip_address
+            AND b.created_at < DATE_SUB(NOW(), ${interval})
+        )
+    `);
+    // 실시간 (최근 5분)
+    const [[realtime]] = await pool.query(`
+      SELECT COUNT(DISTINCT ip_address) as count
+      FROM access_logs
+      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+    `);
+
+    const pct = (cur, prev) => prev > 0 ? Math.round((cur - prev) / prev * 100) : null;
+
+    ok(res, {
+      users:       { value: Number(cur.users),     prev: Number(prev.users),     pct: pct(cur.users, prev.users) },
+      pageviews:   { value: Number(cur.pageviews), prev: Number(prev.pageviews), pct: pct(cur.pageviews, prev.pageviews) },
+      newUsers:    { value: Number(newUsers.count) },
+      returning:   { value: Math.max(0, Number(cur.users) - Number(newUsers.count)) },
+      realtime:    Number(realtime.count),
+    });
+  } catch (e) { console.error(e); err(res, '통계 조회 실패'); }
+});
+
+// 시간대별 트래픽 (24시간 히트맵용)
+app.get('/api/analytics/hourly', authMiddleware, async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 7;
+    const [rows] = await pool.query(`
+      SELECT
+        DAYOFWEEK(created_at) - 1 as dow,
+        HOUR(created_at) as hour,
+        COUNT(DISTINCT ip_address) as visitors
+      FROM access_logs
+      WHERE created_at >= DATE_SUB(NOW(), INTERVAL ${days} DAY)
+      GROUP BY dow, hour
+      ORDER BY dow, hour
+    `);
+    ok(res, rows);
+  } catch (e) { err(res, '시간대별 조회 실패'); }
+});
+
+// 인기 페이지 TOP N
+app.get('/api/analytics/top-pages', authMiddleware, async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 28;
+    const limit = parseInt(req.query.limit) || 10;
+    const [rows] = await pool.query(`
+      SELECT
+        path,
+        COUNT(*) as pageviews,
+        COUNT(DISTINCT ip_address) as users
+      FROM access_logs
+      WHERE created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+        AND method = 'GET'
+      GROUP BY path
+      ORDER BY pageviews DESC
+      LIMIT ?
+    `, [days, limit]);
+    ok(res, rows);
+  } catch (e) { err(res, '인기 페이지 조회 실패'); }
+});
+
+// 기기/브라우저 분석 (User-Agent 파싱)
+app.get('/api/analytics/devices', authMiddleware, async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 28;
+    const [rows] = await pool.query(`
+      SELECT user_agent, COUNT(DISTINCT ip_address) as users
+      FROM access_logs
+      WHERE created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+        AND user_agent IS NOT NULL
+      GROUP BY user_agent
+    `, [days]);
+
+    const deviceMap = { Mobile: 0, Tablet: 0, Desktop: 0 };
+    const browserMap = {};
+
+    rows.forEach(({ user_agent: ua, users }) => {
+      const n = Number(users);
+      // 기기
+      if (/mobile/i.test(ua) && !/tablet|ipad/i.test(ua)) deviceMap.Mobile += n;
+      else if (/tablet|ipad/i.test(ua)) deviceMap.Tablet += n;
+      else deviceMap.Desktop += n;
+      // 브라우저
+      let browser = 'Other';
+      if (/Edg\//i.test(ua))          browser = 'Edge';
+      else if (/Chrome/i.test(ua))    browser = 'Chrome';
+      else if (/Safari/i.test(ua))    browser = 'Safari';
+      else if (/Firefox/i.test(ua))   browser = 'Firefox';
+      else if (/MSIE|Trident/i.test(ua)) browser = 'IE';
+      browserMap[browser] = (browserMap[browser] || 0) + n;
+    });
+
+    ok(res, {
+      devices: Object.entries(deviceMap).map(([name, value]) => ({ name, value })),
+      browsers: Object.entries(browserMap).sort((a,b)=>b[1]-a[1]).map(([name, value]) => ({ name, value }))
+    });
+  } catch (e) { err(res, '기기 분석 실패'); }
+});
+
+// 일별 트렌드 (기간별 꺾은선)
+app.get('/api/analytics/trend', authMiddleware, async (req, res) => {
+  try {
+    const days = parseInt(req.query.days) || 28;
+    let groupBy, dateFormat;
+    if (days <= 28)      { groupBy = 'DAY';   dateFormat = '%m/%d'; }
+    else if (days <= 90) { groupBy = 'WEEK';  dateFormat = '%m/%d'; }
+    else                 { groupBy = 'MONTH'; dateFormat = '%Y/%m'; }
+
+    const [rows] = await pool.query(`
+      SELECT
+        DATE_FORMAT(MIN(created_at), ?) as label,
+        COUNT(DISTINCT ip_address) as users,
+        COUNT(*) as pageviews
+      FROM access_logs
+      WHERE created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)
+      GROUP BY ${groupBy}(created_at), YEAR(created_at)
+      ORDER BY MIN(created_at) ASC
+    `, [dateFormat, days]);
+    ok(res, rows);
+  } catch (e) { err(res, '트렌드 조회 실패'); }
+});
+
+/* ─────────────────────────────────────────
    API: 차단 IP 관리
 ───────────────────────────────────────── */
 // 목록 조회
