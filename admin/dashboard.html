@@ -418,7 +418,16 @@
       setInterval(loadDashboardStats, 30000);
 
       loadSystemMonitoring();
-      setInterval(loadSystemMonitoring, 5000);
+      let monitorTick = 0;
+      setInterval(() => {
+        loadSystemMonitoring();
+        monitorTick++;
+        if (monitorTick % 60 === 0) {
+          if (window.parent !== window && typeof window.parent.initVersionBadge === 'function') {
+            window.parent.initVersionBadge();
+          }
+        }
+      }, 5000);
     });
   </script>
 </body>
