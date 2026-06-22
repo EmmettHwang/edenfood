@@ -36,9 +36,48 @@ app.use(express.json({
 // 봇/스캐너 제외 카운터
 let filteredBotCount = 0;
 
+// 차단 IP 인메모리 캐시 (서버 재시작 시 DB에서 로드)
+let blockedIpCache = new Set();
+async function loadBlockedIps() {
+  try {
+    const [rows] = await pool.query('SELECT ip_address FROM blocked_ips');
+    blockedIpCache = new Set(rows.map(r => r.ip_address));
+    console.log(`✅ 차단 IP ${blockedIpCache.size}개 로드`);
+  } catch (e) { console.error('차단 IP 로드 실패:', e.message); }
+}
+
+// 해킹 스캔 패턴 감지 후 자동 차단 (누적 5회)
+const scanHitMap = {};
+async function checkAutoBlock(ip, path) {
+  if (!SCAN_PATH_RE.test(path)) return;
+  scanHitMap[ip] = (scanHitMap[ip] || 0) + 1;
+  if (scanHitMap[ip] >= 5) {
+    try {
+      await pool.query(
+        `INSERT INTO blocked_ips (ip_address, reason, type, hit_count, last_seen)
+         VALUES (?, '해킹 스캔 패턴 자동 차단', 'auto', ?, NOW())
+         ON DUPLICATE KEY UPDATE hit_count=hit_count+1, last_seen=NOW()`,
+        [ip, scanHitMap[ip]]
+      );
+      blockedIpCache.add(ip);
+    } catch (e) {}
+  }
+}
+
 // 봇 User-Agent 패턴
 const BOT_UA_RE = /bot|crawl|spider|slurp|facebookexternalhit|python|curl|wget|scrapy|httpclient|java\/|libwww|go-http|axios|node-fetch|okhttp|grammarly|libredtail|masscan|zgrab|nmap|nikto|sqlmap|dirbuster|nuclei|shodan|censys|scanner|audit|l9scan|leakix|odin|zgrab|expanse|intrigue|binaryedge|fofa|quake|hunter|netlas|xray|fscan/i;
 const SCAN_PATH_RE = /\.(php|asp|aspx|env|git|svn|bak|sql|sh|cgi)$|phpunit|eval-stdin|\.well-known\/security|wp-admin|wp-login|phpmyadmin|containers\/json/i;
+
+// 차단 IP 미들웨어 (모든 요청에 적용)
+app.use((req, res, next) => {
+  const rawIp = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.connection.remoteAddress || req.socket.remoteAddress;
+  const ip = rawIp?.replace('::ffff:', '');
+  if (ip && blockedIpCache.has(ip)) {
+    pool.query('UPDATE blocked_ips SET hit_count=hit_count+1, last_seen=NOW() WHERE ip_address=?', [ip]).catch(() => {});
+    return res.status(403).send('Forbidden');
+  }
+  next();
+});
 
 // 접속 로그 기록 미들웨어 (실제 웹 방문자만 기록)
 app.use(async (req, res, next) => {
@@ -60,10 +99,11 @@ app.use(async (req, res, next) => {
 
     // 로컬·내부 요청 제외
     if (!ip || ip === '127.0.0.1' || ip === '::1') return next();
-    // 봇/스캐너 → bot_logs에 기록
+    // 봇/스캐너 → bot_logs에 기록 + 자동 차단 체크
     if (BOT_UA_RE.test(ua) || SCAN_PATH_RE.test(req.path)) {
       filteredBotCount++;
       pool.query('INSERT INTO bot_logs (ip_address) VALUES (?)', [ip]).catch(() => {});
+      checkAutoBlock(ip, req.path);
       return next();
     }
 
@@ -924,6 +964,20 @@ async function initTables() {
         ip_address  VARCHAR(45)   NOT NULL,
         created_at  DATETIME      DEFAULT CURRENT_TIMESTAMP,
         INDEX idx_date (created_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 25. 차단 IP 목록
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS blocked_ips (
+        id          INT           AUTO_INCREMENT PRIMARY KEY,
+        ip_address  VARCHAR(45)   NOT NULL UNIQUE,
+        reason      VARCHAR(255)  DEFAULT '',
+        type        ENUM('auto','manual') DEFAULT 'manual',
+        hit_count   INT           DEFAULT 0,
+        last_seen   DATETIME      NULL,
+        created_at  DATETIME      DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_ip (ip_address)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
@@ -3041,6 +3095,55 @@ app.get('/api/visitor-chart', authMiddleware, async (req, res) => {
   }
 });
 
+/* ─────────────────────────────────────────
+   API: 차단 IP 관리
+───────────────────────────────────────── */
+// 목록 조회
+app.get('/api/blocked-ips', authMiddleware, async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM blocked_ips ORDER BY created_at DESC LIMIT 500'
+    );
+    ok(res, rows);
+  } catch (e) { err(res, '조회 실패'); }
+});
+
+// 수동 추가
+app.post('/api/blocked-ips', authMiddleware, async (req, res) => {
+  try {
+    const { ip_address, reason } = req.body;
+    if (!ip_address) return err(res, 'IP 주소가 필요합니다.', 400);
+    await pool.query(
+      `INSERT INTO blocked_ips (ip_address, reason, type)
+       VALUES (?, ?, 'manual')
+       ON DUPLICATE KEY UPDATE reason=VALUES(reason), type='manual'`,
+      [ip_address.trim(), reason || '수동 차단']
+    );
+    blockedIpCache.add(ip_address.trim());
+    ok(res, { message: '차단 IP 등록 완료' });
+  } catch (e) { err(res, '등록 실패'); }
+});
+
+// 삭제 (차단 해제)
+app.delete('/api/blocked-ips/:id', authMiddleware, async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT ip_address FROM blocked_ips WHERE id=?', [req.params.id]);
+    if (rows.length) blockedIpCache.delete(rows[0].ip_address);
+    await pool.query('DELETE FROM blocked_ips WHERE id=?', [req.params.id]);
+    ok(res, { message: '차단 해제 완료' });
+  } catch (e) { err(res, '삭제 실패'); }
+});
+
+// 전체 통계
+app.get('/api/blocked-ips/stats', authMiddleware, async (req, res) => {
+  try {
+    const [[{ total }]] = await pool.query('SELECT COUNT(*) as total FROM blocked_ips');
+    const [[{ auto_count }]] = await pool.query("SELECT COUNT(*) as auto_count FROM blocked_ips WHERE type='auto'");
+    const [[{ manual_count }]] = await pool.query("SELECT COUNT(*) as manual_count FROM blocked_ips WHERE type='manual'");
+    ok(res, { total, auto_count, manual_count });
+  } catch (e) { err(res, '통계 조회 실패'); }
+});
+
 // 데이터베이스 백업 API
 app.post('/api/database/backup', authMiddleware, async (req, res) => {
   try {
@@ -4105,8 +4208,9 @@ async function start() {
     process.exit(1);
   }
   await initTables();
+  await loadBlockedIps();
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚗 이든푸드 차량 운행기록부 서버 시작 - http://0.0.0.0:${PORT}`);
+    console.log(`✅ 이든푸드 서버 시작 - http://0.0.0.0:${PORT}`);
   });
 }
 
