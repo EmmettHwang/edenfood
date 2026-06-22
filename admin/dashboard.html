@@ -71,6 +71,33 @@
     .monitor-swap   .monitor-value { color: #06b6d4; }
     .monitor-disk   .monitor-value { color: #f59e0b; }
 
+    /* 방문통계 미니 위젯 */
+    .mini-analytics-section {
+      background: white; border-radius: 0.75rem; padding: 1.5rem;
+      margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .mini-metric-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;
+    }
+    .mini-metric {
+      background: #f9fafb; border-radius: 0.5rem; padding: 1rem;
+      border-left: 3px solid #e5e7eb; cursor: pointer; transition: all 0.15s;
+    }
+    .mini-metric:hover { background: #f3f4f6; }
+    .mini-metric.blue  { border-left-color: #1a73e8; }
+    .mini-metric.green { border-left-color: #34a853; }
+    .mini-metric.orange{ border-left-color: #fa7b17; }
+    .mini-metric.teal  { border-left-color: #06b6d4; }
+    .mini-metric-label { font-size: 0.75rem; color: #6b7280; margin-bottom: 0.3rem; }
+    .mini-metric-value { font-size: 1.5rem; font-weight: 700; color: #111827; }
+    .mini-metric-delta { font-size: 0.7rem; font-weight: 600; margin-top: 0.2rem; }
+    .delta-up   { color: #137333; }
+    .delta-down { color: #c5221f; }
+    .delta-flat { color: #80868b; }
+    .mini-realtime { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 600; color: #137333; }
+    .mini-rt-dot { width: 7px; height: 7px; border-radius: 50%; background: #34a853; animation: pulse 1.5s infinite; }
+    .mini-chart-wrap { position: relative; height: 120px; }
+
     .state-badge {
       display: inline-block; padding: 0.18rem 0.55rem;
       border-radius: 999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.02em; white-space: nowrap;
@@ -129,6 +156,38 @@
       <div class="chart-wrapper">
         <canvas id="visitorChart"></canvas>
       </div>
+    </div>
+
+    <!-- 방문통계 미니 위젯 -->
+    <div class="mini-analytics-section">
+      <div class="section-header">
+        <h3 class="section-title">📈 방문 통계 <span style="font-size:0.75rem;font-weight:400;color:#9ca3af;">(최근 7일)</span></h3>
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <span class="mini-realtime"><span class="mini-rt-dot"></span><span id="mini-rt-count">-</span>명 실시간</span>
+          <button onclick="if(window.parent!==window&&window.parent.loadContent)window.parent.loadContent('analytics');" style="font-size:0.8rem;color:#1a73e8;background:none;border:none;cursor:pointer;font-weight:600;">전체보기 →</button>
+        </div>
+      </div>
+      <div class="mini-metric-grid">
+        <div class="mini-metric blue">
+          <div class="mini-metric-label">순방문자</div>
+          <div class="mini-metric-value" id="mini-users">-</div>
+          <div class="mini-metric-delta" id="mini-users-delta"></div>
+        </div>
+        <div class="mini-metric green">
+          <div class="mini-metric-label">페이지뷰</div>
+          <div class="mini-metric-value" id="mini-pageviews">-</div>
+          <div class="mini-metric-delta" id="mini-pageviews-delta"></div>
+        </div>
+        <div class="mini-metric orange">
+          <div class="mini-metric-label">신규 방문자</div>
+          <div class="mini-metric-value" id="mini-new">-</div>
+        </div>
+        <div class="mini-metric teal">
+          <div class="mini-metric-label">재방문자</div>
+          <div class="mini-metric-value" id="mini-returning">-</div>
+        </div>
+      </div>
+      <div class="mini-chart-wrap"><canvas id="miniTrendChart"></canvas></div>
     </div>
 
     <!-- 시스템 모니터링 -->
@@ -405,6 +464,68 @@
       } catch (e) { console.error('시스템 모니터링 실패:', e); }
     }
 
+    /* ── 방문통계 미니 위젯 ── */
+    let miniTrendChart = null;
+
+    async function loadMiniAnalytics() {
+      try {
+        const token = getToken();
+        const [sumRes, trendRes] = await Promise.all([
+          fetch('/api/analytics/summary?days=7', { headers: { 'Authorization': 'Bearer ' + token } }),
+          fetch('/api/analytics/trend?days=7',   { headers: { 'Authorization': 'Bearer ' + token } })
+        ]);
+        const sumData   = await sumRes.json();
+        const trendData = await trendRes.json();
+
+        if (sumData.ok) {
+          const d = sumData.data;
+          document.getElementById('mini-rt-count').textContent   = d.realtime;
+          document.getElementById('mini-users').textContent      = d.users.value.toLocaleString();
+          document.getElementById('mini-pageviews').textContent  = d.pageviews.value.toLocaleString();
+          document.getElementById('mini-new').textContent        = d.newUsers.value.toLocaleString();
+          document.getElementById('mini-returning').textContent  = d.returning.value.toLocaleString();
+          renderMiniDelta('mini-users-delta', d.users.pct);
+          renderMiniDelta('mini-pageviews-delta', d.pageviews.pct);
+        }
+
+        if (trendData.ok) {
+          const rows = trendData.data;
+          const labels = rows.map(r => r.label);
+          const users  = rows.map(r => Number(r.users));
+          const pvs    = rows.map(r => Number(r.pageviews));
+          if (miniTrendChart) miniTrendChart.destroy();
+          const ctx = document.getElementById('miniTrendChart').getContext('2d');
+          miniTrendChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [
+                { label:'순방문자', data: users, borderColor:'#1a73e8', backgroundColor:'rgba(26,115,232,0.08)', borderWidth:2, pointRadius:2, fill:true, tension:0.3 },
+                { label:'페이지뷰', data: pvs,   borderColor:'#34a853', backgroundColor:'rgba(52,168,83,0.06)',  borderWidth:2, pointRadius:2, fill:true, tension:0.3 }
+              ]
+            },
+            options: {
+              responsive:true, maintainAspectRatio:false,
+              interaction:{ mode:'index', intersect:false },
+              plugins:{ legend:{ display:true, position:'top', align:'end', labels:{ boxWidth:10, font:{ size:10 } } }, tooltip:{ callbacks:{ label: c => c.dataset.label+': '+c.parsed.y.toLocaleString() } } },
+              scales:{
+                x:{ grid:{ color:'#f3f4f6' }, ticks:{ font:{ size:10 } } },
+                y:{ beginAtZero:true, grid:{ color:'#f3f4f6' }, ticks:{ font:{ size:10 } } }
+              }
+            }
+          });
+        }
+      } catch (e) { console.error('방문통계 미니 위젯 로드 실패:', e); }
+    }
+
+    function renderMiniDelta(id, pct) {
+      const el = document.getElementById(id);
+      if (pct === null || pct === undefined) { el.innerHTML = ''; return; }
+      const cls   = pct > 0 ? 'delta-up' : pct < 0 ? 'delta-down' : 'delta-flat';
+      const arrow = pct > 0 ? '▲' : pct < 0 ? '▼' : '─';
+      el.innerHTML = `<span class="${cls}">${arrow} ${Math.abs(pct)}% (전주 대비)</span>`;
+    }
+
     /* ── 초기화 ── */
     document.addEventListener('DOMContentLoaded', () => {
       const savedPrimary = localStorage.getItem('theme_primary');
@@ -416,6 +537,9 @@
       loadDashboardStats();
       loadVisitorChart(currentPeriod);
       setInterval(loadDashboardStats, 30000);
+
+      loadMiniAnalytics();
+      setInterval(loadMiniAnalytics, 60000);
 
       loadSystemMonitoring();
       let monitorTick = 0;

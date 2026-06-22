@@ -524,157 +524,134 @@
   </div>
   
   <script>
-    // 전역 변수
+    function getToken() {
+      return localStorage.getItem('eden_token') ||
+        (window.parent !== window && window.parent.localStorage.getItem('eden_token')) || null;
+    }
+
     let banners = [];
     let currentBannerId = null;
     let currentIconFile = null;
-    
-    // 페이지 로드 시 초기화
+    let currentIconDataUrl = null;
+
     document.addEventListener('DOMContentLoaded', async () => {
-      // iframe 내에서 실행 중인지 확인
       if (window.parent !== window) {
         const header = document.querySelector('.header');
-        if (header) {
-          header.style.display = 'none';
-        }
+        if (header) header.style.display = 'none';
         const container = document.querySelector('.container');
-        if (container) {
-          container.style.paddingTop = '1rem';
-        }
+        if (container) container.style.paddingTop = '1rem';
       }
-      
-      // 인증 체크
-      const token = localStorage.getItem('eden_token');
-      if (!token) {
-        if (window.parent === window) {
-          location.href = '/login';
-        }
+
+      if (!getToken()) {
+        if (window.parent === window) location.href = '/login';
         return;
       }
-      
-      // 배너 데이터 로드
+
       await loadBanners();
     });
-    
-    // 배너 데이터 로드
+
     async function loadBanners() {
       try {
-        const token = localStorage.getItem('eden_token');
-        const response = await fetch('/api/hero-banners', {
-          headers: {
-            'Authorization': 'Bearer ' + token
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          banners = data.banners || [];
-        } else if (response.status === 404) {
-          // API가 없는 경우 로컬 스토리지에서 로드
-          banners = JSON.parse(localStorage.getItem('hero_banners') || '[]');
+        const res = await fetch('/api/hero-banners', { headers: { 'Authorization': 'Bearer ' + getToken() } });
+        const data = await res.json();
+        banners = data.banners || [];
+
+        if (banners.length === 0) {
+          const defaults = [
+            { icon: '🏪', number: '500', unit: '+', label: '거래처', active: true, order: 1 },
+            { icon: '📅', number: '15', unit: '년', label: '업력', active: true, order: 2 },
+            { icon: '😊', number: '99', unit: '%', label: '고객 만족도', active: true, order: 3 },
+            { icon: '📦', number: '365', unit: '일', label: '연중 무휴 공급', active: true, order: 4 }
+          ];
+          await fetch('/api/hero-banners', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ banners: defaults })
+          });
+          const res2 = await fetch('/api/hero-banners', { headers: { 'Authorization': 'Bearer ' + getToken() } });
+          const data2 = await res2.json();
+          banners = data2.banners || [];
         }
-      } catch (error) {
-        console.error('배너 로드 실패:', error);
-        // 로컬 스토리지에서 로드
-        banners = JSON.parse(localStorage.getItem('hero_banners') || '[]');
+      } catch (e) {
+        console.error('배너 로드 실패:', e);
+        banners = [];
       }
-      
-      // 기본 배너가 없으면 추가
-      if (banners.length === 0) {
-        banners = [
-          { id: 1, icon: '🏪', number: '500', unit: '+', label: '거래처', active: true, order: 1 },
-          { id: 2, icon: '📅', number: '15', unit: '년', label: '업력', active: true, order: 2 },
-          { id: 3, icon: '😊', number: '99', unit: '%', label: '고객 만족도', active: true, order: 3 },
-          { id: 4, icon: '📦', number: '365', unit: '일', label: '연중 무휴 공급', active: true, order: 4 }
-        ];
-        saveBannersToStorage();
-      }
-      
       renderBanners();
       updatePreview();
     }
-    
-    // 배너 목록 렌더링
+
     function renderBanners() {
       const bannerList = document.getElementById('banner-list');
       const emptyState = document.getElementById('empty-state');
-      
+
       if (banners.length === 0) {
         bannerList.style.display = 'none';
         emptyState.style.display = 'block';
         return;
       }
-      
+
       bannerList.style.display = 'block';
       emptyState.style.display = 'none';
-      
-      // 순서대로 정렬
-      const sortedBanners = [...banners].sort((a, b) => a.order - b.order);
-      
-      bannerList.innerHTML = sortedBanners.map((banner, index) => `
+
+      const sorted = [...banners].sort((a, b) => a.order - b.order);
+      bannerList.innerHTML = sorted.map((banner, index) => `
         <div class="banner-item">
           <div class="banner-preview">
-            ${banner.iconImage ? `<img src="${banner.iconImage}" alt="${banner.label}" />` : banner.icon}
+            ${banner.iconImage ? `<img src="${banner.iconImage}" alt="${banner.label}" />` : (banner.icon || '🖼️')}
           </div>
-          
           <div class="banner-info">
             <div class="banner-title">${banner.number}${banner.unit} ${banner.label}</div>
             <div class="banner-subtitle">
-              ${banner.active ? '<span style="color: #16a34a;">● 활성화</span>' : '<span style="color: #dc2626;">● 비활성화</span>'}
+              ${banner.active ? '<span style="color:#16a34a;">● 활성화</span>' : '<span style="color:#dc2626;">● 비활성화</span>'}
             </div>
             ${banner.link ? `<a href="${banner.link}" class="banner-link" target="_blank">${banner.link}</a>` : ''}
           </div>
-          
-          <div style="display: flex; align-items: center; gap: 1rem;">
+          <div style="display:flex;align-items:center;gap:1rem;">
             <div class="banner-order">
-              <button class="order-btn" onclick="moveBanner(${banner.id}, 'up')" ${index === 0 ? 'disabled' : ''}>↑</button>
-              <span>순서 ${index + 1}</span>
-              <button class="order-btn" onclick="moveBanner(${banner.id}, 'down')" ${index === sortedBanners.length - 1 ? 'disabled' : ''}>↓</button>
+              <button class="order-btn" onclick="moveBanner(${banner.id},'up')" ${index===0?'disabled':''}>↑</button>
+              <span>순서 ${index+1}</span>
+              <button class="order-btn" onclick="moveBanner(${banner.id},'down')" ${index===sorted.length-1?'disabled':''}>↓</button>
             </div>
-            
             <div class="banner-actions">
-              <button class="btn btn-secondary" onclick="editBanner(${banner.id})" style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">수정</button>
-              <button class="btn btn-danger" onclick="deleteBanner(${banner.id})" style="padding: 0.5rem 0.75rem; font-size: 0.75rem;">삭제</button>
+              <button class="btn btn-secondary" onclick="editBanner(${banner.id})" style="padding:0.5rem 0.75rem;font-size:0.75rem;">수정</button>
+              <button class="btn btn-danger" onclick="deleteBanner(${banner.id})" style="padding:0.5rem 0.75rem;font-size:0.75rem;">삭제</button>
             </div>
           </div>
         </div>
       `).join('');
     }
-    
-    // 미리보기 업데이트
+
     function updatePreview() {
       const previewStats = document.getElementById('preview-stats');
-      const activeBanners = banners.filter(b => b.active).sort((a, b) => a.order - b.order);
-      
-      previewStats.innerHTML = activeBanners.map((banner, index) => `
-        ${index > 0 ? '<div class="preview-divider"></div>' : ''}
-        <div class="preview-stat" ${banner.link ? `style="cursor: pointer;" onclick="window.open('${banner.link}', '_blank')"` : ''}>
-          ${banner.iconImage ? `<img src="${banner.iconImage}" alt="${banner.label}" style="width: 48px; height: 48px; margin-bottom: 0.5rem;" />` : `<div style="font-size: 3rem; margin-bottom: 0.5rem;">${banner.icon}</div>`}
-          <span class="preview-stat-num">${banner.number}</span><span class="preview-stat-unit">${banner.unit}</span>
-          <span class="preview-stat-label">${banner.label}</span>
+      const active = banners.filter(b => b.active).sort((a, b) => a.order - b.order);
+      previewStats.innerHTML = active.map((b, i) => `
+        ${i > 0 ? '<div class="preview-divider"></div>' : ''}
+        <div class="preview-stat" ${b.link ? `style="cursor:pointer;" onclick="window.open('${b.link}','_blank')"` : ''}>
+          ${b.iconImage ? `<img src="${b.iconImage}" alt="${b.label}" style="width:48px;height:48px;margin-bottom:0.5rem;" />` : `<div style="font-size:3rem;margin-bottom:0.5rem;">${b.icon || '🖼️'}</div>`}
+          <span class="preview-stat-num">${b.number}</span><span class="preview-stat-unit">${b.unit}</span>
+          <span class="preview-stat-label">${b.label}</span>
         </div>
       `).join('');
     }
-    
-    // 모달 열기 (추가)
+
     function openAddModal() {
       currentBannerId = null;
+      currentIconFile = null;
+      currentIconDataUrl = null;
       document.getElementById('modal-title').textContent = '새 배너 추가';
       document.getElementById('banner-form').reset();
       document.getElementById('banner-active').checked = true;
       document.getElementById('icon-preview').style.display = 'none';
       document.getElementById('icon-upload-text').style.display = 'block';
-      currentIconFile = null;
-      
       document.getElementById('banner-modal').classList.add('active');
     }
-    
-    // 배너 편집
+
     function editBanner(id) {
       const banner = banners.find(b => b.id === id);
       if (!banner) return;
-      
       currentBannerId = id;
+      currentIconFile = null;
+      currentIconDataUrl = banner.iconImage || null;
       document.getElementById('modal-title').textContent = '배너 수정';
       document.getElementById('banner-icon').value = banner.icon || '';
       document.getElementById('banner-number').value = banner.number;
@@ -682,7 +659,6 @@
       document.getElementById('banner-label').value = banner.label;
       document.getElementById('banner-link').value = banner.link || '';
       document.getElementById('banner-active').checked = banner.active;
-      
       if (banner.iconImage) {
         document.getElementById('icon-preview').src = banner.iconImage;
         document.getElementById('icon-preview').style.display = 'block';
@@ -691,163 +667,103 @@
         document.getElementById('icon-preview').style.display = 'none';
         document.getElementById('icon-upload-text').style.display = 'block';
       }
-      
       document.getElementById('banner-modal').classList.add('active');
     }
-    
-    // 모달 닫기
+
     function closeModal() {
       document.getElementById('banner-modal').classList.remove('active');
       currentBannerId = null;
       currentIconFile = null;
+      currentIconDataUrl = null;
     }
-    
-    // 아이콘 업로드 처리
+
     function handleIconUpload(event) {
       const file = event.target.files[0];
-      if (file) {
-        currentIconFile = file;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          document.getElementById('icon-preview').src = e.target.result;
-          document.getElementById('icon-preview').style.display = 'block';
-          document.getElementById('icon-upload-text').style.display = 'none';
-        };
-        reader.readAsDataURL(file);
-      }
+      if (!file) return;
+      currentIconFile = file;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        currentIconDataUrl = e.target.result;
+        document.getElementById('icon-preview').src = e.target.result;
+        document.getElementById('icon-preview').style.display = 'block';
+        document.getElementById('icon-upload-text').style.display = 'none';
+      };
+      reader.readAsDataURL(file);
     }
-    
-    // 배너 저장
+
     async function saveBanner() {
-      const icon = document.getElementById('banner-icon').value;
-      const number = document.getElementById('banner-number').value;
-      const unit = document.getElementById('banner-unit').value;
-      const label = document.getElementById('banner-label').value;
-      const link = document.getElementById('banner-link').value;
+      const icon   = document.getElementById('banner-icon').value;
+      const number = document.getElementById('banner-number').value.trim();
+      const unit   = document.getElementById('banner-unit').value.trim();
+      const label  = document.getElementById('banner-label').value.trim();
+      const link   = document.getElementById('banner-link').value.trim();
       const active = document.getElementById('banner-active').checked;
-      
+
       if (!number || !unit || !label) {
-        alert('필수 항목을 입력해주세요.');
+        showDialog && showDialog({ title:'알림', message:'숫자, 단위, 라벨은 필수 항목입니다.', type:'warning' });
         return;
       }
-      
-      let iconImage = null;
-      if (currentIconFile) {
-        // 이미지 업로드 처리 (실제로는 서버에 업로드해야 함)
-        const reader = new FileReader();
-        iconImage = await new Promise((resolve) => {
-          reader.onload = (e) => resolve(e.target.result);
-          reader.readAsDataURL(currentIconFile);
-        });
-      }
-      
-      if (currentBannerId) {
-        // 수정
-        const banner = banners.find(b => b.id === currentBannerId);
-        banner.icon = icon;
-        banner.number = number;
-        banner.unit = unit;
-        banner.label = label;
-        banner.link = link;
-        banner.active = active;
-        if (iconImage) {
-          banner.iconImage = iconImage;
-        }
-      } else {
-        // 추가
-        const newBanner = {
-          id: Date.now(),
-          icon: icon,
-          iconImage: iconImage,
-          number: number,
-          unit: unit,
-          label: label,
-          link: link,
-          active: active,
-          order: banners.length + 1
-        };
-        banners.push(newBanner);
-      }
-      
-      await saveBannersToStorage();
-      renderBanners();
-      updatePreview();
-      closeModal();
-    }
-    
-    // 배너 삭제
-    async function deleteBanner(id) {
-      if (!confirm('정말 이 배너를 삭제하시겠습니까?')) {
-        return;
-      }
-      
-      banners = banners.filter(b => b.id !== id);
-      
-      // 순서 재정렬
-      banners.forEach((banner, index) => {
-        banner.order = index + 1;
-      });
-      
-      await saveBannersToStorage();
-      renderBanners();
-      updatePreview();
-    }
-    
-    // 배너 순서 이동
-    async function moveBanner(id, direction) {
-      const sortedBanners = [...banners].sort((a, b) => a.order - b.order);
-      const index = sortedBanners.findIndex(b => b.id === id);
-      
-      if (direction === 'up' && index > 0) {
-        [sortedBanners[index].order, sortedBanners[index - 1].order] = 
-        [sortedBanners[index - 1].order, sortedBanners[index].order];
-      } else if (direction === 'down' && index < sortedBanners.length - 1) {
-        [sortedBanners[index].order, sortedBanners[index + 1].order] = 
-        [sortedBanners[index + 1].order, sortedBanners[index].order];
-      }
-      
-      await saveBannersToStorage();
-      renderBanners();
-      updatePreview();
-    }
-    
-    // 로컬 스토리지에 저장
-    async function saveBannersToStorage() {
-      localStorage.setItem('hero_banners', JSON.stringify(banners));
-      
-      // 서버에도 저장 시도
+
       try {
-        const token = localStorage.getItem('eden_token');
+        if (currentBannerId) {
+          const existingBanner = banners.find(b => b.id === currentBannerId);
+          await fetch(`/api/hero-banners/${currentBannerId}`, {
+            method: 'PUT',
+            headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              icon, iconImage: currentIconDataUrl || (existingBanner ? existingBanner.iconImage : null),
+              number, unit, label, link, active,
+              order: existingBanner ? existingBanner.order : 0
+            })
+          });
+        } else {
+          const maxOrder = banners.length > 0 ? Math.max(...banners.map(b => b.order)) : 0;
+          await fetch('/api/hero-banners/item', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ icon, iconImage: currentIconDataUrl, number, unit, label, link, active, order: maxOrder + 1 })
+          });
+        }
+        closeModal();
+        await loadBanners();
+      } catch (e) {
+        console.error('배너 저장 실패:', e);
+      }
+    }
+
+    async function deleteBanner(id) {
+      try {
+        await fetch(`/api/hero-banners/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + getToken() }
+        });
+        await loadBanners();
+      } catch (e) { console.error('배너 삭제 실패:', e); }
+    }
+
+    async function moveBanner(id, direction) {
+      const sorted = [...banners].sort((a, b) => a.order - b.order);
+      const index = sorted.findIndex(b => b.id === id);
+      if (direction === 'up' && index > 0) {
+        [sorted[index].order, sorted[index-1].order] = [sorted[index-1].order, sorted[index].order];
+      } else if (direction === 'down' && index < sorted.length - 1) {
+        [sorted[index].order, sorted[index+1].order] = [sorted[index+1].order, sorted[index].order];
+      }
+      try {
         await fetch('/api/hero-banners', {
           method: 'POST',
-          headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ banners })
+          headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ banners: sorted })
         });
-      } catch (error) {
-        console.error('서버 저장 실패:', error);
-      }
+        await loadBanners();
+      } catch (e) { console.error('순서 변경 실패:', e); }
     }
-    
-    // 돌아가기
-    function goBack() {
-      location.href = '/admin';
-    }
-    
-    // ESC 키로 모달 닫기
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeModal();
-      }
-    });
-    
-    // 모달 외부 클릭 시 닫기
+
+    function goBack() { location.href = '/admin'; }
+
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
     document.getElementById('banner-modal').addEventListener('click', (e) => {
-      if (e.target.id === 'banner-modal') {
-        closeModal();
-      }
+      if (e.target.id === 'banner-modal') closeModal();
     });
   </script>
 </body>

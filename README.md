@@ -4,7 +4,7 @@
 (주)이든푸드의 웹사이트 및 인트라넷 통합 관리 시스템입니다.
 
 ## 버전 정보
-- 현재 버전: Ver.3.9.20260622
+- 현재 버전: Ver.4.0.20260622
 - 버전 체계: 메이저.마이너.년월일
 - 마이너 버전이 9를 초과하면 메이저 버전 상승
 
@@ -130,6 +130,20 @@ ADMIN_PASSWORD=admin_password
 - POST `/api/upload/image` - 이미지 업로드
 
 ## 버전 히스토리
+
+### Ver.4.0.20260622
+- about.html: `getToken is not defined` 에러 수정 (parent window fallback 패턴 적용)
+- 히어로 배너 관리 DB 연동 완성
+  - hero_banners 테이블 신규 생성 (자동)
+  - 배너 CRUD API (GET/POST/PUT/DELETE /api/hero-banners)
+  - banner.html: localStorage 의존 제거 → DB API 완전 연동
+  - 기본 배너 4개 자동 초기화 (첫 실행 시)
+- 대시보드 방문통계 미니 위젯 추가
+  - 순방문자/페이지뷰/신규/재방문자 4카드 (전주 대비 증감률)
+  - 실시간 활성 사용자 표시
+  - 7일 방문 트렌드 꺾은선 차트
+  - 전체보기 → 방문통계 페이지 이동 버튼
+  - 1분마다 자동 갱신
 
 ### Ver.3.9.20260622
 - 접속 로그 뷰어 추가 (방문 통계 > 접속 로그 탭)

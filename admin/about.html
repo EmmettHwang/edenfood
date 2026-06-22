@@ -287,6 +287,11 @@
     }
   </style>
   <script>
+    function getToken() {
+      return localStorage.getItem('eden_token') ||
+        (window.parent !== window && window.parent.localStorage.getItem('eden_token')) || null;
+    }
+
     // 탭 전환 함수
     function switchTab(tabName) {
       // 모든 탭 버튼과 컨텐츠 비활성화

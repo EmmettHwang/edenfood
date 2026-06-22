@@ -1001,6 +1001,23 @@ async function initTables() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
+    // 27. 히어로 배너
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS hero_banners (
+        id         INT           AUTO_INCREMENT PRIMARY KEY,
+        icon       VARCHAR(20)   DEFAULT '',
+        icon_image VARCHAR(500)  DEFAULT NULL,
+        number     VARCHAR(20)   NOT NULL,
+        unit       VARCHAR(20)   NOT NULL,
+        label      VARCHAR(100)  NOT NULL,
+        link_url   VARCHAR(500)  DEFAULT NULL,
+        is_active  TINYINT(1)    DEFAULT 1,
+        sort_order INT           DEFAULT 0,
+        created_at DATETIME      DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
     console.log('✅ 모든 테이블 준비 완료');
   } finally {
     conn.release();
@@ -3402,6 +3419,72 @@ app.get('/api/blocked-ips/stats', authMiddleware, async (req, res) => {
     const [[{ manual_count }]] = await pool.query("SELECT COUNT(*) as manual_count FROM blocked_ips WHERE type='manual'");
     ok(res, { total, auto_count, manual_count });
   } catch (e) { err(res, '통계 조회 실패'); }
+});
+
+/* ── 히어로 배너 API ── */
+app.get('/api/hero-banners', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM hero_banners ORDER BY sort_order ASC, id ASC');
+    const banners = rows.map(r => ({
+      id: r.id, icon: r.icon, iconImage: r.icon_image,
+      number: r.number, unit: r.unit, label: r.label,
+      link: r.link_url, active: !!r.is_active, order: r.sort_order
+    }));
+    res.json({ ok: true, banners });
+  } catch (e) { err(res, '배너 조회 실패'); }
+});
+
+app.post('/api/hero-banners', authMiddleware, async (req, res) => {
+  try {
+    const { banners } = req.body;
+    if (!Array.isArray(banners)) return err(res, '잘못된 요청', 400);
+    await pool.query('DELETE FROM hero_banners');
+    for (const b of banners) {
+      await pool.query(
+        'INSERT INTO hero_banners (icon, icon_image, number, unit, label, link_url, is_active, sort_order) VALUES (?,?,?,?,?,?,?,?)',
+        [b.icon || '', b.iconImage || null, b.number, b.unit, b.label, b.link || null, b.active ? 1 : 0, b.order || 0]
+      );
+    }
+    ok(res, { saved: banners.length });
+  } catch (e) { err(res, '배너 저장 실패'); }
+});
+
+app.post('/api/hero-banners/item', authMiddleware, async (req, res) => {
+  try {
+    const { icon, iconImage, number, unit, label, link, active, order } = req.body;
+    if (!number || !unit || !label) return err(res, '필수 항목 누락', 400);
+    const [result] = await pool.query(
+      'INSERT INTO hero_banners (icon, icon_image, number, unit, label, link_url, is_active, sort_order) VALUES (?,?,?,?,?,?,?,?)',
+      [icon || '', iconImage || null, number, unit, label, link || null, active ? 1 : 0, order || 0]
+    );
+    ok(res, { id: result.insertId });
+  } catch (e) { err(res, '배너 추가 실패'); }
+});
+
+app.put('/api/hero-banners/:id', authMiddleware, async (req, res) => {
+  try {
+    const { icon, iconImage, number, unit, label, link, active, order } = req.body;
+    await pool.query(
+      'UPDATE hero_banners SET icon=?, icon_image=?, number=?, unit=?, label=?, link_url=?, is_active=?, sort_order=? WHERE id=?',
+      [icon || '', iconImage || null, number, unit, label, link || null, active ? 1 : 0, order || 0, req.params.id]
+    );
+    ok(res, {});
+  } catch (e) { err(res, '배너 수정 실패'); }
+});
+
+app.delete('/api/hero-banners/:id', authMiddleware, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM hero_banners WHERE id=?', [req.params.id]);
+    ok(res, {});
+  } catch (e) { err(res, '배너 삭제 실패'); }
+});
+
+app.put('/api/hero-banners/:id/order', authMiddleware, async (req, res) => {
+  try {
+    const { order } = req.body;
+    await pool.query('UPDATE hero_banners SET sort_order=? WHERE id=?', [order, req.params.id]);
+    ok(res, {});
+  } catch (e) { err(res, '순서 변경 실패'); }
 });
 
 // 데이터베이스 백업 API
