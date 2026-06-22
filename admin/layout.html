@@ -387,6 +387,7 @@
           <a href="#" class="nav-item" onclick="loadContent('contacts')">
             <span class="nav-item-icon">📞</span>
             <span>문의 관리</span>
+            <span id="contact-badge" style="display:none;margin-left:auto;background:#dc2626;color:white;font-size:0.7rem;font-weight:700;padding:0.1rem 0.45rem;border-radius:999px;"></span>
           </a>
         </div>
         
@@ -463,7 +464,7 @@
   
   <script src="/admin/js/dialog.js"></script>
   <script>
-    const CURRENT_VERSION = 'Ver.3.8.20260622';
+    const CURRENT_VERSION = 'Ver.3.9.20260622';
     let readmeContent = '';
 
     let isLatestVersion = false;
@@ -585,6 +586,8 @@
       }
       
       initVersionBadge();
+      loadUnreadBadge();
+      setInterval(loadUnreadBadge, 60000);
       // 초기 대시보드 로드
       loadContentInitial('dashboard');
     });
@@ -743,6 +746,22 @@
       loadContent(page);
     }
     
+    // 미읽 문의 배지
+    async function loadUnreadBadge() {
+      try {
+        const token = localStorage.getItem('eden_token');
+        const res = await fetch('/api/contacts/unread-count', { headers: { 'Authorization': 'Bearer ' + token } });
+        const data = await res.json();
+        const badge = document.getElementById('contact-badge');
+        if (data.ok && data.data.count > 0) {
+          badge.textContent = data.data.count > 99 ? '99+' : data.data.count;
+          badge.style.display = 'inline-block';
+        } else {
+          badge.style.display = 'none';
+        }
+      } catch {}
+    }
+
     // 로그아웃
     function logout() {
       if (confirm('로그아웃 하시겠습니까?')) {

@@ -967,7 +967,27 @@ async function initTables() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
-    // 25. 차단 IP 목록
+    // 25. 문의 테이블
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS contacts (
+        id           INT           AUTO_INCREMENT PRIMARY KEY,
+        name         VARCHAR(100)  NOT NULL,
+        email        VARCHAR(200)  DEFAULT '',
+        phone        VARCHAR(50)   DEFAULT '',
+        company      VARCHAR(100)  DEFAULT '',
+        contact_type VARCHAR(50)   DEFAULT '기타',
+        message      TEXT          NOT NULL,
+        status       ENUM('new','processing','done') DEFAULT 'new',
+        is_read      TINYINT(1)    DEFAULT 0,
+        created_at   DATETIME      DEFAULT CURRENT_TIMESTAMP,
+        updated_at   DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_status (status),
+        INDEX idx_read (is_read),
+        INDEX idx_date (created_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 26. 차단 IP 목록
     await conn.query(`
       CREATE TABLE IF NOT EXISTS blocked_ips (
         id          INT           AUTO_INCREMENT PRIMARY KEY,
@@ -3251,6 +3271,88 @@ app.get('/api/analytics/trend', authMiddleware, async (req, res) => {
     `, [dateFormat, days]);
     ok(res, rows);
   } catch (e) { err(res, '트렌드 조회 실패'); }
+});
+
+/* ─────────────────────────────────────────
+   API: 접속 로그 뷰어
+───────────────────────────────────────── */
+app.get('/api/analytics/logs', authMiddleware, async (req, res) => {
+  try {
+    const page  = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit = Math.min(100, parseInt(req.query.limit) || 50);
+    const offset = (page - 1) * limit;
+    const { ip, path: pathQ, date } = req.query;
+
+    let where = ['1=1'];
+    const params = [];
+    if (ip)    { where.push('ip_address LIKE ?');  params.push('%' + ip + '%'); }
+    if (pathQ) { where.push('path LIKE ?');         params.push('%' + pathQ + '%'); }
+    if (date)  { where.push('DATE(created_at) = ?'); params.push(date); }
+
+    const whereStr = where.join(' AND ');
+    const [[{ total }]] = await pool.query(`SELECT COUNT(*) as total FROM access_logs WHERE ${whereStr}`, params);
+    const [rows] = await pool.query(
+      `SELECT id, ip_address, path, method, user_agent, created_at
+       FROM access_logs WHERE ${whereStr}
+       ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [...params, limit, offset]
+    );
+    ok(res, { rows, total: Number(total), page, limit });
+  } catch (e) { err(res, '로그 조회 실패'); }
+});
+
+/* ─────────────────────────────────────────
+   API: 문의 (contacts)
+───────────────────────────────────────── */
+app.get('/api/contacts', authMiddleware, async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM contacts ORDER BY created_at DESC');
+    ok(res, { contacts: rows });
+  } catch (e) { err(res, '문의 조회 실패'); }
+});
+
+app.put('/api/contacts/:id/status', authMiddleware, async (req, res) => {
+  try {
+    const { status } = req.body;
+    await pool.query('UPDATE contacts SET status=?, updated_at=NOW() WHERE id=?', [status, req.params.id]);
+    ok(res, { message: '상태 변경 완료' });
+  } catch (e) { err(res, '상태 변경 실패'); }
+});
+
+app.put('/api/contacts/:id/read', authMiddleware, async (req, res) => {
+  try {
+    await pool.query('UPDATE contacts SET is_read=1 WHERE id=?', [req.params.id]);
+    ok(res, { message: '읽음 처리 완료' });
+  } catch (e) { err(res, '읽음 처리 실패'); }
+});
+
+app.delete('/api/contacts/:id', authMiddleware, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM contacts WHERE id=?', [req.params.id]);
+    ok(res, { message: '삭제 완료' });
+  } catch (e) { err(res, '삭제 실패'); }
+});
+
+// 미읽 문의 수
+app.get('/api/contacts/unread-count', authMiddleware, async (req, res) => {
+  try {
+    const [[{ count }]] = await pool.query("SELECT COUNT(*) as count FROM contacts WHERE is_read=0");
+    ok(res, { count: Number(count) });
+  } catch (e) { ok(res, { count: 0 }); }
+});
+
+// 문의 접수 (공개 API)
+app.post('/api/contacts', async (req, res) => {
+  try {
+    const { name, email, phone, contact_type, message, company } = req.body;
+    if (!name || !message) return err(res, '이름과 내용은 필수입니다.', 400);
+    await pool.query(
+      `INSERT INTO contacts (name, email, phone, company, contact_type, message)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [name, email||'', phone||'', company||'', contact_type||'기타', message]
+    );
+    ok(res, { message: '문의가 접수되었습니다.' });
+  } catch (e) { err(res, '문의 접수 실패'); }
 });
 
 /* ─────────────────────────────────────────

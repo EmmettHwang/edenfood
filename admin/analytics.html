@@ -129,10 +129,53 @@
     .legend-pct  { color: #80868b; font-size: 0.75rem; }
 
     .empty-msg { text-align: center; color: #80868b; padding: 2rem; font-size: 0.875rem; }
+
+    /* 탭 */
+    .tab-nav { display:flex; gap:0; border-bottom:2px solid #e8eaed; margin-bottom:1.25rem; }
+    .tab-btn {
+      padding:0.6rem 1.25rem; border:none; background:none; font-family:inherit;
+      font-size:0.875rem; font-weight:600; color:#5f6368; cursor:pointer;
+      border-bottom:2px solid transparent; margin-bottom:-2px; transition:all 0.15s;
+    }
+    .tab-btn.active { color:#1a73e8; border-bottom-color:#1a73e8; }
+    .tab-btn:hover:not(.active) { color:#202124; background:#f1f3f4; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    /* 로그 뷰어 */
+    .log-filters { display:flex; gap:0.75rem; margin-bottom:1rem; flex-wrap:wrap; }
+    .log-filters input { flex:1; min-width:120px; padding:0.5rem 0.75rem; border:1px solid #dadce0; border-radius:0.5rem; font-size:0.85rem; font-family:inherit; }
+    .log-filters input:focus { outline:none; border-color:#1a73e8; }
+    .log-btn { padding:0.5rem 1rem; background:#1a73e8; color:white; border:none; border-radius:0.5rem; font-size:0.85rem; font-weight:600; cursor:pointer; font-family:inherit; }
+    .log-btn:hover { background:#1557b0; }
+    .log-btn.secondary { background:white; color:#5f6368; border:1px solid #dadce0; }
+    .log-table { width:100%; border-collapse:collapse; font-size:0.825rem; }
+    .log-table th { padding:0.5rem 0.75rem; text-align:left; color:#5f6368; font-weight:600; border-bottom:2px solid #e8eaed; white-space:nowrap; }
+    .log-table td { padding:0.5rem 0.75rem; border-bottom:1px solid #f1f3f4; }
+    .log-table tr:hover td { background:#f8f9fa; }
+    .log-ip { font-family:monospace; color:#1a73e8; font-size:0.8rem; }
+    .log-path { color:#202124; font-family:monospace; font-size:0.8rem; word-break:break-all; }
+    .log-ua { color:#80868b; font-size:0.75rem; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .log-time { color:#80868b; font-size:0.775rem; white-space:nowrap; }
+    .pagination { display:flex; align-items:center; justify-content:center; gap:0.5rem; margin-top:1rem; }
+    .page-btn { padding:0.35rem 0.65rem; border:1px solid #dadce0; background:white; border-radius:0.375rem; font-size:0.825rem; cursor:pointer; }
+    .page-btn.active { background:#1a73e8; color:white; border-color:#1a73e8; }
+    .page-btn:disabled { opacity:0.4; cursor:default; }
+    .method-get  { color:#137333; font-weight:700; font-size:0.75rem; }
+    .method-post { color:#1a73e8; font-weight:700; font-size:0.75rem; }
   </style>
 </head>
 <body>
 <div class="page">
+
+  <!-- 탭 네비게이션 -->
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="stats">📊 방문 통계</button>
+    <button class="tab-btn" data-tab="logs">📋 접속 로그</button>
+  </div>
+
+  <!-- 통계 패널 -->
+  <div class="tab-panel active" id="tab-stats">
 
   <!-- 헤더 -->
   <div class="analytics-header">
@@ -225,6 +268,38 @@
       <div class="empty-msg">불러오는 중...</div>
     </div>
   </div>
+
+  </div><!-- /tab-stats -->
+
+  <!-- 로그 뷰어 패널 -->
+  <div class="tab-panel" id="tab-logs">
+    <div class="card">
+      <div class="card-title">
+        <span>접속 로그</span>
+        <span id="log-total-label" style="font-size:0.8rem;color:#80868b;font-weight:400;"></span>
+      </div>
+      <div class="log-filters">
+        <input type="text" id="filter-ip" placeholder="IP 검색">
+        <input type="text" id="filter-path" placeholder="경로 검색 (예: /about)">
+        <input type="date" id="filter-date">
+        <button class="log-btn" onclick="searchLogs()">검색</button>
+        <button class="log-btn secondary" onclick="resetLogs()">초기화</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="log-table">
+          <thead><tr>
+            <th>시간</th>
+            <th>IP</th>
+            <th>경로</th>
+            <th>메서드</th>
+            <th>User-Agent</th>
+          </tr></thead>
+          <tbody id="log-tbody"><tr><td colspan="5" class="empty-msg">불러오는 중...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="log-pagination"></div>
+    </div>
+  </div><!-- /tab-logs -->
 
 </div>
 
@@ -464,6 +539,83 @@
         </table>
       `;
     } catch { wrap.innerHTML = '<div class="empty-msg">불러오기 실패</div>'; }
+  }
+
+  /* ── 탭 전환 ── */
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      if (btn.dataset.tab === 'logs') loadLogs();
+    });
+  });
+
+  /* ── 로그 뷰어 ── */
+  let logPage = 1;
+
+  async function loadLogs(page) {
+    logPage = page || 1;
+    const ip   = document.getElementById('filter-ip').value.trim();
+    const path = document.getElementById('filter-path').value.trim();
+    const date = document.getElementById('filter-date').value;
+    const params = new URLSearchParams({ page: logPage, limit: 50 });
+    if (ip)   params.set('ip', ip);
+    if (path) params.set('path', path);
+    if (date) params.set('date', date);
+
+    const tbody = document.getElementById('log-tbody');
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">불러오는 중...</td></tr>';
+
+    try {
+      const res = await fetch('/api/analytics/logs?' + params, { headers: { Authorization: 'Bearer ' + getToken() } });
+      const data = await res.json();
+      if (!data.ok) { tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">오류 발생</td></tr>'; return; }
+
+      const { rows, total, limit } = data.data;
+      document.getElementById('log-total-label').textContent = `총 ${total.toLocaleString()}건`;
+
+      if (!rows.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">로그가 없습니다.</td></tr>'; renderPagination(0,0,0); return; }
+
+      tbody.innerHTML = rows.map(r => {
+        const ua = r.user_agent || '-';
+        const uaShort = ua.length > 60 ? ua.slice(0, 60) + '…' : ua;
+        const time = new Date(r.created_at).toLocaleString('ko-KR', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        const mCls = r.method === 'GET' ? 'method-get' : 'method-post';
+        return `<tr>
+          <td class="log-time">${time}</td>
+          <td class="log-ip">${r.ip_address}</td>
+          <td class="log-path">${r.path || '/'}</td>
+          <td class="${mCls}">${r.method}</td>
+          <td class="log-ua" title="${ua}">${uaShort}</td>
+        </tr>`;
+      }).join('');
+
+      renderPagination(total, limit, logPage);
+    } catch { tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">불러오기 실패</td></tr>'; }
+  }
+
+  function renderPagination(total, limit, current) {
+    const totalPages = Math.ceil(total / limit) || 1;
+    const el = document.getElementById('log-pagination');
+    if (totalPages <= 1) { el.innerHTML = ''; return; }
+
+    const pages = [];
+    pages.push(`<button class="page-btn" onclick="loadLogs(${current-1})" ${current<=1?'disabled':''}>‹</button>`);
+    for (let p = Math.max(1, current-2); p <= Math.min(totalPages, current+2); p++) {
+      pages.push(`<button class="page-btn ${p===current?'active':''}" onclick="loadLogs(${p})">${p}</button>`);
+    }
+    pages.push(`<button class="page-btn" onclick="loadLogs(${current+1})" ${current>=totalPages?'disabled':''}>›</button>`);
+    el.innerHTML = pages.join('');
+  }
+
+  function searchLogs() { loadLogs(1); }
+  function resetLogs() {
+    document.getElementById('filter-ip').value = '';
+    document.getElementById('filter-path').value = '';
+    document.getElementById('filter-date').value = '';
+    loadLogs(1);
   }
 
   /* ── 초기화 ── */
