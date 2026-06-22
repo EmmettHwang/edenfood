@@ -348,6 +348,7 @@
       }
     }
   </style>
+<script src="/admin/js/dialog.js"></script>
 </head>
 <body>
   <div class="header">
@@ -462,6 +463,11 @@
       }
       
       loadUsers();
+
+      const userForm = document.getElementById('user-form');
+      if (userForm) {
+        userForm.addEventListener('submit', handleUserFormSubmit);
+      }
     }
     
     // 사용자 목록 불러오기
@@ -761,7 +767,7 @@
     }
     
     // 사용자 폼 제출
-    document.getElementById('user-form').addEventListener('submit', async (e) => {
+    async function handleUserFormSubmit(e) {
       e.preventDefault();
       
       const token = localStorage.getItem('eden_token');
@@ -806,7 +812,7 @@
       } catch (error) {
         alert('오류: ' + error.message);
       }
-    });
+    }
     
     // 초기화
     init();

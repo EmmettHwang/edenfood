@@ -391,8 +391,8 @@
           <div class="stat-label">전체 게시물</div>
         </div>
         <div class="stat-item">
-          <div class="stat-number" id="newContacts">-</div>
-          <div class="stat-label">신규 문의</div>
+          <div class="stat-number" id="galleryImages">-</div>
+          <div class="stat-label">갤러리 이미지</div>
         </div>
       </div>
     </div>
@@ -410,33 +410,19 @@
         if (response.ok) {
           const data = await response.json();
           if (data.ok) {
-            // 실제 데이터로 업데이트
-            document.getElementById('todayVisitors').textContent = data.stats.todayVisitors || '0';
-            document.getElementById('weekVisitors').textContent = data.stats.weekVisitors || '0';
-            document.getElementById('totalVisitors').textContent = data.stats.totalVisitors || '0';
-            document.getElementById('activeUsers').textContent = data.stats.activeUsers || '0';
-            document.getElementById('totalPosts').textContent = data.stats.totalPosts || '0';
-            document.getElementById('newContacts').textContent = data.stats.newContacts || '0';
+            const s = data.data?.stats || data.stats;
+            document.getElementById('todayVisitors').textContent  = s.todayVisitors  ?? '-';
+            document.getElementById('weekVisitors').textContent   = s.weekVisitors   ?? '-';
+            document.getElementById('totalVisitors').textContent  = s.totalVisitors  ?? '-';
+            document.getElementById('activeUsers').textContent    = s.activeUsers    ?? '-';
+            document.getElementById('totalPosts').textContent     = s.totalPosts     ?? '-';
+            document.getElementById('galleryImages').textContent  = s.galleryImages  ?? '-';
           }
         } else {
-          // API 오류 시 예시 데이터 표시
-          console.log('대시보드 통계 API가 아직 구현되지 않았습니다. 예시 데이터를 표시합니다.');
-          document.getElementById('todayVisitors').textContent = '234';
-          document.getElementById('weekVisitors').textContent = '1,567';
-          document.getElementById('totalVisitors').textContent = '12,345';
-          document.getElementById('activeUsers').textContent = '5';
-          document.getElementById('totalPosts').textContent = '156';
-          document.getElementById('newContacts').textContent = '23';
+          console.error('대시보드 통계 API 오류');
         }
       } catch (error) {
         console.error('대시보드 데이터 로드 실패:', error);
-        // 오류 시 예시 데이터 표시
-        document.getElementById('todayVisitors').textContent = '234';
-        document.getElementById('weekVisitors').textContent = '1,567';
-        document.getElementById('totalVisitors').textContent = '12,345';
-        document.getElementById('activeUsers').textContent = '5';
-        document.getElementById('totalPosts').textContent = '156';
-        document.getElementById('newContacts').textContent = '23';
       }
     }
 

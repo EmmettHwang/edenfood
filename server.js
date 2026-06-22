@@ -885,6 +885,21 @@ async function initTables() {
       console.log('✅ 기본 페이지 설정 생성');
     }
 
+    // 23. 접속 로그
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS access_logs (
+        id          BIGINT        AUTO_INCREMENT PRIMARY KEY,
+        ip_address  VARCHAR(45)   NOT NULL,
+        user_agent  TEXT,
+        path        VARCHAR(500),
+        method      VARCHAR(10),
+        user_id     INT           NULL,
+        created_at  DATETIME      DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_ip_date (ip_address, created_at),
+        INDEX idx_date (created_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
     console.log('✅ 모든 테이블 준비 완료');
   } finally {
     conn.release();
@@ -2864,78 +2879,71 @@ app.get('/api/system-info', authMiddleware, async (req, res) => {
   }
 });
 
+// README 버전 정보 API
+app.get('/api/readme-version', authMiddleware, async (req, res) => {
+  try {
+    const content = fs.readFileSync(path.join(__dirname, 'README.md'), 'utf8');
+    const versionMatch = content.match(/현재 버전:\s*(Ver\.\S+)/);
+    const version = versionMatch ? versionMatch[1] : null;
+    const historyMatch = content.match(/## 버전 히스토리([\s\S]*?)(?=\n## |$)/);
+    const history = historyMatch ? historyMatch[1].trim() : '';
+    ok(res, { version, history });
+  } catch (e) {
+    err(res, 'README를 읽을 수 없습니다.');
+  }
+});
+
 // 대시보드 통계 API
 app.get('/api/dashboard-stats', authMiddleware, async (req, res) => {
   try {
     if (!req.user || req.user.role !== 'admin') {
       return err(res, '관리자 권한이 필요합니다.', 403);
     }
-    
-    const pool = await getDB();
-    
-    // 오늘 방문자 (access_logs 테이블이 있다고 가정)
-    const [todayVisitors] = await pool.query(`
-      SELECT COUNT(DISTINCT ip_address) as count 
-      FROM access_logs 
-      WHERE DATE(created_at) = CURDATE()
-    `).catch(() => [{ count: 234 }]);
-    
-    // 이번주 방문자
-    const [weekVisitors] = await pool.query(`
-      SELECT COUNT(DISTINCT ip_address) as count 
-      FROM access_logs 
-      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-    `).catch(() => [{ count: 1567 }]);
-    
-    // 전체 방문자
-    const [totalVisitors] = await pool.query(`
-      SELECT COUNT(DISTINCT ip_address) as count 
+
+    const [[todayRow]] = await pool.query(`
+      SELECT COUNT(DISTINCT ip_address) as count
       FROM access_logs
-    `).catch(() => [{ count: 12345 }]);
-    
-    // 활성 사용자 (30분 이내 로그인)
-    const [activeUsers] = await pool.query(`
-      SELECT COUNT(*) as count 
-      FROM users 
+      WHERE DATE(created_at) = CURDATE()
+    `);
+
+    const [[weekRow]] = await pool.query(`
+      SELECT COUNT(DISTINCT ip_address) as count
+      FROM access_logs
+      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+    `);
+
+    const [[totalRow]] = await pool.query(`
+      SELECT COUNT(DISTINCT ip_address) as count
+      FROM access_logs
+    `);
+
+    const [[activeRow]] = await pool.query(`
+      SELECT COUNT(*) as count
+      FROM users
       WHERE last_login >= DATE_SUB(NOW(), INTERVAL 30 MINUTE)
-    `).catch(() => [{ count: 5 }]);
-    
-    // 전체 게시물 수
-    const [totalPosts] = await pool.query(`
+    `);
+
+    const [[noticesRow]] = await pool.query(`
       SELECT COUNT(*) as count FROM notices
     `);
-    
-    // 신규 문의 (7일 이내)
-    const [newContacts] = await pool.query(`
-      SELECT COUNT(*) as count 
-      FROM contacts 
-      WHERE status = 'pending' 
-      AND DATE(created_at) >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-    `).catch(() => [{ count: 23 }]);
-    
-    const stats = {
-      todayVisitors: (todayVisitors[0]?.count || 234).toLocaleString(),
-      weekVisitors: (weekVisitors[0]?.count || 1567).toLocaleString(),
-      totalVisitors: (totalVisitors[0]?.count || 12345).toLocaleString(),
-      activeUsers: activeUsers[0]?.count || 5,
-      totalPosts: totalPosts[0]?.count || 156,
-      newContacts: newContacts[0]?.count || 23
-    };
-    
-    ok(res, { stats });
-  } catch (e) {
-    console.error('대시보드 통계 조회 에러:', e);
-    // 에러 시에도 기본값 반환
+
+    const [[galleryRow]] = await pool.query(`
+      SELECT COUNT(*) as count FROM gallery_images
+    `);
+
     ok(res, {
       stats: {
-        todayVisitors: '234',
-        weekVisitors: '1,567',
-        totalVisitors: '12,345',
-        activeUsers: 5,
-        totalPosts: 156,
-        newContacts: 23
+        todayVisitors:  Number(todayRow.count).toLocaleString(),
+        weekVisitors:   Number(weekRow.count).toLocaleString(),
+        totalVisitors:  Number(totalRow.count).toLocaleString(),
+        activeUsers:    Number(activeRow.count),
+        totalPosts:     Number(noticesRow.count),
+        galleryImages:  Number(galleryRow.count)
       }
     });
+  } catch (e) {
+    console.error('대시보드 통계 조회 에러:', e);
+    err(res, '통계 데이터를 가져올 수 없습니다.');
   }
 });
 

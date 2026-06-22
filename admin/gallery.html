@@ -451,6 +451,7 @@
             color: #6b7280;
         }
     </style>
+<script src="/admin/js/dialog.js"></script>
 </head>
 <body>
     <div class="header">
@@ -481,8 +482,8 @@
             
             <!-- 카테고리 필터 -->
             <div class="category-filter">
-                <button class="category-btn active" onclick="filterByCategory('all')">전체</button>
-                <button class="category-btn" onclick="filterByCategory('product')">시그니처메뉴</button>
+                <button class="category-btn" onclick="filterByCategory('all')">전체</button>
+                <button class="category-btn active" onclick="filterByCategory('product')">시그니처메뉴</button>
                 <button class="category-btn" onclick="filterByCategory('store')">매장</button>
                 <button class="category-btn" onclick="filterByCategory('event')">이벤트</button>
                 <button class="category-btn" onclick="filterByCategory('etc')">설비</button>
@@ -626,7 +627,7 @@
     <script>
         // 전역 변수
         let galleryImages = [];
-        let currentCategory = 'all';
+        let currentCategory = 'product'; // 초기값을 product로 변경
         let editingImageId = null;
         
         // 인증 헬퍼 함수
