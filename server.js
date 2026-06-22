@@ -33,6 +33,9 @@ app.use(express.json({
   }
 }));
 
+// 봇/스캐너 제외 카운터
+let filteredBotCount = 0;
+
 // 봇 User-Agent 패턴
 const BOT_UA_RE = /bot|crawl|spider|slurp|facebookexternalhit|python|curl|wget|scrapy|httpclient|java\/|libwww|go-http|axios|node-fetch|okhttp|grammarly|libredtail|masscan|zgrab|nmap|nikto|sqlmap|dirbuster|nuclei|shodan|censys|scanner|audit|l9scan|leakix|odin|zgrab|expanse|intrigue|binaryedge|fofa|quake|hunter|netlas|xray|fscan/i;
 const SCAN_PATH_RE = /\.(php|asp|aspx|env|git|svn|bak|sql|sh|cgi)$|phpunit|eval-stdin|\.well-known\/security|wp-admin|wp-login|phpmyadmin|containers\/json/i;
@@ -58,8 +61,10 @@ app.use(async (req, res, next) => {
     // 로컬·내부 요청 제외
     if (!ip || ip === '127.0.0.1' || ip === '::1') return next();
     // 봇/스캐너 제외
-    if (BOT_UA_RE.test(ua)) return next();
-    if (SCAN_PATH_RE.test(req.path)) return next();
+    if (BOT_UA_RE.test(ua) || SCAN_PATH_RE.test(req.path)) {
+      filteredBotCount++;
+      return next();
+    }
 
     await pool.query(
       'INSERT INTO access_logs (ip_address, user_agent, path, method, user_id) VALUES (?, ?, ?, ?, ?)',
@@ -2949,7 +2954,8 @@ app.get('/api/dashboard-stats', authMiddleware, async (req, res) => {
         totalVisitors:  Number(totalRow.count).toLocaleString(),
         activeUsers:    Number(activeRow.count),
         totalPosts:     Number(noticesRow.count),
-        galleryImages:  Number(galleryRow.count)
+        galleryImages:  Number(galleryRow.count),
+        filteredBots:   filteredBotCount
       }
     });
   } catch (e) {

@@ -77,7 +77,7 @@
     <!-- 운영 현황 -->
     <div class="stats-section">
       <div class="section-header">
-        <h3 class="section-title">📊 운영 현황</h3>
+        <h3 class="section-title">📊 운영 현황 <span id="filteredBotLabel" style="font-size:0.75rem;font-weight:400;color:#9ca3af;margin-left:0.5rem;"></span></h3>
         <div class="period-tabs">
           <button class="period-tab active" data-period="7d">7일</button>
           <button class="period-tab" data-period="15d">15일</button>
@@ -213,6 +213,9 @@
           document.getElementById('activeUsers').textContent    = s.activeUsers    ?? '-';
           document.getElementById('totalPosts').textContent     = s.totalPosts     ?? '-';
           document.getElementById('galleryImages').textContent  = s.galleryImages  ?? '-';
+          if (s.filteredBots != null) {
+            document.getElementById('filteredBotLabel').textContent = '(봇·스캐너 ' + Number(s.filteredBots).toLocaleString() + '건 제외)';
+          }
         }
       } catch (e) { console.error('운영 현황 로드 실패:', e); }
     }
