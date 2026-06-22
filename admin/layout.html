@@ -454,13 +454,14 @@
   
   <script src="/admin/js/dialog.js"></script>
   <script>
-    const CURRENT_VERSION = 'Ver.3.2.20260605';
+    const CURRENT_VERSION = 'Ver.3.3.20260622';
     let readmeContent = '';
 
     async function initVersionBadge() {
       const badge = document.getElementById('version-badge');
       try {
-        const res = await fetch('/api/readme-version', { cache: 'no-store' });
+        const token = localStorage.getItem('eden_token');
+        const res = await fetch('/api/readme-version', { cache: 'no-store', headers: { 'Authorization': 'Bearer ' + token } });
         if (!res.ok) throw new Error();
         const data = await res.json();
         const latest = data.version;
