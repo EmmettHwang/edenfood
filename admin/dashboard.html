@@ -399,10 +399,16 @@
   </div>
 
   <script>
+    function getToken() {
+      return localStorage.getItem('eden_token') ||
+        (window.parent !== window && window.parent.localStorage.getItem('eden_token')) ||
+        null;
+    }
+
     // 대시보드 데이터 로드
     async function loadDashboardStats() {
       try {
-        const token = localStorage.getItem('eden_token');
+        const token = getToken();
         const response = await fetch('/api/dashboard-stats', {
           headers: { 'Authorization': 'Bearer ' + token }
         });
@@ -429,7 +435,7 @@
     // 시스템 모니터링 데이터 로드
     async function loadSystemMonitoring() {
       try {
-        const token = localStorage.getItem('eden_token');
+        const token = getToken();
         const response = await fetch('/api/system-info', {
           headers: { 'Authorization': 'Bearer ' + token }
         });

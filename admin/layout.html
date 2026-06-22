@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>관리자 대시보드 - 이든푸드</title>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon.png" type="image/png" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/global.css" />
   <style>
@@ -464,8 +464,8 @@
         const res = await fetch('/api/readme-version', { cache: 'no-store', headers: { 'Authorization': 'Bearer ' + token } });
         if (!res.ok) throw new Error();
         const data = await res.json();
-        const latest = data.version;
-        readmeContent = data.history || '';
+        const latest = (data.data || data).version;
+        readmeContent = (data.data || data).history || '';
         if (latest === CURRENT_VERSION) {
           badge.className = 'version-badge up-to-date';
           badge.textContent = '✅ ' + CURRENT_VERSION;
