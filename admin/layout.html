@@ -527,8 +527,9 @@
         `;
       } else {
         footer.innerHTML = `
+          <span style="font-size:0.8rem;color:#6b7280;margin-right:auto;">업그레이드 후 자동으로 새로고침됩니다</span>
           <button onclick="closeReadme()" style="padding:0.4rem 1rem;border:1px solid #d1d5db;border-radius:0.375rem;background:white;cursor:pointer;font-size:0.875rem;">닫기</button>
-          <button onclick="if(confirm('업그레이드 하시겠습니까?\n캐시를 초기화하고 새로고침합니다.')) hardReload();" style="padding:0.4rem 1rem;border:none;border-radius:0.375rem;background:#059669;color:white;cursor:pointer;font-size:0.875rem;font-weight:600;">⬆️ 업그레이드</button>
+          <button onclick="hardReload()" style="padding:0.4rem 1rem;border:none;border-radius:0.375rem;background:#059669;color:white;cursor:pointer;font-size:0.875rem;font-weight:600;">⬆️ 업그레이드</button>
         `;
       }
 
