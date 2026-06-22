@@ -60,9 +60,10 @@ app.use(async (req, res, next) => {
 
     // 로컬·내부 요청 제외
     if (!ip || ip === '127.0.0.1' || ip === '::1') return next();
-    // 봇/스캐너 제외
+    // 봇/스캐너 → bot_logs에 기록
     if (BOT_UA_RE.test(ua) || SCAN_PATH_RE.test(req.path)) {
       filteredBotCount++;
+      pool.query('INSERT INTO bot_logs (ip_address) VALUES (?)', [ip]).catch(() => {});
       return next();
     }
 
@@ -912,6 +913,16 @@ async function initTables() {
         user_id     INT           NULL,
         created_at  DATETIME      DEFAULT CURRENT_TIMESTAMP,
         INDEX idx_ip_date (ip_address, created_at),
+        INDEX idx_date (created_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 24. 봇/스캐너 로그
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS bot_logs (
+        id          BIGINT        AUTO_INCREMENT PRIMARY KEY,
+        ip_address  VARCHAR(45)   NOT NULL,
+        created_at  DATETIME      DEFAULT CURRENT_TIMESTAMP,
         INDEX idx_date (created_at)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
@@ -2992,7 +3003,25 @@ app.get('/api/visitor-chart', authMiddleware, async (req, res) => {
       ORDER BY MIN(created_at) ASC
     `, [dateFormat]);
 
-    ok(res, { labels: rows.map(r => r.label), data: rows.map(r => Number(r.visitors)) });
+    const [botRows] = await pool.query(`
+      SELECT
+        DATE_FORMAT(MIN(created_at), ?) as label,
+        COUNT(*) as bots
+      FROM bot_logs
+      WHERE created_at >= DATE_SUB(NOW(), ${interval})
+      GROUP BY ${groupBy}(created_at), YEAR(created_at)
+      ORDER BY MIN(created_at) ASC
+    `, [dateFormat]);
+
+    // 방문자 라벨 기준으로 봇 데이터 매핑
+    const labels = rows.map(r => r.label);
+    const botMap = Object.fromEntries(botRows.map(r => [r.label, Number(r.bots)]));
+
+    ok(res, {
+      labels,
+      data:    rows.map(r => Number(r.visitors)),
+      botData: labels.map(l => botMap[l] || 0)
+    });
   } catch (e) {
     console.error('방문자 차트 조회 에러:', e);
     err(res, '차트 데이터를 가져올 수 없습니다.');
