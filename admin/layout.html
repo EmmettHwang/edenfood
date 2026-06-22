@@ -442,6 +442,7 @@
           <button class="readme-modal-close" onclick="closeReadme()">✕</button>
         </div>
         <div class="readme-modal-body" id="readme-modal-body">불러오는 중...</div>
+        <div class="readme-modal-footer" id="readme-modal-footer" style="padding:1rem 1.5rem;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:0.75rem;"></div>
       </div>
     </div>
 
@@ -457,6 +458,8 @@
     const CURRENT_VERSION = 'Ver.3.6.20260622';
     let readmeContent = '';
 
+    let isLatestVersion = false;
+
     async function initVersionBadge() {
       const badge = document.getElementById('version-badge');
       try {
@@ -466,25 +469,27 @@
         const data = await res.json();
         const latest = (data.data || data).version;
         readmeContent = (data.data || data).history || '';
-        if (latest === CURRENT_VERSION) {
+        isLatestVersion = (latest === CURRENT_VERSION);
+        if (isLatestVersion) {
           badge.className = 'version-badge up-to-date';
           badge.textContent = '✅ ' + CURRENT_VERSION;
-          badge.title = '클릭하면 캐시 초기화 후 새로고침';
-          badge.onclick = hardReload;
+          badge.title = '변경 이력 보기';
         } else {
           badge.className = 'version-badge outdated';
           badge.textContent = '🔄 ' + CURRENT_VERSION + ' → ' + latest;
-          badge.title = '클릭하여 변경 이력 확인';
-          badge.onclick = openReadme;
+          badge.title = '변경 이력 / 업그레이드';
         }
+        badge.onclick = openReadme;
       } catch {
         badge.className = 'version-badge up-to-date';
         badge.textContent = '📌 ' + CURRENT_VERSION;
+        badge.onclick = openReadme;
         readmeContent = '';
       }
     }
 
     function hardReload() {
+      closeReadme();
       if ('caches' in window) {
         caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).finally(() => location.reload(true));
       } else {
@@ -495,6 +500,8 @@
     function openReadme() {
       const modal = document.getElementById('readme-modal');
       const body = document.getElementById('readme-modal-body');
+      const footer = document.getElementById('readme-modal-footer');
+
       body.innerHTML = readmeContent
         ? readmeContent.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
             .replace(/^(### .+)$/gm, '<h3>$1</h3>')
@@ -503,6 +510,20 @@
             .replace(/(<li>.*<\/li>\n?)+/gs, m => '<ul>'+m+'</ul>')
             .replace(/\n\n/g, '<br>')
         : '<p style="color:#6b7280">변경 이력을 불러올 수 없습니다.</p>';
+
+      if (isLatestVersion) {
+        footer.innerHTML = `
+          <span style="font-size:0.8rem;color:#6b7280;margin-right:auto;">최신 버전입니다</span>
+          <button onclick="closeReadme()" style="padding:0.4rem 1rem;border:1px solid #d1d5db;border-radius:0.375rem;background:white;cursor:pointer;font-size:0.875rem;">닫기</button>
+          <button onclick="hardReload()" style="padding:0.4rem 1rem;border:none;border-radius:0.375rem;background:#1d4ed8;color:white;cursor:pointer;font-size:0.875rem;font-weight:600;">🔄 캐시 초기화 & 새로고침</button>
+        `;
+      } else {
+        footer.innerHTML = `
+          <button onclick="closeReadme()" style="padding:0.4rem 1rem;border:1px solid #d1d5db;border-radius:0.375rem;background:white;cursor:pointer;font-size:0.875rem;">닫기</button>
+          <button onclick="if(confirm('업그레이드 하시겠습니까?\n캐시를 초기화하고 새로고침합니다.')) hardReload();" style="padding:0.4rem 1rem;border:none;border-radius:0.375rem;background:#059669;color:white;cursor:pointer;font-size:0.875rem;font-weight:600;">⬆️ 업그레이드</button>
+        `;
+      }
+
       modal.classList.add('show');
     }
 
