@@ -430,7 +430,7 @@
           <h1 class="header-title" id="page-title">대시보드</h1>
         </div>
         <div class="header-actions">
-          <button class="version-badge checking" id="version-badge" onclick="openReadme()">⏳ 버전 확인 중...</button>
+          <button class="version-badge checking" id="version-badge">⏳ 버전 확인 중...</button>
         </div>
       </header>
       
@@ -454,7 +454,7 @@
   
   <script src="/admin/js/dialog.js"></script>
   <script>
-    const CURRENT_VERSION = 'Ver.3.3.20260622';
+    const CURRENT_VERSION = 'Ver.3.6.20260622';
     let readmeContent = '';
 
     async function initVersionBadge() {
@@ -469,16 +469,26 @@
         if (latest === CURRENT_VERSION) {
           badge.className = 'version-badge up-to-date';
           badge.textContent = '✅ ' + CURRENT_VERSION;
-          badge.title = '최신 버전입니다';
+          badge.title = '클릭하면 캐시 초기화 후 새로고침';
+          badge.onclick = hardReload;
         } else {
           badge.className = 'version-badge outdated';
           badge.textContent = '🔄 ' + CURRENT_VERSION + ' → ' + latest;
           badge.title = '클릭하여 변경 이력 확인';
+          badge.onclick = openReadme;
         }
       } catch {
         badge.className = 'version-badge up-to-date';
         badge.textContent = '📌 ' + CURRENT_VERSION;
         readmeContent = '';
+      }
+    }
+
+    function hardReload() {
+      if ('caches' in window) {
+        caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))).finally(() => location.reload(true));
+      } else {
+        location.reload(true);
       }
     }
 
