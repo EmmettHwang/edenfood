@@ -987,7 +987,19 @@ async function initTables() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
-    // 26. 차단 IP 목록
+    // 26. 문의 담당자 설정
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS contact_settings (
+        id           INT           AUTO_INCREMENT PRIMARY KEY,
+        type         VARCHAR(50)   NOT NULL UNIQUE,
+        name         VARCHAR(100)  DEFAULT '',
+        phone        VARCHAR(50)   DEFAULT '',
+        email        VARCHAR(200)  DEFAULT '',
+        updated_at   DATETIME      DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    // 27. 차단 IP 목록
     await conn.query(`
       CREATE TABLE IF NOT EXISTS blocked_ips (
         id          INT           AUTO_INCREMENT PRIMARY KEY,
@@ -3370,6 +3382,30 @@ app.post('/api/contacts', async (req, res) => {
     );
     ok(res, { message: '문의가 접수되었습니다.' });
   } catch (e) { err(res, '문의 접수 실패'); }
+});
+
+// 담당자 설정 조회
+app.get('/api/contacts/settings', authMiddleware, async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM contact_settings');
+    const settings = {};
+    rows.forEach(r => { settings[r.type] = { name: r.name, phone: r.phone, email: r.email }; });
+    ok(res, { settings, email_notification: false });
+  } catch (e) { err(res, '설정 조회 실패'); }
+});
+
+// 담당자 설정 저장
+app.post('/api/contacts/settings', authMiddleware, async (req, res) => {
+  try {
+    const { type, name, phone, email } = req.body;
+    if (!type) return err(res, 'type 필수', 400);
+    await pool.query(
+      `INSERT INTO contact_settings (type, name, phone, email) VALUES (?,?,?,?)
+       ON DUPLICATE KEY UPDATE name=VALUES(name), phone=VALUES(phone), email=VALUES(email)`,
+      [type, name||'', phone||'', email||'']
+    );
+    ok(res, {});
+  } catch (e) { err(res, '설정 저장 실패'); }
 });
 
 /* ─────────────────────────────────────────

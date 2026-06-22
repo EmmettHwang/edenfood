@@ -464,7 +464,7 @@
   
   <script src="/admin/js/dialog.js"></script>
   <script>
-    const CURRENT_VERSION = 'Ver.4.0.20260622';
+    const CURRENT_VERSION = 'Ver.4.1.20260622';
     let readmeContent = '';
 
     let isLatestVersion = false;
@@ -631,6 +631,11 @@
         case 'notices':
           pageTitle.textContent = '공지사항 관리';
           iframeSrc = '/admin/notices.html';
+          break;
+
+        case 'banner':
+          pageTitle.textContent = '히어로 배너 관리';
+          iframeSrc = '/admin/banner.html';
           break;
           
         case 'about':

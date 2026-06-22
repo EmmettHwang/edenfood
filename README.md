@@ -4,7 +4,7 @@
 (주)이든푸드의 웹사이트 및 인트라넷 통합 관리 시스템입니다.
 
 ## 버전 정보
-- 현재 버전: Ver.4.0.20260622
+- 현재 버전: Ver.4.1.20260622
 - 버전 체계: 메이저.마이너.년월일
 - 마이너 버전이 9를 초과하면 메이저 버전 상승
 
@@ -130,6 +130,11 @@ ADMIN_PASSWORD=admin_password
 - POST `/api/upload/image` - 이미지 업로드
 
 ## 버전 히스토리
+
+### Ver.4.1.20260622
+- 히어로 배너 관리 메뉴 연결 수정 (layout.html switch문 banner case 누락 수정)
+- 문의 관리 settings API 추가 (contact_settings 테이블 + GET/POST)
+- contacts.html: getToken 패턴 적용, alert→showAlert, confirm 제거
 
 ### Ver.4.0.20260622
 - about.html: `getToken is not defined` 에러 수정 (parent window fallback 패턴 적용)
