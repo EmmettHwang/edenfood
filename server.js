@@ -2947,6 +2947,41 @@ app.get('/api/dashboard-stats', authMiddleware, async (req, res) => {
   }
 });
 
+// 방문자 차트 API
+app.get('/api/visitor-chart', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user || req.user.role !== 'admin') return err(res, '관리자 권한이 필요합니다.', 403);
+
+    const period = req.query.period || '7d';
+    let groupBy, dateFormat, interval;
+
+    switch (period) {
+      case '7d':  groupBy = 'DAY';   dateFormat = '%m-%d'; interval = 'INTERVAL 7 DAY';   break;
+      case '15d': groupBy = 'DAY';   dateFormat = '%m-%d'; interval = 'INTERVAL 15 DAY';  break;
+      case '1m':  groupBy = 'DAY';   dateFormat = '%m-%d'; interval = 'INTERVAL 1 MONTH'; break;
+      case '3m':  groupBy = 'WEEK';  dateFormat = '%m-%d'; interval = 'INTERVAL 3 MONTH'; break;
+      case '6m':  groupBy = 'MONTH'; dateFormat = '%y-%m'; interval = 'INTERVAL 6 MONTH'; break;
+      case '1y':  groupBy = 'MONTH'; dateFormat = '%y-%m'; interval = 'INTERVAL 1 YEAR';  break;
+      default:    groupBy = 'DAY';   dateFormat = '%m-%d'; interval = 'INTERVAL 7 DAY';
+    }
+
+    const [rows] = await pool.query(`
+      SELECT
+        DATE_FORMAT(MIN(created_at), ?) as label,
+        COUNT(DISTINCT ip_address) as visitors
+      FROM access_logs
+      WHERE created_at >= DATE_SUB(NOW(), ${interval})
+      GROUP BY ${groupBy}(created_at), YEAR(created_at)
+      ORDER BY MIN(created_at) ASC
+    `, [dateFormat]);
+
+    ok(res, { labels: rows.map(r => r.label), data: rows.map(r => Number(r.visitors)) });
+  } catch (e) {
+    console.error('방문자 차트 조회 에러:', e);
+    err(res, '차트 데이터를 가져올 수 없습니다.');
+  }
+});
+
 // 데이터베이스 백업 API
 app.post('/api/database/backup', authMiddleware, async (req, res) => {
   try {
