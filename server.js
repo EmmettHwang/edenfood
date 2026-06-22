@@ -33,31 +33,42 @@ app.use(express.json({
   }
 }));
 
-// 접속 로그 기록 미들웨어
+// 봇 User-Agent 패턴
+const BOT_UA_RE = /bot|crawl|spider|slurp|facebookexternalhit|python|curl|wget|scrapy|httpclient|java\/|libwww|go-http|axios|node-fetch|okhttp|grammarly|libredtail|masscan|zgrab|nmap|nikto|sqlmap|dirbuster|nuclei|shodan|censys|scanner|audit|l9scan|leakix|odin|zgrab|expanse|intrigue|binaryedge|fofa|quake|hunter|netlas|xray|fscan/i;
+const SCAN_PATH_RE = /\.(php|asp|aspx|env|git|svn|bak|sql|sh|cgi)$|phpunit|eval-stdin|\.well-known\/security|wp-admin|wp-login|phpmyadmin|containers\/json/i;
+
+// 접속 로그 기록 미들웨어 (실제 웹 방문자만 기록)
 app.use(async (req, res, next) => {
-  // 정적 파일 및 API 요청 제외
-  if (req.path.startsWith('/css/') || 
-      req.path.startsWith('/js/') || 
+  // 정적 파일·API 경로 제외
+  if (req.path.startsWith('/css/') ||
+      req.path.startsWith('/js/') ||
       req.path.startsWith('/assets/') ||
       req.path.startsWith('/uploads/') ||
+      req.path.startsWith('/api/') ||
+      req.path.startsWith('/admin/js/') ||
       req.path.includes('favicon')) {
     return next();
   }
-  
+
   try {
-    const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.socket.remoteAddress;
-    const userAgent = req.headers['user-agent'];
-    const userId = req.user?.id || null;
-    
+    const rawIp = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.connection.remoteAddress || req.socket.remoteAddress;
+    const ip = rawIp?.replace('::ffff:', '');
+    const ua = req.headers['user-agent'] || '';
+
+    // 로컬·내부 요청 제외
+    if (!ip || ip === '127.0.0.1' || ip === '::1') return next();
+    // 봇/스캐너 제외
+    if (BOT_UA_RE.test(ua)) return next();
+    if (SCAN_PATH_RE.test(req.path)) return next();
+
     await pool.query(
       'INSERT INTO access_logs (ip_address, user_agent, path, method, user_id) VALUES (?, ?, ?, ?, ?)',
-      [ipAddress, userAgent, req.path, req.method, userId]
+      [ip, ua, req.path, req.method, req.user?.id || null]
     );
   } catch (e) {
-    // 로그 기록 실패 시에도 요청은 계속 처리
     console.error('접속 로그 기록 실패:', e.message);
   }
-  
+
   next();
 });
 
