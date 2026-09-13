@@ -209,16 +209,81 @@ app.use((req, res, next) => {
   next();
 });
 
-// 캐시 컨트롤 설정
+// ── 화면은 캐시하지 않는다 ──────────────────────────────────────────────
+// ⚠️ 예전에는 css·js 만 막았다. **html 이 빠져 있어서** 첫 화면이
+//    `public, max-age=0` 으로 나갔고, 브라우저가 옛 화면을 들고 있었다
+//    (2026-09-13 실측). 캐시 정책은 원본이 말해야 한다 — 안 하면 브라우저·CDN 이
+//    대신 정한다.
+// ⚠️ 서비스워커는 특히 캐시되면 안 된다 — 캐시되면 「워커를 없애는 워커」조차
+//    배달되지 않아 손을 쓸 수 없다.
+// 그림·업로드물은 그대로 둔다(캐시되는 편이 낫다).
+const NO_STORE_EXT = /\.(html|js|css|json|map)$/i;
+const KEEP_CACHE = /^\/(uploads|images|img|media|assets\/img)\//i;
 app.use((req, res, next) => {
-  // CSS, JS 파일에 대해 캐시 무효화
-  if (req.url.match(/\.(css|js)$/)) {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  const url = (req.url || '/').split('?')[0];
+  const last = url.split('/').pop();
+  const isShell = NO_STORE_EXT.test(url) || url.endsWith('/') || !last.includes('.');
+  if (isShell && !KEEP_CACHE.test(url)) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
   }
   next();
 });
+// ────────────────────────────────────────────────────────────────────────
+
+
+// ── 서버이용료 (2026-09-13) ──────────────────────────────────────────────
+// 이 사이트가 돌아가는 서버의 이용료를 관리자에게 보여 주고 결제받는다.
+// ⚠️ 요금·기한의 **원본은 라이선스 서버**다. 여기서는 읽어다 보여 주기만 한다.
+//    고치는 길은 일부러 만들지 않았다 — 고객이 자기 요금을 바꿀 수 있으면 안 된다.
+// ⚠️ 스위치는 도커 브리지에서만 듣는다. 컨테이너 안에서는 172.17.0.1 로 닿는다.
+const SB_SITE = 'edenfood';
+const SB_SWITCH = process.env.SITE_SWITCH_URL || 'http://172.17.0.1:8099';
+
+async function sbFetch(path) {
+  const r = await fetch(SB_SWITCH + path, { signal: AbortSignal.timeout(15000) });
+  if (!r.ok) throw new Error('switch ' + r.status);
+  return r.json();
+}
+
+app.get('/api/server-billing', async (req, res) => {
+  try {
+    res.json(await sbFetch('/public/billing?site=' + SB_SITE));
+  } catch (e) {
+    res.status(502).json({ error: '요금 정보를 불러오지 못했습니다', detail: String(e).slice(0, 160) });
+  }
+});
+
+// ⚠️ 결제 열쇠는 **site-switch 한 곳에만** 둔다. 사이트마다 복사해 두면 샐 곳만 늘어난다.
+//    여기서는 넘기기만 한다(client key 는 결제창에 필요해서 나오고, 비밀키는 안 나온다).
+app.get('/api/server-billing/pay-config', async (req, res) => {
+  try {
+    res.json(await sbFetch('/public/pay-config?site=' + SB_SITE));
+  } catch (e) {
+    res.json({ enabled: false });
+  }
+});
+
+// 나이스페이 결제창 결과 — 승인·기한연장은 site-switch 가 한다(열쇠가 거기에만 있다).
+// 여기서는 받은 것을 그대로 넘기고, 돌아온 화면을 그대로 보여 준다.
+app.post('/api/server-billing/return', express.urlencoded({ extended: true }), async (req, res) => {
+  try {
+    const r = await fetch(SB_SWITCH + '/public/pay-return', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(req.body || {}).toString(),
+      signal: AbortSignal.timeout(40000)
+    });
+    res.type('html').send(await r.text());
+  } catch (e) {
+    res.type('html').send('<!doctype html><meta charset=utf-8>'
+      + '<body style="font-family:system-ui;padding:40px;text-align:center">'
+      + '<h2 style="color:#c5221f">승인 처리 중 문제가 생겼습니다.</h2>'
+      + '<p>결제가 되었는지 확인이 필요합니다. 서비스 제공자에게 알려 주세요.</p></body>');
+  }
+});
+// ────────────────────────────────────────────────────────────────────────
 
 // admin 정적 파일 (가장 먼저 처리되도록)
 app.use('/admin', express.static(path.join(__dirname, 'admin'), {

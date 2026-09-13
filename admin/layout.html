@@ -409,6 +409,13 @@
             <span class="nav-item-icon">⚙️</span>
             <span>시스템 설정</span>
           </a>
+          <!-- 서버이용료 — 이 사이트가 돌아가는 서버의 이용료(2026-09-13) -->
+          <a href="#" class="nav-item" onclick="loadContent('billing')" id="nav-billing">
+            <span class="nav-item-icon">💳</span>
+            <span>서버이용료</span>
+            <span id="billing-badge" style="display:none;margin-left:auto;background:#c5221f;color:#fff;
+                  font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px">!</span>
+          </a>
         </div>
       </nav>
       
@@ -464,7 +471,7 @@
   
   <script src="/admin/js/dialog.js"></script>
   <script>
-    const CURRENT_VERSION = 'Ver.4.1.20260622';
+    const CURRENT_VERSION = 'Ver.4.2.20260913';
     let readmeContent = '';
 
     let isLatestVersion = false;
@@ -687,6 +694,11 @@
           pageTitle.textContent = '시스템 설정';
           iframeSrc = '/admin/settings.html';
           break;
+
+        case 'billing':
+          pageTitle.textContent = '서버이용료';
+          iframeSrc = '/admin/billing.html';
+          break;
           
         default:
           contentArea.innerHTML = '<p>페이지를 준비 중입니다.</p>';
@@ -775,5 +787,74 @@
       }
     }
   </script>
+
+<script>
+/* ── 서버이용료 안내 팝업 (2026-09-13) ───────────────────────────────────
+   교수오빠 지시: 「관리자 로그인 하면 결제가 필요하면 팝업 띄워서 결제 화면으로」
+   ⚠️ 기한이 7일 이내이거나 지났을 때만 뜬다. 그 밖에는 조용하다.
+   ⚠️ 「오늘은 그만 보기」를 누르면 그날은 다시 뜨지 않는다 — 매번 뜨면 성가시다. */
+(function () {
+  function todayKey() {
+    var d = new Date();
+    return 'sbHide' + d.getFullYear() + (d.getMonth() + 1) + d.getDate();
+  }
+  async function check() {
+    try {
+      if (localStorage.getItem(todayKey()) === '1') return;
+      var r = await fetch('/api/server-billing');
+      if (!r.ok) return;
+      var b = await r.json();
+      var badge = document.getElementById('billing-badge');
+      if (badge && (b.overdue === true || (b.days_left !== null && b.days_left <= 7))) {
+        badge.style.display = '';
+      }
+      if (!(b.overdue === true || (b.days_left !== null && b.days_left <= 7))) return;
+      show(b);
+    } catch (e) { /* 조용히 넘어간다 — 결제 안내 때문에 관리자 화면이 막히면 안 된다 */ }
+  }
+  function won(n) { return (n || 0).toLocaleString('ko-KR') + '원'; }
+  function show(b) {
+    var overdue = b.overdue === true;
+    var w = document.createElement('div');
+    w.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;'
+                    + 'display:flex;align-items:center;justify-content:center;padding:20px';
+    w.innerHTML =
+      '<div style="background:#fff;border-radius:14px;max-width:440px;width:100%;overflow:hidden;'
+    + 'box-shadow:0 20px 60px rgba(0,0,0,.35);font-family:system-ui,sans-serif">'
+    +   '<div style="padding:18px 22px;background:' + (overdue ? '#c5221f' : '#a15c00') + ';color:#fff">'
+    +     '<b style="font-size:17px">' + (overdue ? '서버이용료 납부 기한이 지났습니다' : '서버이용료 납부 기한이 다가옵니다') + '</b>'
+    +   '</div>'
+    +   '<div style="padding:22px">'
+    +     '<div style="font-size:15px;line-height:1.7">'
+    +       '납부 기한 <b>' + (b.paid_until || '미정') + '</b><br>'
+    +       (overdue ? '<span style="color:#c5221f">기한이 지났습니다. 서비스가 중지될 수 있습니다.</span>'
+                     : '<b>' + b.days_left + '일</b> 남았습니다.')
+    +     '</div>'
+    +     '<div style="margin-top:14px;padding:12px 14px;background:#f6f8fa;border-radius:8px;font-size:14px">'
+    +       '월 <b>' + won(b.monthly_fee) + '</b> · 1년 선결제 <b>' + won(b.annual_fee) + '</b>'
+    +       ' <span style="color:#137333">(' + won(b.annual_save) + ' 절약)</span>'
+    +     '</div>'
+    +     '<div style="margin-top:20px;display:flex;gap:8px;align-items:center">'
+    +       '<button id="sb-go" style="flex:1;border:0;border-radius:8px;padding:12px;background:#16a34a;'
+    +         'color:#fff;font-weight:700;font-size:14.5px;cursor:pointer">결제하러 가기</button>'
+    +       '<button id="sb-later" style="border:1px solid #cfd4da;background:#fff;border-radius:8px;'
+    +         'padding:12px 14px;font-size:13.5px;cursor:pointer;white-space:nowrap">오늘은 그만 보기</button>'
+    +     '</div>'
+    +   '</div>'
+    + '</div>';
+    document.body.appendChild(w);
+    w.querySelector('#sb-go').onclick = function () {
+      w.remove();
+      if (typeof loadContent === 'function') loadContent('billing');
+    };
+    w.querySelector('#sb-later').onclick = function () {
+      try { localStorage.setItem(todayKey(), '1'); } catch (e) {}
+      w.remove();
+    };
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(check, 1200); });
+  else setTimeout(check, 1200);
+})();
+</script>
 </body>
 </html>

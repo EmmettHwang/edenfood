@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>서버이용료 · 이든푸드 관리자</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://pay.nicepay.co.kr/v1/js/"></script>
+<style>
+  :root{--g:#16a34a;--line:#e6e9ec;--dim:#6b7280}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Pretendard','Malgun Gothic',system-ui,sans-serif;background:#f6f7f9;color:#222}
+  .wrap{max-width:880px;margin:0 auto;padding:24px 20px 60px}
+  h1{font-size:22px;margin:0 0 6px}
+  .sub{color:var(--dim);font-size:13.5px;margin-bottom:22px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:16px}
+  .row{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline}
+  .big{font-size:30px;font-weight:800;letter-spacing:-.5px}
+  .tag{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:20px}
+  .ok{background:#e7f6ec;color:#137333}.warn{background:#fdecea;color:#c5221f}.soon{background:#fff4e5;color:#a15c00}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left}
+  th{background:#fafbfc;color:#555;font-weight:600;font-size:13px}
+  td.num,th.num{text-align:right}
+  .btn{border:0;border-radius:8px;padding:12px 18px;font-size:14.5px;font-weight:700;cursor:pointer}
+  .btn-pay{background:var(--g);color:#fff}
+  .btn-ghost{background:#fff;border:1px solid #cfd4da;color:#333}
+  .plan{border:2px solid var(--line);border-radius:10px;padding:14px 16px;cursor:pointer;flex:1;min-width:240px}
+  .plan.on{border-color:var(--g);background:#f2fbf5}
+  .plan .t{font-weight:700;margin-bottom:4px}
+  .plan .p{font-size:20px;font-weight:800}
+  .plan .s{font-size:12.5px;color:var(--dim);margin-top:4px}
+  .muted{color:var(--dim);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>💳 서버이용료</h1>
+  <div class="sub">이 사이트가 돌아가는 서버 이용료입니다. 기한이 지나면 서비스가 중지될 수 있습니다.</div>
+
+  <div class="card" id="summary">불러오는 중…</div>
+
+  <div class="card">
+    <div style="font-weight:700;margin-bottom:12px">결제하기</div>
+    <div class="row" style="margin-bottom:14px">
+      <div class="plan on" id="plan-month" onclick="pickPlan('month')">
+        <div class="t">월 결제</div>
+        <div class="p" id="p-month">-</div>
+        <div class="s">매달 청구</div>
+      </div>
+      <div class="plan" id="plan-annual" onclick="pickPlan('annual')">
+        <div class="t">1년 선결제 <span class="tag ok" id="dc-tag">할인</span></div>
+        <div class="p" id="p-annual">-</div>
+        <div class="s" id="s-annual">-</div>
+      </div>
+    </div>
+    <div class="row">
+      <button class="btn btn-pay" onclick="pay('card')">카드로 결제</button>
+      <button class="btn btn-ghost" onclick="pay('vbank')">가상계좌 받기</button>
+      <span class="muted" style="flex:1">가상계좌는 계좌번호를 받아 입금하는 방식입니다.</span>
+    </div>
+    <div id="msg" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700;margin-bottom:10px">납부 내역</div>
+    <div id="pays">불러오는 중…</div>
+  </div>
+
+  <p class="muted">문의는 서비스 제공자에게 연락해 주세요.</p>
+</div>
+
+<script>
+const SITE = 'edenfood';
+let B = null, PLAN = 'month';
+const won = n => (n || 0).toLocaleString('ko-KR') + '원';
+
+async function load() {
+  try {
+    const r = await fetch('/api/server-billing');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    B = await r.json();
+  } catch (e) {
+    document.getElementById('summary').innerHTML =
+      '<span style="color:#c5221f">요금 정보를 불러오지 못했습니다: ' + (e.message || e) + '</span>';
+    return;
+  }
+  const overdue = B.overdue === true;
+  const soon = !overdue && B.days_left !== null && B.days_left <= 7;
+  document.getElementById('summary').innerHTML =
+      '<div class="row">'
+    +   '<div><div class="muted">월 이용료</div><div class="big">' + won(B.monthly_fee) + '</div></div>'
+    +   '<div style="flex:1"></div>'
+    +   '<div style="text-align:right">'
+    +     '<div class="muted">납부 기한</div>'
+    +     '<div style="font-size:18px;font-weight:700">' + (B.paid_until || '미정') + '</div>'
+    +     (B.days_left === null ? ''
+        : overdue ? '<span class="tag warn">기한이 지났습니다</span>'
+        : soon ? '<span class="tag soon">' + B.days_left + '일 남음</span>'
+               : '<span class="tag ok">' + B.days_left + '일 남음</span>')
+    +   '</div>'
+    + '</div>'
+    + (B.note ? '<div class="muted" style="margin-top:10px">' + B.note + '</div>' : '');
+
+  document.getElementById('p-month').textContent = won(B.monthly_fee);
+  document.getElementById('p-annual').textContent = won(B.annual_fee);
+  document.getElementById('dc-tag').textContent = (B.annual_dc_pct || 0) + '% 할인';
+  document.getElementById('s-annual').textContent =
+      won(B.monthly_fee * 12) + ' → ' + won(B.annual_fee) + ' (' + won(B.annual_save) + ' 절약)';
+
+  const ps = B.payments || [];
+  document.getElementById('pays').innerHTML = ps.length
+    ? '<table><tr><th>연월</th><th class="num">금액</th><th>메모</th></tr>'
+      + ps.map(p => '<tr><td>' + p.year + '년 ' + p.month + '월</td><td class="num">'
+                  + won(p.amount) + '</td><td>' + (p.memo || '') + '</td></tr>').join('')
+      + '</table>'
+    : '<span class="muted">아직 납부 내역이 없습니다.</span>';
+}
+
+function pickPlan(p) {
+  PLAN = p;
+  document.getElementById('plan-month').classList.toggle('on', p === 'month');
+  document.getElementById('plan-annual').classList.toggle('on', p === 'annual');
+}
+
+async function pay(method) {
+  if (!B) return;
+  const amount = PLAN === 'annual' ? B.annual_fee : B.monthly_fee;
+  const msg = document.getElementById('msg');
+  if (!amount) { msg.innerHTML = '<span style="color:#c5221f">결제 금액이 0원입니다.</span>'; return; }
+  let cfg;
+  try { cfg = await (await fetch('/api/server-billing/pay-config')).json(); }
+  catch (e) { msg.innerHTML = '<span style="color:#c5221f">결제 설정을 불러오지 못했습니다.</span>'; return; }
+  if (!cfg.enabled || !cfg.client_key) {
+    msg.innerHTML = '<span style="color:#c5221f">결제가 아직 준비되지 않았습니다. 서비스 제공자에게 문의해 주세요.</span>';
+    return;
+  }
+  if (typeof AUTHNICE === 'undefined') { msg.innerHTML = '<span style="color:#c5221f">결제 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</span>'; return; }
+  AUTHNICE.requestPay({
+    clientId: cfg.client_key,
+    method: method,                       // card | vbank
+    orderId: 'SB' + SITE.toUpperCase() + Date.now(),
+    amount: amount,
+    goodsName: (B.name || SITE) + ' 서버이용료 (' + (PLAN === 'annual' ? '1년' : '1개월') + ')',
+    returnUrl: location.origin + '/api/server-billing/return',
+    mallReserved: SITE + '::' + PLAN,
+    fnError: function (r) {
+      msg.innerHTML = '<span style="color:#c5221f">결제 실패: '
+                    + (r.errorMsg || r.resultMsg || '알 수 없는 오류') + '</span>';
+    }
+  });
+}
+
+window.addEventListener('message', function (ev) {
+  const msg = document.getElementById('msg');
+  if (ev.data === 'nicepay:success') {
+    msg.innerHTML = '<span style="color:#137333;font-weight:700">결제가 완료되었습니다. 감사합니다!</span>';
+    setTimeout(load, 1500);
+  } else if (ev.data === 'nicepay:fail') {
+    msg.innerHTML = '<span style="color:#c5221f">결제가 완료되지 않았습니다.</span>';
+  }
+});
+
+load();
+</script>
+</body>
+</html>
