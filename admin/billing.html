@@ -135,7 +135,7 @@ async function pay(method) {
     return;
   }
   if (typeof AUTHNICE === 'undefined') { msg.innerHTML = '<span style="color:#c5221f">결제 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</span>'; return; }
-  AUTHNICE.requestPay({
+  const req = {
     clientId: cfg.client_key,
     method: method,                       // card | vbank
     orderId: 'SB' + SITE.toUpperCase() + Date.now(),
@@ -147,7 +147,18 @@ async function pay(method) {
       msg.innerHTML = '<span style="color:#c5221f">결제 실패: '
                     + (r.errorMsg || r.resultMsg || '알 수 없는 오류') + '</span>';
     }
-  });
+  };
+  // ⚠️ 가상계좌는 **예금주명이 필수**다. 없으면 결제창이 아예 안 뜨고
+  //    「[P007] 필수 파라미터 예금주명:vbankHolder가 없습니다」로 막힌다.
+  if (method === 'vbank') {
+    req.vbankHolder = '이든푸드';
+    // ⚠️ 날짜는 **ISO8601(YYYY-MM-DD)** 이어야 한다. YYYYMMDD 로 보내면 [P024] 로 막힌다.
+    const d = new Date(Date.now() + 3 * 864e5);           // 입금 기한 3일
+    req.vbankExpDate = d.getFullYear() + '-'
+      + String(d.getMonth() + 1).padStart(2, '0') + '-'
+      + String(d.getDate()).padStart(2, '0');
+  }
+  AUTHNICE.requestPay(req);
 }
 
 window.addEventListener('message', function (ev) {
