@@ -16,6 +16,15 @@
     }
     
     /* 활성 메뉴 스타일 */
+    .main-nav-links a.nav-login {
+      background: var(--primary, #16a34a);
+      color: #fff !important;
+      padding: 7px 16px;
+      border-radius: 999px;
+      font-weight: 600;
+      margin-left: 6px;
+    }
+    .main-nav-links a.nav-login:hover { opacity: .9; }
     .main-nav-links a.active {
       color: var(--primary) !important;
       font-weight: 600;
@@ -229,6 +238,8 @@
       <a href="/gallery">갤러리</a>
       <a href="/documents">서식자료실</a>
       <a href="/contact">문의</a>
+      <!-- 임직원 로그인 — 상단에 둔다(2026-09-15). 푸터에만 있으면 못 찾는다. -->
+      <a href="/login" class="nav-login">로그인</a>
     </nav>
     <button class="nav-hamburger" id="nav-hamburger" aria-label="메뉴">
       <span></span><span></span><span></span>
@@ -243,6 +254,7 @@
     <a href="/gallery">갤러리</a>
     <a href="/documents">서식자료실</a>
     <a href="/contact">문의</a>
+    <a href="/login">로그인</a>
   </div>
 </header>
 
@@ -396,7 +408,6 @@
       <div class="footer-col">
         <strong>시스템</strong>
         <a href="/login">로그인</a>
-        <a href="/admin">관리자</a>
       </div>
     </div>
   </div>
@@ -412,7 +423,6 @@
       <a href="/terms">이용약관</a>
       <a href="/email-policy">이메일무단수집거부</a>
       <a href="/location">오시는길</a>
-      <a href="/admin">관리자</a>
     </div>
   </div>
 </footer>
@@ -760,8 +770,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // 헤더는 항상 보이므로 스크롤 효과 제거
 
 // 모바일 메뉴
-document.getElementById('nav-hamburger').addEventListener('click', () => {
-  document.getElementById('mobile-menu').classList.toggle('open');
+(document.getElementById('nav-hamburger') || {addEventListener(){}}).addEventListener('click', () => {
+  const _mm = document.getElementById('mobile-menu');
+  if (_mm) _mm.classList.toggle('open');
 });
 
 // 숫자 카운터 애니메이션 제거 - 바로 표시
@@ -769,7 +780,12 @@ document.getElementById('nav-hamburger').addEventListener('click', () => {
 // 스크롤 페이드인 제거 - 바로 표시
 
 // 문의 폼
-document.getElementById('contact-form').addEventListener('submit', e => {
+// ⚠️ 이 화면에는 `contact-form` 이 **없다**. 그런데 바로 addEventListener 를 걸어
+//    `null` 에서 터졌고, 스크립트가 거기서 멈춰 **뒤쪽(스무스 스크롤 · 히어로 패럴랙스)이
+//    통째로 안 돌고 있었다** (2026-09-15 에 잡았다).
+//    없으면 조용히 건너뛴다.
+const _contactForm = document.getElementById('contact-form');
+if (_contactForm) _contactForm.addEventListener('submit', e => {
   e.preventDefault();
   const btn = e.target.querySelector('.btn-submit');
   btn.textContent = '✅ 접수되었습니다!';
@@ -783,7 +799,8 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     e.preventDefault();
     const target = document.querySelector(a.getAttribute('href'));
     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    document.getElementById('mobile-menu').classList.remove('open');
+    const _mm2 = document.getElementById('mobile-menu');
+    if (_mm2) _mm2.classList.remove('open');
   });
 });
 

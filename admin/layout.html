@@ -409,10 +409,10 @@
             <span class="nav-item-icon">⚙️</span>
             <span>시스템 설정</span>
           </a>
-          <!-- 서버이용료 — 이 사이트가 돌아가는 서버의 이용료(2026-09-13) -->
+          <!-- 홈페이지유지관리비 — 이 사이트가 돌아가는 서버의 이용료(2026-09-13) -->
           <a href="#" class="nav-item" onclick="loadContent('billing')" id="nav-billing">
             <span class="nav-item-icon">💳</span>
-            <span>서버이용료</span>
+            <span>홈페이지유지관리비</span>
             <span id="billing-badge" style="display:none;margin-left:auto;background:#c5221f;color:#fff;
                   font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px">!</span>
           </a>
@@ -471,7 +471,7 @@
   
   <script src="/admin/js/dialog.js"></script>
   <script>
-    const CURRENT_VERSION = 'Ver.4.3.20260913';
+    const CURRENT_VERSION = 'Ver.4.4.20260915';
     let readmeContent = '';
 
     let isLatestVersion = false;
@@ -570,7 +570,10 @@
       
       const token = localStorage.getItem('eden_token');
       if (!token) {
-        location.href = '/login';
+        // ⚠️ 그냥 /login 으로 보내면 **아무 말 없이 화면이 바뀐다.** 로그인 화면이
+        //    랜딩과 비슷하게 생겨서 「랜딩으로 튕겼다」로 보인다(2026-09-15 교수오빠 지적).
+        //    까닭을 함께 넘겨서 로그인 화면이 안내하도록 한다.
+        location.href = '/login?reason=auth&next=' + encodeURIComponent('/admin/layout.html');
         return;
       }
       
@@ -581,15 +584,18 @@
         const data = await response.json();
         
         if (!data.ok || data.user.role !== 'admin') {
-          alert('관리자 권한이 필요합니다.');
-          location.href = '/';
+          // 토큰이 만료됐는지, 권한이 없는지를 **가려서** 안내한다.
+          localStorage.removeItem('eden_token');
+          localStorage.removeItem('eden_user');
+          const why = data.ok ? 'role' : 'expired';
+          location.href = '/login?reason=' + why + '&next=' + encodeURIComponent('/admin/layout.html');
           return;
         }
         
         document.getElementById('admin-name').textContent = data.user.name || '관리자';
       } catch (error) {
         console.error('인증 확인 실패:', error);
-        location.href = '/login';
+        location.href = '/login?reason=error&next=' + encodeURIComponent('/admin/layout.html');
       }
       
       initVersionBadge();
@@ -616,8 +622,16 @@
       document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.remove('active');
       });
-      if (event && event.target) {
-        event.target.closest('.nav-item').classList.add('active');
+      // ⚠️ 사이드바 메뉴가 아닌 곳(안내 팝업의 「결제하러 가기」 등)에서 부르면
+      //    `closest('.nav-item')` 이 **null** 이라 여기서 터졌다. 그러면 화면이
+      //    아예 안 바뀐다 — 2026-09-15 에 실제로 그랬다. 없으면 조용히 넘어간다.
+      const _navHit = (event && event.target && event.target.closest)
+        ? event.target.closest('.nav-item') : null;
+      if (_navHit) _navHit.classList.add('active');
+      // 팝업처럼 밖에서 부른 경우에는 해당 메뉴를 **이름으로 찾아** 표시한다.
+      if (!_navHit) {
+        const byName = document.querySelector('.nav-item[onclick*="\'' + page + '\'"]');
+        if (byName) byName.classList.add('active');
       }
       
       // 모바일에서 사이드바 닫기
@@ -696,7 +710,7 @@
           break;
 
         case 'billing':
-          pageTitle.textContent = '서버이용료';
+          pageTitle.textContent = '홈페이지유지관리비';
           iframeSrc = '/admin/billing.html';
           break;
           
@@ -789,7 +803,7 @@
   </script>
 
 <script>
-/* ── 서버이용료 안내 팝업 (2026-09-13) ───────────────────────────────────
+/* ── 홈페이지유지관리비 안내 팝업 (2026-09-13) ───────────────────────────────────
    교수오빠 지시: 「관리자 로그인 하면 결제가 필요하면 팝업 띄워서 결제 화면으로」
    ⚠️ 기한이 7일 이내이거나 지났을 때만 뜬다. 그 밖에는 조용하다.
    ⚠️ 「오늘은 그만 보기」를 누르면 그날은 다시 뜨지 않는다 — 매번 뜨면 성가시다. */
@@ -822,7 +836,7 @@
       '<div style="background:#fff;border-radius:14px;max-width:440px;width:100%;overflow:hidden;'
     + 'box-shadow:0 20px 60px rgba(0,0,0,.35);font-family:system-ui,sans-serif">'
     +   '<div style="padding:18px 22px;background:' + (overdue ? '#c5221f' : '#a15c00') + ';color:#fff">'
-    +     '<b style="font-size:17px">' + (overdue ? '서버이용료 납부 기한이 지났습니다' : '서버이용료 납부 기한이 다가옵니다') + '</b>'
+    +     '<b style="font-size:17px">' + (overdue ? '홈페이지유지관리비 납부 기한이 지났습니다' : '홈페이지유지관리비 납부 기한이 다가옵니다') + '</b>'
     +   '</div>'
     +   '<div style="padding:22px">'
     +     '<div style="font-size:15px;line-height:1.7">'

@@ -240,6 +240,11 @@ app.use((req, res, next) => {
 // ⚠️ 스위치는 도커 브리지에서만 듣는다. 컨테이너 안에서는 172.17.0.1 로 닿는다.
 const SB_SITE = 'edenfood';
 const SB_SWITCH = process.env.SITE_SWITCH_URL || 'http://172.17.0.1:8099';
+// ⚠️ 토큰은 파일에서 읽는다(코드·저장소에 박지 않는다). 없으면 저장 기능만 막힌다.
+const SB_TOKEN = (() => {
+  try { return require('fs').readFileSync('/run/switch_token', 'utf8').trim(); }
+  catch (e) { return ''; }
+})();
 
 async function sbFetch(path) {
   const r = await fetch(SB_SWITCH + path, { signal: AbortSignal.timeout(15000) });
@@ -257,6 +262,43 @@ app.get('/api/server-billing', async (req, res) => {
 
 // ⚠️ 결제 열쇠는 **site-switch 한 곳에만** 둔다. 사이트마다 복사해 두면 샐 곳만 늘어난다.
 //    여기서는 넘기기만 한다(client key 는 결제창에 필요해서 나오고, 비밀키는 안 나온다).
+// 안내 문자 받을 번호 — **관리자만** 바꿀 수 있다.
+// ⚠️ site-switch 쪽 길은 토큰이 필요하다. 「관리자인지」는 여기서 확인하고,
+//    확인된 뒤에만 우리 토큰을 붙여 넘긴다. 토큰은 화면으로 나가지 않는다.
+app.post('/api/server-billing/alert', authMiddleware, async (req, res) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ ok: false, error: '관리자만 바꿀 수 있습니다.' });
+  }
+  try {
+    const r = await fetch(SB_SWITCH + '/alert-phone', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Switch-Token': SB_TOKEN },
+      body: JSON.stringify({
+        site: SB_SITE,
+        phone: String(req.body.phone || '').slice(0, 20),
+        alert_on: !!req.body.alert_on
+      }),
+      signal: AbortSignal.timeout(20000)
+    });
+    res.status(r.status).type('json').send(await r.text());
+  } catch (e) {
+    res.status(502).json({ ok: false, error: '저장하지 못했습니다.' });
+  }
+});
+
+// 영수증 — 우리 화면으로 그려서 보여 준다(나이스페이 것은 본인확인을 요구한다)
+app.get('/api/server-billing/receipt', async (req, res) => {
+  try {
+    const tid = String(req.query.tid || '').slice(0, 64);
+    const r = await fetch(SB_SWITCH + '/public/receipt?site=' + SB_SITE
+                          + '&tid=' + encodeURIComponent(tid),
+                          { signal: AbortSignal.timeout(20000) });
+    res.type('html').send(await r.text());
+  } catch (e) {
+    res.type('html').send('<!doctype html><meta charset=utf-8><p>영수증을 불러오지 못했습니다.</p>');
+  }
+});
+
 app.get('/api/server-billing/pay-config', async (req, res) => {
   try {
     res.json(await sbFetch('/public/pay-config?site=' + SB_SITE));
@@ -706,15 +748,25 @@ async function initTables() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
 
-    // 기본 admin 계정 (없으면 생성)
-    const [existingAdmin] = await conn.query(`SELECT id FROM users WHERE username = 'admin' LIMIT 1`);
+    // 관리자 계정이 하나도 없을 때만 만든다 (2026-09-14)
+    // ⚠️ 전에는 `username='admin'` 이 있는지만 봤다. 그래서 아이디를 root 로 바꾸면
+    //    재시작할 때마다 **기본 비밀번호를 가진 admin 계정이 되살아났다** — 뒷문이다.
+    //    이제 «관리자 역할이 하나라도 있는가» 로 본다.
+    // ⚠️ 아이디·비밀번호는 .env 에서 읽는다. 코드에 적어 두지 않는다.
+    const [existingAdmin] = await conn.query(`SELECT id FROM users WHERE role = 'admin' LIMIT 1`);
     if (!existingAdmin || existingAdmin.length === 0) {
-      const hash = await bcrypt.hash('eden2026!', 10);
-      await conn.query(
-        `INSERT INTO users (username, password, name, role, is_approved) VALUES (?, ?, ?, 'admin', 1)`,
-        ['admin', hash, '관리자']
-      );
-      console.log('✅ 기본 admin 계정 생성 (ID: admin / PW: eden2026!)');
+      const adminId = (process.env.ADMIN_USERNAME || 'root').trim();
+      const adminPw = (process.env.ADMIN_PASSWORD || '').trim();
+      if (!adminPw) {
+        console.warn('⚠️ 관리자 계정이 없는데 ADMIN_PASSWORD 가 비어 있어 만들지 않았습니다.');
+      } else {
+        const hash = await bcrypt.hash(adminPw, 10);
+        await conn.query(
+          `INSERT INTO users (username, password, name, role, is_approved) VALUES (?, ?, ?, 'admin', 1)`,
+          [adminId, hash, '관리자']
+        );
+        console.log('✅ 관리자 계정 생성 (ID: ' + adminId + ')');
+      }
     }
     
     // 15. 협회소개 콘텐츠 (싱글톤)
