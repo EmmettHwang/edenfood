@@ -238,6 +238,9 @@ app.use((req, res, next) => {
 // ⚠️ 요금·기한의 **원본은 라이선스 서버**다. 여기서는 읽어다 보여 주기만 한다.
 //    고치는 길은 일부러 만들지 않았다 — 고객이 자기 요금을 바꿀 수 있으면 안 된다.
 // ⚠️ 스위치는 도커 브리지에서만 듣는다. 컨테이너 안에서는 172.17.0.1 로 닿는다.
+// 로그인 실패 제한 (2026-09-15). 자세한 것은 loginGuard.js 머리말.
+const loginGuard = require('./loginGuard');
+
 const SB_SITE = 'edenfood';
 const SB_SWITCH = process.env.SITE_SWITCH_URL || 'http://172.17.0.1:8099';
 // ⚠️ 토큰은 파일에서 읽는다(코드·저장소에 박지 않는다). 없으면 저장 기능만 막힌다.
@@ -283,6 +286,43 @@ app.post('/api/server-billing/alert', authMiddleware, async (req, res) => {
     res.status(r.status).type('json').send(await r.text());
   } catch (e) {
     res.status(502).json({ ok: false, error: '저장하지 못했습니다.' });
+  }
+});
+
+// 내 비밀번호 바꾸기 — **자기 계정만** 바꾼다.
+// ⚠️ 지금 비밀번호를 반드시 확인한다. 토큰만으로 바꾸게 하면, 남의 브라우저를 잠깐
+//    빌린 사람이 계정을 통째로 가져갈 수 있다.
+app.post('/api/auth/change-password', authMiddleware, async (req, res) => {
+  const cur = String(req.body.current || '');
+  const next = String(req.body.next || '');
+  if (next.length < 8) {
+    return res.status(400).json({ ok: false, message: '새 비밀번호는 8자 이상이어야 합니다.' });
+  }
+  if (cur === next) {
+    return res.status(400).json({ ok: false, message: '지금 쓰는 것과 다른 비밀번호를 넣어 주세요.' });
+  }
+  try {
+    const [rows] = await pool.query('SELECT id, password FROM users WHERE id = ? LIMIT 1', [req.user.id]);
+    if (!rows.length) return res.status(404).json({ ok: false, message: '계정을 찾을 수 없습니다.' });
+    if (!(await bcrypt.compare(cur, rows[0].password))) {
+      return res.status(401).json({ ok: false, message: '지금 비밀번호가 맞지 않습니다.' });
+    }
+    await pool.query('UPDATE users SET password = ? WHERE id = ?',
+                     [await bcrypt.hash(next, 10), req.user.id]);
+    console.log('비밀번호 변경:', req.user.username);
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('비밀번호 변경 오류:', e);
+    res.status(500).json({ ok: false, message: '바꾸지 못했습니다.' });
+  }
+});
+
+// 이 사이트가 지금 쓰고 있는 자원 (읽기만)
+app.get('/api/server-billing/usage', async (req, res) => {
+  try {
+    res.json(await sbFetch('/public/usage?site=' + SB_SITE));
+  } catch (e) {
+    res.status(502).json({ error: '사용량을 불러오지 못했습니다' });
   }
 });
 
@@ -1180,6 +1220,13 @@ function authMiddleware(req, res, next) {
 ───────────────────────────────────────── */
 // 로그인
 app.post('/api/auth/login', async (req, res) => {
+  // ⚠️ 너무 많이 틀렸으면 아예 받지 않는다. 메시지는 바꾸지 않는다
+  //    (어떤 아이디가 있는지 알려 주지 않기 위해서).
+  const _left = loginGuard.blockedFor(req);
+  if (_left) {
+    return res.status(429).json({ ok: false,
+      message: `로그인 시도가 너무 많습니다. ${_left}초 뒤에 다시 해 주세요.` });
+  }
   console.log('=== 로그인 시도 ===');
   console.log('요청 본문:', req.body);
   
@@ -1198,6 +1245,7 @@ app.post('/api/auth/login', async (req, res) => {
     
     if (!user) {
       console.log('❌ 사용자를 찾을 수 없음:', username);
+      loginGuard.recordFail(req, 'edenfood');
       return res.json({ ok: false, message: '아이디 또는 비밀번호가 올바르지 않습니다.' });
     }
     
@@ -1213,10 +1261,12 @@ app.post('/api/auth/login', async (req, res) => {
     
     if (!match) {
       console.log('❌ 비밀번호 불일치');
+      loginGuard.recordFail(req, 'edenfood');
       return res.json({ ok: false, message: '아이디 또는 비밀번호가 올바르지 않습니다.' });
     }
 
     console.log('✅ 비밀번호 일치');
+    loginGuard.recordOk(req);
     await pool.query('UPDATE users SET last_login = NOW() WHERE id = ?', [user.id]);
 
     const payload = { id: user.id, username: user.username, name: user.name, role: user.role };

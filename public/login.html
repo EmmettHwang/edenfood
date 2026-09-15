@@ -625,7 +625,8 @@ async function doRegister(e) {
     auth   : '관리자 화면은 <b>로그인한 뒤</b>에 볼 수 있습니다. 아래에 아이디와 비밀번호를 넣어 주세요.',
     expired: '<b>로그인이 만료되었습니다.</b> 다시 로그인해 주세요.',
     role   : '그 화면은 <b>관리자만</b> 볼 수 있습니다. 관리자 계정으로 로그인해 주세요.',
-    error  : '<b>서버와 연결하지 못했습니다.</b> 잠시 뒤 다시 로그인해 주세요.'
+    error  : '<b>서버와 연결하지 못했습니다.</b> 잠시 뒤 다시 로그인해 주세요.',
+    pwchanged: '<b>비밀번호를 바꿨습니다.</b> 새 비밀번호로 다시 로그인해 주세요.'
   };
   try {
     var why = new URLSearchParams(location.search).get('reason');
@@ -636,6 +637,19 @@ async function doRegister(e) {
       var el = document.getElementById('login-id');
       if (el) el.focus();
     }
+  } catch (e) {}
+})();
+</script>
+<script>
+/* 관리자 비밀번호 분실 안내 (2026-09-15) — 담당자가 어디에 물어야 할지 알 수 있게 */
+(function () {
+  try {
+    var box = document.querySelector('.login-header');
+    if (!box) return;
+    var p = document.createElement('p');
+    p.style.cssText = 'margin-top:14px;font-size:12.5px;color:#6b7280;line-height:1.6';
+    p.innerHTML = '관리자 비밀번호 분실은 <b>별도 문의 (010-2512-6818)</b>';
+    box.parentNode.insertBefore(p, box.nextSibling);
   } catch (e) {}
 })();
 </script>

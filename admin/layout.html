@@ -412,7 +412,7 @@
           <!-- 홈페이지유지관리비 — 이 사이트가 돌아가는 서버의 이용료(2026-09-13) -->
           <a href="#" class="nav-item" onclick="loadContent('billing')" id="nav-billing">
             <span class="nav-item-icon">💳</span>
-            <span>홈페이지유지관리비</span>
+            <span>홈페이지유지관리</span>
             <span id="billing-badge" style="display:none;margin-left:auto;background:#c5221f;color:#fff;
                   font-size:11px;font-weight:700;border-radius:10px;padding:1px 7px">!</span>
           </a>
@@ -471,7 +471,7 @@
   
   <script src="/admin/js/dialog.js"></script>
   <script>
-    const CURRENT_VERSION = 'Ver.4.4.20260915';
+    const CURRENT_VERSION = 'Ver.4.5.20260915';
     let readmeContent = '';
 
     let isLatestVersion = false;
@@ -710,7 +710,7 @@
           break;
 
         case 'billing':
-          pageTitle.textContent = '홈페이지유지관리비';
+          pageTitle.textContent = '홈페이지유지관리';
           iframeSrc = '/admin/billing.html';
           break;
           
