@@ -74,8 +74,8 @@ async function initGallery() {
         description: '이든푸드 창업 기념식 행사',
         category: 'event',
         tags: '창업,기념식,행사',
-        image_url: '/assets/saup.png',
-        thumbnail_url: '/assets/thumbnails/thumb_saup.png'
+        image_url: '/assets/saup.jpg',
+        thumbnail_url: '/assets/thumbnails/thumb_saup.jpg'
       },
       {
         title: '품질 우수상 수상',

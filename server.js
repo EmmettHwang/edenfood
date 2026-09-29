@@ -118,8 +118,74 @@ app.use(async (req, res, next) => {
   next();
 });
 
+/* ─────────────────────────────────────────────────────────────────────────
+ * 올라온 그림을 **그 자리에서** 줄인다 (2026-09-29)
+ *
+ * 왜: 원본 사진을 그대로 올리면 그대로 손님에게 내려갔다.
+ *     실측 — 홈 첫 화면 33MB, 그중 한 장이 22.58MB(8688x5792)인데 화면 표시는 400x267.
+ *     픽셀로 471배 낭비였다. 이미 올라온 것은 일괄로 줄였지만, **여기를 막지 않으면
+ *     다음에 또 원본을 올리는 순간 똑같아진다.**
+ *
+ * ⚠️ 파일명·확장자·경로는 절대 바꾸지 않는다 — DB 와 화면이 이 경로를 가리킨다.
+ * ⚠️ 줄이기에 실패해도 **업로드 자체는 성공시킨다.** 그림 한 장 때문에 등록이 막히면 안 된다.
+ * ⚠️ 애니메이션(GIF 등)과 결과가 더 커지는 것은 건드리지 않는다.
+ * ───────────────────────────────────────────────────────────────────────── */
+const IMG_MAX_PX = 1920;          // 긴 변 최대 (화면 최대 표시가 400px대라 넉넉하다)
+const IMG_MIN_BYTES = 300 * 1024; // 이보다 작으면 손대지 않는다
+
+async function shrinkImageInPlace(filePath) {
+  const sharpLib = require('sharp');
+  let st;
+  try { st = fs.statSync(filePath); } catch (e) { return null; }
+  if (st.size < IMG_MIN_BYTES) return null;
+  if (!/\.(jpe?g|png)$/i.test(filePath)) return null;   // gif/webp 는 그대로 둔다
+
+  const meta = await sharpLib(filePath, { failOn: 'none' }).metadata();
+  if (meta.pages && meta.pages > 1) return null;          // 애니메이션
+
+  let pipe = sharpLib(filePath, { failOn: 'none' }).rotate();   // EXIF 회전 반영
+  if (meta.width > IMG_MAX_PX || meta.height > IMG_MAX_PX) {
+    pipe = pipe.resize({ width: IMG_MAX_PX, height: IMG_MAX_PX, fit: 'inside', withoutEnlargement: true });
+  }
+  // ⚠️ palette:true 를 쓰면 안 된다 — **256색으로 양자화되는 손실 압축**이다.
+  //    2026-09-29 실측: 간판 사진(ganpan.jpg)의 빨간 네온 글자에 원본에 없는
+  //    분홍 얼룩(포스터라이제이션)이 생겼고, 반투명(alpha)도 날아갔다.
+  //    PNG 는 **무손실로만** 다시 압축한다(크기는 덜 줄지만 그림을 망치지 않는다).
+  const buf = /\.png$/i.test(filePath)
+    ? await pipe.png({ compressionLevel: 9, effort: 10, palette: false }).toBuffer()
+    : await pipe.jpeg({ quality: 82, mozjpeg: true }).toBuffer();
+
+  if (buf.length >= st.size) return null;                 // 더 커지면 그만둔다
+
+  const tmp = filePath + '.opt.tmp';
+  fs.writeFileSync(tmp, buf);
+  fs.renameSync(tmp, filePath);                           // 같은 디스크 → 원자적 교체
+  console.log('[이미지축소] ' + (st.size/1048576).toFixed(2) + 'MB → '
+              + (buf.length/1024).toFixed(0) + 'KB  ' + filePath);
+  return buf.length;
+}
+
+/* multer.diskStorage 를 감싸, 파일이 저장된 **직후** 줄인다.
+   각 업로드 설정에서 multer.diskStorage 대신 이것을 쓴다. */
+function shrinkingDiskStorage(opts) {
+  const st = multer.diskStorage(opts);
+  const origHandle = st._handleFile.bind(st);
+  st._handleFile = function (req, file, cb) {
+    origHandle(req, file, function (err, info) {
+      if (err || !info || !info.path) return cb(err, info);
+      shrinkImageInPlace(info.path)
+        .then(function (size) { cb(null, size ? Object.assign({}, info, { size: size }) : info); })
+        .catch(function (e) {
+          console.warn('[이미지축소] 실패(무시하고 업로드는 진행): ' + (e && e.message));
+          cb(null, info);
+        });
+    });
+  };
+  return st;
+}
+
 /* 파일 업로드 설정 */
-const storage = multer.diskStorage({
+const storage = shrinkingDiskStorage({
   destination: function (req, file, cb) {
     const uploadPath = path.join(__dirname, 'uploads');
     // 디렉토리가 없으면 생성
@@ -158,7 +224,7 @@ const upload = multer({
 const Jimp = require('jimp');
 
 // 회사소개 이미지 업로드 전용 설정
-const aboutStorage = multer.diskStorage({
+const aboutStorage = shrinkingDiskStorage({
   destination: function (req, file, cb) {
     const type = req.body.type || 'ceo'; // ceo, executive, history 등
     const uploadPath = path.join(__dirname, 'uploads/about', type);
@@ -372,7 +438,17 @@ app.use('/admin', express.static(path.join(__dirname, 'admin'), {
   extensions: ['html']  // .html 확장자 자동 추가
 }));
 // public/ 정적 파일 (랜딩, 로그인, 인트라넷 허브, 영상 등)
-app.use(express.static(path.join(__dirname, 'public')));
+// ⚠️ 여기 파일들은 **이름이 고정**이라 immutable 을 붙이면 안 된다(바꿔도 옛것이 남는다).
+//    대신 하루만 캐시하고 ETag 로 재검증하게 둔다. html 은 캐시하지 않는다.
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders: function (res, filePath) {
+    if (/\.html?$/i.test(filePath)) {
+      res.setHeader('Cache-Control', 'no-cache');
+    } else if (/\.(jpe?g|png|gif|webp|avif|mp4|webm|woff2?|css|js)$/i.test(filePath)) {
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+    }
+  }
+}));
 // intranet (차량 앱) 정적 파일
 app.use('/intranet/car', express.static(path.join(__dirname, 'intranet')));
 // css 디렉토리 정적 파일
@@ -465,7 +541,16 @@ app.use('/uploads', async (req, res, next) => {
 });
 
 // 정적 파일 제공
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// 업로드 파일은 이름에 timestamp 가 들어 있어 **내용이 바뀌면 이름도 바뀐다.**
+// 그래서 오래 캐시해도 낡은 그림이 남을 일이 없다 (기존 4시간 → 30일, 2026-09-29).
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  maxAge: '30d',
+  setHeaders: function (res, filePath) {
+    if (/\.(jpe?g|png|gif|webp|avif|mp4|webm)$/i.test(filePath)) {
+      res.setHeader('Cache-Control', 'public, max-age=2592000, immutable');
+    }
+  }
+}));
 
 /* ─────────────────────────────────────────
    DB 연결 설정 (createConnection 기반)
@@ -931,7 +1016,7 @@ async function initTables() {
       await conn.query(`
         INSERT INTO system_settings (setting_key, setting_value, setting_type, description) VALUES 
         ('hero_use_image', 'true', 'boolean', '히어로 섹션에 이미지 사용 여부'),
-        ('hero_image_url', '/public/assets/china01.png', 'text', '히어로 섹션 이미지 경로'),
+        ('hero_image_url', '/public/assets/china01.jpg', 'text', '히어로 섹션 이미지 경로'),
         ('hero_video_url', '/public/assets/video/hero.mp4', 'text', '히어로 섹션 비디오 경로'),
         ('hero_display_mode', 'image', 'select', '히어로 섹션 표시 모드 (image/video/both)')
       `);
@@ -1088,13 +1173,13 @@ async function initTables() {
     if (existingPageSettings[0].count === 0) {
       await conn.query(`
         INSERT INTO page_settings (page_name, header_title, header_subtitle, header_image, content) VALUES 
-        ('about', '회사소개', '신선함을 잇는 가치, 이든푸드', '/assets/china01.png', '{}'),
-        ('logistics', '물류·유통시스템', '최첨단 콜드체인 시스템으로 신선함을 그대로 전달합니다', '/assets/china01.png', '{}'),
-        ('products', '제품소개', '이든푸드가 만든 최고의 맛', '/assets/china01.png', '{}'),
-        ('brands', '브랜드·창업지원', '함께 성장하는 파트너십', '/assets/china01.png', '{}'),
-        ('gallery', '갤러리', '이든푸드의 다양한 모습들', '/assets/china01.png', '{}'),
-        ('documents', '서식자료실', '필요한 서식을 다운로드 하세요', '/assets/china01.png', '{}'),
-        ('contacts', '문의', '궁금하신 점을 문의해주세요', '/assets/china01.png', '{}')
+        ('about', '회사소개', '신선함을 잇는 가치, 이든푸드', '/assets/china01.jpg', '{}'),
+        ('logistics', '물류·유통시스템', '최첨단 콜드체인 시스템으로 신선함을 그대로 전달합니다', '/assets/china01.jpg', '{}'),
+        ('products', '제품소개', '이든푸드가 만든 최고의 맛', '/assets/china01.jpg', '{}'),
+        ('brands', '브랜드·창업지원', '함께 성장하는 파트너십', '/assets/china01.jpg', '{}'),
+        ('gallery', '갤러리', '이든푸드의 다양한 모습들', '/assets/china01.jpg', '{}'),
+        ('documents', '서식자료실', '필요한 서식을 다운로드 하세요', '/assets/china01.jpg', '{}'),
+        ('contacts', '문의', '궁금하신 점을 문의해주세요', '/assets/china01.jpg', '{}')
       `);
       console.log('✅ 기본 페이지 설정 생성');
     }
@@ -3976,7 +4061,7 @@ app.delete('/api/menu/:id', authMiddleware, async (req, res) => {
 ───────────────────────────────────────── */
 
 // 브랜드 로고 업로드 전용 설정
-const brandStorage = multer.diskStorage({
+const brandStorage = shrinkingDiskStorage({
   destination: function (req, file, cb) {
     const uploadPath = path.join(__dirname, 'uploads/brands');
     // 디렉토리가 없으면 생성
@@ -4326,7 +4411,7 @@ app.put('/api/page-settings/:page_name', authMiddleware, async (req, res) => {
 });
 
 // 페이지 헤더 이미지 업로드
-const pageHeaderStorage = multer.diskStorage({
+const pageHeaderStorage = shrinkingDiskStorage({
   destination: function (req, file, cb) {
     const uploadPath = path.join(__dirname, 'uploads/page-headers');
     if (!fs.existsSync(uploadPath)) {
@@ -4539,7 +4624,7 @@ app.get('/api/products', async (req, res) => {
 });
 
 // 제품 이미지 업로드 전용 설정
-const productStorage = multer.diskStorage({
+const productStorage = shrinkingDiskStorage({
   destination: function (req, file, cb) {
     const uploadPath = path.join(__dirname, 'uploads/products');
     if (!fs.existsSync(uploadPath)) {

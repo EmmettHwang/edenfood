@@ -13,15 +13,15 @@ async function updateGanpan() {
   });
 
   try {
-    // ganpan.ai를 ganpan.png로 변경
+    // ganpan.ai를 ganpan.jpg로 변경
     await pool.query(
       `UPDATE gallery_images 
-       SET image_url = '/assets/ganpan.png', 
-           thumbnail_url = '/assets/ganpan.png'
+       SET image_url = '/assets/ganpan.jpg', 
+           thumbnail_url = '/assets/ganpan.jpg'
        WHERE title = '매장 간판'`
     );
     
-    console.log('매장 간판 이미지를 ganpan.png로 변경했습니다.');
+    console.log('매장 간판 이미지를 ganpan.jpg로 변경했습니다.');
     
     await pool.end();
   } catch (error) {

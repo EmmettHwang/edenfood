@@ -262,9 +262,9 @@
 <section class="hero" id="hero">
   <div class="hero-video-wrap">
     <!-- 히어로 이미지 (설정에 따라 표시) -->
-    <img class="hero-image" id="hero-image" src="/assets/china01.png" alt="이든푸드 메인" style="display: none; opacity: 0;" />
+    <img class="hero-image" id="hero-image" src="/assets/china01.jpg" alt="이든푸드 메인" style="display: none; opacity: 0;" />
     <!-- 히어로 비디오 (설정에 따라 표시) -->
-    <video class="hero-video" id="hero-video" autoplay muted loop playsinline poster="" style="opacity: 1;">
+    <video class="hero-video" id="hero-video" autoplay muted loop playsinline  style="opacity: 1;">
       <source src="/assets/video/hero.mp4" type="video/mp4" />
     </video>
     <div class="hero-overlay"></div>
@@ -391,7 +391,7 @@
 <footer class="site-footer">
   <div class="footer-inner">
     <div class="footer-brand">
-      <img src="/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" />
+      <img src="/assets/umjilogo.png" alt="주식회사 이든푸드" class="logo-image" loading="lazy" decoding="async" />
       <p>신선함을 잇는 가치, 이든푸드</p>
     </div>
     <div class="footer-links">
@@ -566,7 +566,7 @@ function showPopup(notice, index) {
   if (notice.popup_image) {
     popupDiv.innerHTML = `
       <div class="popup-image-wrapper" ${hasLink ? `style="cursor: pointer;" onclick="handlePopupClick('${notice.link_url}', '${notice.link_target || '_blank'}')"` : ''}>
-        <img src="${notice.popup_image}" alt="${notice.title}">
+        <img src="${notice.popup_image}" alt="${notice.title}" loading="lazy" decoding="async">
         <div class="popup-text-overlay" style="
           align-items: ${notice.text_align || 'center'};
           justify-content: ${notice.text_position === 'top' ? 'flex-start' : notice.text_position === 'bottom' ? 'flex-end' : 'center'};
@@ -738,7 +738,7 @@ async function loadHeroBanners() {
         : '<div class="stat-item">';
       
       const iconPart = banner.iconImage 
-        ? `<img src="${banner.iconImage}" alt="${banner.label}" style="width: 48px; height: 48px; margin-bottom: 0.5rem;" />`
+        ? `<img src="${banner.iconImage}" alt="${banner.label}" loading="lazy" decoding="async" style="width: 48px; height: 48px; margin-bottom: 0.5rem;" />`
         : `<div style="font-size: 3rem; margin-bottom: 0.5rem;">${banner.icon}</div>`;
       
       const closeTag = banner.link ? '</a>' : '</div>';
@@ -831,7 +831,7 @@ function handleHeroScroll() {
       // 오버레이 투명하게
       heroOverlay.style.background = 'rgba(0,0,0,0.1)';
       
-      // china01.png인 경우 텍스트 색상 변경
+      // china01.jpg인 경우 텍스트 색상 변경
       if (heroSettings.hero_image_url.includes('china01')) {
         heroContent.classList.add('dark-text');
       }
