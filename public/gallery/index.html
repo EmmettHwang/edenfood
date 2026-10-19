@@ -436,6 +436,7 @@
       }
     }
   </style>
+<script src="/js/item-order.js"></script>
 </head>
 <body>
 
@@ -590,6 +591,7 @@ async function loadGallery() {
       galleryData = data.data?.images || [];
       // 날짜 기준으로 정렬 (최신 먼저)
       galleryData.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      galleryData = ItemOrder.sort(galleryData, await ItemOrder.load('gallery_item_order'));   // 관리자가 정한 순서
       renderGallery();
     } else {
       console.error('갤러리 로드 실패:', data.error);

@@ -208,6 +208,7 @@
       }
     }
   </style>
+<script src="/js/item-order.js"></script>
 </head>
 <body>
 
@@ -491,6 +492,7 @@ async function loadPopupNotices() {
       console.log('숨긴 공지사항:', hiddenNotices);
       
       // 유효한 팝업 필터링
+      data.notices = ItemOrder.sort(data.notices, await ItemOrder.load('notice_item_order'));   // 관리자가 정한 순서
       const validPopups = data.notices.filter(notice => {
         if (!notice.is_popup) {
           console.log(`${notice.title}: 팝업이 아님`);

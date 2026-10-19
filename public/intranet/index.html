@@ -479,6 +479,7 @@
       color: #6b7280;
     }
   </style>
+<script src="/js/item-order.js"></script>
 </head>
 <body>
 
@@ -727,7 +728,7 @@ async function loadNotices() {
     const data = await response.json();
     
     if (data.ok && data.notices) {
-      renderNotices(data.notices);
+      renderNotices(ItemOrder.sort(data.notices, await ItemOrder.load('notice_item_order')));   // 관리자가 정한 순서
     }
   } catch (error) {
     console.error('공지사항 로드 실패:', error);

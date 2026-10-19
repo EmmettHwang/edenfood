@@ -362,6 +362,7 @@
     }
   </style>
 <script src="/admin/js/dialog.js"></script>
+<script src="/js/item-order.js"></script>
 </head>
 <body>
   <div class="header">
@@ -705,13 +706,23 @@
         const data = await response.json();
         
         if (data.ok) {
-          renderNotices(data.notices);
+          // 관리자가 정한 순서(2026-10-19) — 순서에 없는 새 글은 맨 앞(기존: 중요 먼저 · 최신 먼저)
+          NOTICES = ItemOrder.sort(data.notices, await ItemOrder.load('notice_item_order'));
+          renderNotices(NOTICES);
         }
       } catch (error) {
         console.error('공지사항 로드 실패:', error);
       }
     }
     
+    let NOTICES = [];
+    function ordMsg(t, err){ const d=document.createElement('div'); d.textContent=t; d.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:3000;padding:12px 18px;border-radius:12px;font-weight:600;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.18);color:#fff;background:'+(err?'#dc2626':'#16a34a'); document.body.appendChild(d); setTimeout(()=>d.remove(), 2600); }
+    async function moveNotice(id, d) {
+      const nf = ItemOrder.swap(NOTICES, NOTICES, id, d); if (!nf) return;
+      NOTICES = nf; renderNotices(NOTICES);
+      try { await ItemOrder.save('notice_item_order', NOTICES.map(x => x.id)); ordMsg('순서를 바꿨어요 — 홈페이지 팝업·인트라넷 공지에도 이 순서'); }
+      catch (e) { ordMsg('순서를 저장하지 못했어요: ' + e.message, true); }
+    }
     // 공지사항 목록 렌더링
     function renderNotices(notices) {
       const listEl = document.getElementById('notice-list');
@@ -739,6 +750,8 @@
             <span>${new Date(notice.created_at).toLocaleDateString()}</span>
           </div>
           <div class="notice-actions">
+            <button class="btn btn-sm btn-secondary" title="위로" onclick="moveNotice(${notice.id},-1)">▲</button>
+            <button class="btn btn-sm btn-secondary" title="아래로" onclick="moveNotice(${notice.id},1)">▼</button>
             <button class="btn btn-sm btn-secondary" onclick="showEditModal(${notice.id})">수정</button>
             <button class="btn btn-sm btn-secondary" onclick="deleteNotice(${notice.id})">삭제</button>
           </div>

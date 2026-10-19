@@ -452,6 +452,7 @@
         }
     </style>
 <script src="/admin/js/dialog.js"></script>
+<script src="/js/item-order.js"></script>
 </head>
 <body>
     <div class="header">
@@ -762,6 +763,8 @@
                     galleryImages = data.data?.images || [];
                     // 등록일 기준으로 정렬 (최신 먼저)
                     galleryImages.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                    // 관리자가 정한 순서(2026-10-19) — 순서에 없는 새 사진은 맨 앞
+                    galleryImages = ItemOrder.sort(galleryImages, await ItemOrder.load('gallery_item_order'));
                     renderGallery();
                 } else {
                     console.error('갤러리 로드 실패:', data.error);
@@ -773,6 +776,16 @@
             }
         }
         
+        // 순서 바꾸기(2026-10-19) — 보이는 이웃과 자리를 바꾸고 바로 저장 · 홈페이지 갤러리도 이 순서
+        function ordMsg(t, err){ const d=document.createElement('div'); d.textContent=t; d.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:3000;padding:12px 18px;border-radius:12px;font-weight:600;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.18);color:#fff;background:'+(err?'#dc2626':'#16a34a'); document.body.appendChild(d); setTimeout(()=>d.remove(), 2600); }
+        async function moveGallery(id, d) {
+            const shown = currentCategory === 'all' ? galleryImages : galleryImages.filter(img => img.category === currentCategory);
+            const nf = ItemOrder.swap(galleryImages, shown, id, d); if (!nf) return;
+            galleryImages = nf; renderGallery();
+            try { await ItemOrder.save('gallery_item_order', galleryImages.map(x => x.id)); ordMsg('순서를 바꿨어요 — 홈페이지 갤러리에도 이 순서로 보입니다'); }
+            catch (e) { ordMsg('순서를 저장하지 못했어요: ' + e.message, true); }
+        }
+
         // 갤러리 렌더링
         function renderGallery() {
             const grid = document.getElementById('gallery-grid');
@@ -827,6 +840,8 @@
                             </div>
                         </div>
                         <div class="gallery-actions">
+                            <button onclick="moveGallery(${image.id},-1)" class="btn btn-secondary" title="앞으로">◀</button>
+                            <button onclick="moveGallery(${image.id},1)" class="btn btn-secondary" title="뒤로">▶</button>
                             <button onclick="editImage(${image.id})" class="btn btn-secondary">수정</button>
                             <button onclick="deleteImage(${image.id}, '${image.title}')" class="btn btn-danger">삭제</button>
                         </div>
