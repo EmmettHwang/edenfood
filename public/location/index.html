@@ -313,6 +313,17 @@
       }
     }
   </style>
+<style id="page-header-mobile-fix">
+/* 폰에서 페이지 제목과 「홈 › …」 경로가 겹치던 것(2026-10-19) — 제목·부제목·경로를 세로로 쌓는다(페이지마다 머리 클래스가 달라 #page-header 로) */
+@media (max-width:640px){
+  #page-header .header-inner{display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important}
+  #page-header .header-title-wrapper{display:flex!important;flex-direction:column!important;align-items:center!important;text-align:center!important}
+  #page-header .breadcrumb{position:static!important;justify-content:center!important;margin-top:.75rem!important}
+  #page-header h1{display:block!important;line-height:1.3!important}
+  #page-header h1::after{content:''!important;margin:0!important}
+  #page-header p{display:block!important;margin-top:.4rem!important;font-size:.95rem!important;line-height:1.45!important}
+}
+</style>
 </head>
 <body>
 
@@ -351,7 +362,7 @@
 </header>
 
 <!-- ===== PAGE HEADER ===== -->
-<div class="page-header">
+<div class="page-header" id="page-header">
   <div class="header-inner">
     <div class="header-title-wrapper">
       <h1>오시는길</h1><p>주식회사 이든푸드 본사 및 공장을 찾아오시는 길을 안내해 드립니다</p>
