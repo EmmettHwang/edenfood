@@ -832,7 +832,7 @@ function saveImageEdit() {
 
 // 이미지 삭제
 async function deleteImage(imageId) {
-  if (!confirm('정말로 이 이미지를 삭제하시겠습니까?')) {
+  if (!(await confirm('정말로 이 이미지를 삭제하시겠습니까?'))) {
     return;
   }
   
@@ -865,7 +865,7 @@ function bulkChangeCategory() {
 
 // 일괄 삭제
 async function bulkDelete() {
-  if (!confirm(`선택한 ${selectedImages.size}개의 이미지를 삭제하시겠습니까?`)) {
+  if (!(await confirm(`선택한 ${selectedImages.size}개의 이미지를 삭제하시겠습니까?`))) {
     return;
   }
   

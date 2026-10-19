@@ -4410,6 +4410,59 @@ app.put('/api/page-settings/:page_name', authMiddleware, async (req, res) => {
   }
 });
 
+/* ─────────────────────────────────────────
+   API: 간편 에디터 블록(제목·본문·사진·표·카드·프로세스) — 페이지별 (2026-10-19)
+   page_settings.content.blocks 에 담는다. 머리글(헤더) 칸은 건드리지 않는다
+───────────────────────────────────────── */
+const BLOCK_TYPES = ['heading', 'text', 'image', 'table', 'cards', 'process'];
+function cleanBlocks(blocks) {
+  if (!Array.isArray(blocks)) return [];
+  const str = (v, n = 4000) => String(v == null ? '' : v).slice(0, n);
+  return blocks.slice(0, 60).filter(b => b && BLOCK_TYPES.includes(b.type)).map(b => {
+    if (b.type === 'heading') return { type: 'heading', text: str(b.text, 200) };
+    if (b.type === 'text') return { type: 'text', text: str(b.text) };
+    if (b.type === 'image') return { type: 'image', url: /^\/(uploads|assets)\//.test(String(b.url || '')) ? str(b.url, 300) : '', caption: str(b.caption, 300) };
+    if (b.type === 'table') return { type: 'table', title: str(b.title, 200), headers: (b.headers || []).slice(0, 8).map(h => str(h, 100)), rows: (b.rows || []).slice(0, 50).map(r => (r || []).slice(0, 8).map(c => str(c, 500))) };
+    if (b.type === 'cards') return { type: 'cards', items: (b.items || []).slice(0, 12).map(it => ({ title: str(it.title, 100), desc: str(it.desc, 400), image: /^\/(uploads|assets)\//.test(String(it.image || '')) ? str(it.image, 300) : '' })) };
+    return { type: 'process', text: str(b.text) };
+  });
+}
+app.get('/api/page-blocks/:page_name', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT content FROM page_settings WHERE page_name = ?', [req.params.page_name]);
+    let c = {}; try { c = rows[0] && rows[0].content ? (typeof rows[0].content === 'string' ? JSON.parse(rows[0].content) : rows[0].content) : {}; } catch (e) { c = {}; }
+    ok(res, { blocks: Array.isArray(c.blocks) ? c.blocks : [] });
+  } catch (e) { err(res, '블록 조회 실패: ' + e.message); }
+});
+app.put('/api/page-blocks/:page_name', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') return err(res, '관리자 권한이 필요합니다.', 403);
+    const blocks = cleanBlocks(req.body && req.body.blocks);
+    const [rows] = await pool.query('SELECT content FROM page_settings WHERE page_name = ?', [req.params.page_name]);
+    if (!rows.length) return err(res, '페이지를 찾을 수 없습니다: ' + req.params.page_name, 404);
+    let c = {}; try { c = rows[0].content ? (typeof rows[0].content === 'string' ? JSON.parse(rows[0].content) : rows[0].content) : {}; } catch (e) { c = {}; }
+    c.blocks = blocks;
+    await pool.query('UPDATE page_settings SET content = ? WHERE page_name = ?', [JSON.stringify(c), req.params.page_name]);
+    ok(res, { message: `저장했습니다 (블록 ${blocks.length}개)`, blocks });
+  } catch (e) { err(res, '블록 저장 실패: ' + e.message); }
+});
+const blockImageUpload = multer({
+  storage: shrinkingDiskStorage({
+    destination: (req, file, cb) => { const d = path.join(__dirname, 'uploads/page-blocks'); fs.mkdirSync(d, { recursive: true }); cb(null, d); },
+    filename: (req, file, cb) => cb(null, `block-${Date.now()}-${Math.round(Math.random() * 1E9)}${path.extname(file.originalname).toLowerCase()}`)
+  }),
+  limits: { fileSize: 30 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => /jpeg|jpg|png|gif|webp/.test(path.extname(file.originalname).toLowerCase()) && /image\//.test(file.mimetype) ? cb(null, true) : cb(new Error('이미지(JPG·PNG·GIF·WEBP)만 올릴 수 있습니다.'))
+});
+app.post('/api/page-blocks/upload-image', authMiddleware, (req, res) => {
+  if (req.user.role !== 'admin') return err(res, '관리자 권한이 필요합니다.', 403);
+  blockImageUpload.single('image')(req, res, e => {
+    if (e) return err(res, e.code === 'LIMIT_FILE_SIZE' ? '파일이 너무 큽니다(최대 30MB).' : e.message, e.code === 'LIMIT_FILE_SIZE' ? 413 : 400);
+    if (!req.file) return err(res, '이미지 파일을 선택해주세요.', 400);
+    ok(res, { url: '/uploads/page-blocks/' + req.file.filename });
+  });
+});
+
 // 페이지 헤더 이미지 업로드
 const pageHeaderStorage = shrinkingDiskStorage({
   destination: function (req, file, cb) {

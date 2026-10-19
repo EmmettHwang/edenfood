@@ -449,7 +449,7 @@
     
     // 팝업 삭제
     async function deletePopup(id) {
-      if (!confirm('이 팝업을 삭제하시겠습니까?')) {
+      if (!(await confirm('이 팝업을 삭제하시겠습니까?'))) {
         return;
       }
       

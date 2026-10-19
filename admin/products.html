@@ -830,7 +830,7 @@ async function editProduct(id) {
 
 // 제품 삭제
 async function deleteProduct(id) {
-  if (!confirm('정말로 이 제품을 삭제하시겠습니까?')) return;
+  if (!(await confirm('정말로 이 제품을 삭제하시겠습니까?'))) return;
   
   const token = localStorage.getItem('eden_token');
   

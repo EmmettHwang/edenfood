@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>브랜드·창업지원 - 주식회사 이든푸드</title>
+  <title>창업지원 - 주식회사 이든푸드</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -291,7 +291,7 @@
     <nav class="main-nav-links">
       <a href="/about">회사소개</a>
       <a href="/products">제품소개</a>
-      <a href="/brands" class="active">브랜드·창업지원</a>
+      <a href="/brands" class="active">창업지원</a>
       <a href="/logistics">물류·유통시스템</a>
       <a href="/gallery">갤러리</a>
       <a href="/documents">서식자료실</a>
@@ -307,7 +307,7 @@
   <div class="mobile-menu" id="mobile-menu">
     <a href="/about">회사소개</a>
     <a href="/products">제품소개</a>
-    <a href="/brands" class="active">브랜드·창업지원</a>
+    <a href="/brands" class="active">창업지원</a>
     <a href="/logistics">물류·유통시스템</a>
     <a href="/gallery">갤러리</a>
     <a href="/documents">서식자료실</a>
@@ -319,12 +319,12 @@
 <div class="page-header header" id="page-header">
   <div class="header-inner">
     <div class="header-title-wrapper">
-      <h1 id="header-title">브랜드·창업지원</h1><p id="header-subtitle">이든푸드가 운영하는 프랜차이즈 브랜드를 만나보세요</p>
+      <h1 id="header-title">창업지원</h1><p id="header-subtitle">성공적인 창업의 든든한 파트너, 이든푸드</p>
     </div>
     <div class="breadcrumb">
       <a href="/">홈</a>
       <span>›</span>
-      <span>브랜드·창업지원</span>
+      <span>창업지원</span>
     </div>
   </div>
 </div>
@@ -333,12 +333,15 @@
 <section class="brands-section">
   <div class="brands-container">
     
-    <!-- 프랜차이즈 모집 공지 -->
+    <!-- 창업지원 소개 — 관리자 「창업지원 관리 → 창업지원 소개(간편 에디터)」에서 편집 (2026-10-19) -->
+    <div id="pageBlocks"></div>
+
+    <!-- 창업지원 모집 공지 -->
     <div class="franchise-notice">
-      <h3>🎉 프랜차이즈 모집중!</h3>
+      <h3>🎉 창업지원 모집중!</h3>
       <p>이든푸드와 함께 성공적인 창업을 시작하세요</p>
       <a href="/contact?type=franchise" class="franchise-btn">
-        <span>프랜차이즈 문의하기</span>
+        <span>창업지원 문의하기</span>
         <span>→</span>
       </a>
     </div>
@@ -471,7 +474,7 @@ window.addEventListener('DOMContentLoaded', loadBrands);
         <strong>회사</strong>
         <a href="/about">회사소개</a>
         <a href="/products">제품소개</a>
-        <a href="/brands">브랜드·창업지원</a>
+        <a href="/brands">창업지원</a>
         <a href="/contact">문의</a>
       </div>
       <div class="footer-col">
@@ -504,5 +507,13 @@ window.addEventListener('DOMContentLoaded', loadBrands);
   </div>
 </footer>
 
+<script src="/js/page-blocks.js"></script>
+<script>
+// 간편 에디터 블록을 받아 한 번에 그린다(받기 전엔 빈 칸 — 기본값을 그렸다 바꾸지 않는다)
+fetch('/api/page-blocks/brands').then(r => r.json()).then(j => {
+  const b = (j.data && j.data.blocks) || []; const el = document.getElementById('pageBlocks');
+  if (el && b.length) el.innerHTML = window.renderPageBlocks(b);
+}).catch(() => {});
+</script>
 </body>
 </html>

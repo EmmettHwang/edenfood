@@ -1062,7 +1062,7 @@
         
         // 이미지 삭제
         window.deleteImage = async function(id, title) {
-            if (!confirm(`'${title}' 이미지를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
+            if (!(await confirm(`'${title}' 이미지를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`))) {
                 return;
             }
             

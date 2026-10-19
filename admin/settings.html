@@ -548,7 +548,7 @@
 
     /* ── DB 조작 ── */
     async function backupDatabase() {
-      if (!confirm('데이터베이스 백업을 시작하시겠습니까?')) return;
+      if (!(await confirm('데이터베이스 백업을 시작하시겠습니까?'))) return;
       try {
         const res = await fetch('/api/database/backup', { method: 'POST', headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' } });
         if (res.ok) {
@@ -560,7 +560,7 @@
     }
 
     async function restoreDatabase() {
-      if (!confirm('⚠️ 주의: 현재 데이터를 모두 덮어씁니다.\n계속하시겠습니까?')) return;
+      if (!(await confirm('⚠️ 주의: 현재 데이터를 모두 덮어씁니다.\n계속하시겠습니까?'))) return;
       const input = document.createElement('input');
       input.type = 'file'; input.accept = '.sql,.zip';
       input.onchange = async ev => {
@@ -595,8 +595,8 @@
       } catch (e) { alert('내보내기 중 오류: ' + e.message); }
     }
 
-    function clearCache() {
-      if (confirm('모든 캐시를 초기화하시겠습니까?')) alert('캐시가 초기화되었습니다.');
+    async function clearCache() {
+      if ((await confirm('모든 캐시를 초기화하시겠습니까?'))) alert('캐시가 초기화되었습니다.');
     }
 
     /* ── 보안 / IP 관리 ── */
@@ -662,7 +662,7 @@
     }
 
     async function unblockIp(id, ip) {
-      if (!confirm(`${ip} 차단을 해제하시겠습니까?`)) return;
+      if (!(await confirm(`${ip} 차단을 해제하시겠습니까?`))) return;
       try {
         const res = await fetch('/api/blocked-ips/' + id, {
           method: 'DELETE',

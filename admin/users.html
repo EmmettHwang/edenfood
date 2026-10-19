@@ -585,7 +585,7 @@
     
     // 사용자 승인
     async function approveUser(userId) {
-      if (!confirm('이 사용자를 승인하시겠습니까?')) return;
+      if (!(await confirm('이 사용자를 승인하시겠습니까?'))) return;
       
       try {
         const response = await fetch(`/api/auth/users/${userId}/approve`, {
@@ -612,7 +612,7 @@
     // 권한 변경
     async function toggleRole(userId, newRole) {
       const action = newRole === 'admin' ? '관리자로 지정' : '일반 사용자로 전환';
-      if (!confirm(`이 사용자를 ${action}하시겠습니까?`)) return;
+      if (!(await confirm(`이 사용자를 ${action}하시겠습니까?`))) return;
       
       try {
         const response = await fetch(`/api/auth/users/${userId}/role`, {
@@ -660,7 +660,7 @@
       // 임시 비밀번호 생성
       const tempPassword = 'eden' + Math.random().toString(36).substring(2, 8);
       
-      if (!confirm(`${user.name}님의 비밀번호를 초기화하시겠습니까?\n\n임시 비밀번호: ${tempPassword}\n\n이 비밀번호를 사용자에게 알려주세요.`)) return;
+      if (!(await confirm(`${user.name}님의 비밀번호를 초기화하시겠습니까?\n\n임시 비밀번호: ${tempPassword}\n\n이 비밀번호를 사용자에게 알려주세요.`))) return;
       
       try {
         const response = await fetch(`/api/auth/users/${userId}/reset-password`, {
@@ -687,7 +687,7 @@
     
     // 사용자 삭제
     async function deleteUser(userId) {
-      if (!confirm('이 사용자를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+      if (!(await confirm('이 사용자를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.'))) return;
       
       try {
         const response = await fetch(`/api/auth/users/${userId}`, {

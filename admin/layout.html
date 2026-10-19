@@ -370,7 +370,7 @@
           </a>
           <a href="#" class="nav-item" onclick="loadContent('brands')">
             <span class="nav-item-icon">🏪</span>
-            <span>브랜드·창업지원 관리</span>
+            <span>창업지원 관리</span>
           </a>
           <a href="#" class="nav-item" onclick="loadContent('logistics')">
             <span class="nav-item-icon">🚚</span>
@@ -471,7 +471,7 @@
   
   <script src="/admin/js/dialog.js"></script>
   <script>
-    const CURRENT_VERSION = 'Ver.4.5.20260915';
+    const CURRENT_VERSION = 'Ver.4.6.20261019';
     let readmeContent = '';
 
     let isLatestVersion = false;
@@ -670,7 +670,7 @@
           break;
           
         case 'brands':
-          pageTitle.textContent = '브랜드·창업지원 관리';
+          pageTitle.textContent = '창업지원 관리';
           iframeSrc = '/admin/brands.html';
           break;
           
@@ -794,8 +794,8 @@
     }
 
     // 로그아웃
-    function logout() {
-      if (confirm('로그아웃 하시겠습니까?')) {
+    async function logout() {
+      if ((await confirm('로그아웃 하시겠습니까?'))) {
         localStorage.removeItem('eden_token');
         location.href = '/login';
       }
