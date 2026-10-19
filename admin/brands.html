@@ -502,20 +502,22 @@
   .bl-no{width:26px;height:26px;border-radius:50%;background:#f0fdf4;color:#15803d;font-weight:800;font-size:13px;display:inline-flex;align-items:center;justify-content:center;flex:none}
   .bl-thumb{width:44px;height:44px;object-fit:contain;border-radius:8px;background:#f9fafb;flex:none}.bl-thumb-empty{display:inline-flex;align-items:center;justify-content:center;font-size:22px}
   .bl-name{font-weight:800;font-size:16px;color:#111827;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .bl-state{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .bl-state{font-size:12px;font-weight:700;padding:4px 8px;border-radius:999px;white-space:nowrap;flex:none}
   .bl-state.on{background:#dcfce7;color:#15803d}.bl-state.off{background:#f3f4f6;color:#6b7280}
-  .bl-caret{font-size:12px;color:#6b7280;white-space:nowrap}
+  .bl-caret{font-size:12px;color:#6b7280;white-space:nowrap;flex:none}
   .bl-body{display:none}.bl-card.open .bl-body{display:block}
   .bl-actions{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;background:#fafafa;border-top:1px solid #f3f4f6;margin-top:auto}
   .bl-actions button{padding:7px 12px;border-radius:8px;border:1px solid #d1d5db;background:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
   .bl-actions button:disabled{opacity:.4;cursor:default}
   .bl-actions .bl-vis.to-show{background:#dcfce7;border-color:#86efac;color:#15803d}.bl-actions .bl-vis.to-hide{background:#f3f4f6;color:#374151}
-  .bl-actions .btn-edit{margin-left:auto}
-  .bl-actions .btn-edit,.bl-actions .btn-delete{flex:none!important;width:auto!important;padding:7px 14px}
-  .bl-name{white-space:normal!important;word-break:keep-all;line-height:1.3}
-  .bl-head{flex-wrap:wrap}
-  #brandList{align-items:start}
-  .bl-card{height:auto!important;min-height:0!important;align-self:start}
+  /* 카드 높이를 맞추고 액션 단추는 늘 한 줄(2026-10-19) */
+  #brandList{align-items:stretch}
+  .bl-card{height:100%}
+  .bl-head{min-height:72px;flex-wrap:nowrap}
+  .bl-name{white-space:normal!important;word-break:keep-all;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .bl-actions{flex-wrap:nowrap!important;gap:4px!important;padding:10px!important}
+  .bl-actions button{flex:1 1 0!important;min-width:0;width:auto!important;padding:7px 4px!important;font-size:12.5px!important;margin:0!important;text-align:center}
+  .bl-actions .bl-vis{flex:1.3 1 0!important}
 </style>
 <script src="/admin/js/dialog.js"></script>
 </head>
@@ -847,8 +849,8 @@ function renderBrands() {
         <span class="bl-no">${bi + 1}</span>
         ${brand.logo_url ? `<img class="bl-thumb" src="${brand.logo_url}" alt="">` : '<span class="bl-thumb bl-thumb-empty">🏪</span>'}
         <span class="bl-name">${brand.name}</span>
-        <span class="bl-state ${on ? 'on' : 'off'}">${on ? '🟢 홈페이지에 보임' : '⚪ 감춤'}</span>
-        <span class="bl-caret">${open ? '▾ 접기' : '▸ 펼치기'}</span>
+        <span class="bl-state ${on ? 'on' : 'off'}" title="${on ? '홈페이지에 보이는 중' : '홈페이지에 안 보임(감춤)'}">${on ? '🟢 보임' : '⚪ 감춤'}</span>
+        <span class="bl-caret">${open ? '▾' : '▸'}</span>
       </div>
       <div class="bl-body">
         <div class="brand-image" style="background: ${brand.color_primary || '#16a34a'}20;">
@@ -865,7 +867,7 @@ function renderBrands() {
       </div>
       <!-- 액션 줄 — 순서 · 보이기/감추기 · 수정 · 삭제 -->
       <div class="bl-actions">
-        <button type="button" ${shown[0] && shown[0].id === brand.id ? 'disabled' : ''} onclick="moveBrand(${brand.id},-1)">◀ 앞으로</button>
+        <button type="button" ${shown[0] && shown[0].id === brand.id ? 'disabled' : ''} onclick="moveBrand(${brand.id},-1)" title="앞으로">◀ 앞으로</button>
         <button type="button" ${shown[shown.length - 1] && shown[shown.length - 1].id === brand.id ? 'disabled' : ''} onclick="moveBrand(${brand.id},1)">뒤로 ▶</button>
         <button type="button" class="bl-vis ${on ? 'to-hide' : 'to-show'}" onclick="toggleBrandVisible(${brand.id})">${on ? '🙈 감추기' : '👁 보이기'}</button>
         <button type="button" class="btn-edit" onclick="editBrand(${brand.id})">수정</button>
