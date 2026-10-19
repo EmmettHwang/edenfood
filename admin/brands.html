@@ -832,7 +832,7 @@ function renderBrands() {
     
     // 이미지 마크다운을 HTML로 변환 ![alt](url)
     formattedDesc = formattedDesc.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, 
-      '<img src="$2" alt="$1" style="max-width: 100%; height: auto; margin: 0.5rem 0; border-radius: 0.5rem;">');
+      '<img src="$2" alt="$1" style="display: block; max-width: 100%; height: auto; margin: 0.5rem auto; border-radius: 0.5rem;">');
     
     // 줄바꿈을 <br> 태그로 변환
     formattedDesc = formattedDesc.replace(/\n/g, '<br>');

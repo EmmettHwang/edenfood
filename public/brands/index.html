@@ -289,6 +289,7 @@
   #page-header p{display:block!important;margin-top:.4rem!important;font-size:.95rem!important;line-height:1.45!important}
 }
 </style>
+<style>.brand-desc .bd-img{display:block;max-width:100%;height:auto;margin:1rem auto;border-radius:.5rem}</style>
 </head>
 <body>
 
@@ -439,8 +440,10 @@ function renderBrands(brands) {
     
     // 이미지 마크다운을 HTML로 변환 ![alt](url)
     formattedDesc = formattedDesc.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, 
-      '<img src="$2" alt="$1" style="max-width: 100%; height: auto; margin: 1rem 0; border-radius: 0.5rem; display: block;">');
+      '<img src="$2" alt="$1" class="bd-img">');   // 설명 속 그림은 늘 가운데(2026-10-19 — 줄 앞 공백·원본 크기 때문에 점점 왼쪽으로 밀렸다)
     
+    // 그림 앞뒤의 공백·줄바꿈은 지운다(그림이 들여쓰기에 밀리지 않게)
+    formattedDesc = formattedDesc.replace(/[ \t]*(<img [^>]*class="bd-img">)[ \t]*\n?/g, '$1');
     // 줄바꿈을 <br> 태그로 변환
     formattedDesc = formattedDesc.replace(/\n/g, '<br>');
     
@@ -456,9 +459,7 @@ function renderBrands(brands) {
         </div>
         <div class="brand-info">
           <h2 class="brand-name">${brand.name}</h2>
-          <p class="brand-desc" style="white-space: pre-wrap;">
-            ${formattedDesc}
-          </p>
+          <div class="brand-desc">${formattedDesc}</div>
           <div class="brand-cta">
             <a href="/contact?type=franchise" class="brand-btn">창업 상담</a>
             <a href="/gallery" class="brand-btn brand-btn-outline">갤러리 보기</a>
