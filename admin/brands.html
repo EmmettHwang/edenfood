@@ -493,6 +493,19 @@
   .pb-gal .it{border:2px solid transparent;border-radius:12px;padding:0;background:#f9fafb;cursor:pointer;overflow:hidden;text-align:left}
   .pb-gal .it:hover{border-color:#16a34a}.pb-gal .it img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
   .pb-gal .it span{display:block;padding:6px 8px;font-size:12px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* 그림 크기·정렬 · 미리보기(2026-10-19) */
+  .di-url{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 8px;padding:10px;border:1px dashed #86efac;border-radius:10px;background:#f0fdf4}
+  .di-url .form-input{flex:1 1 220px;margin:0}.di-url-msg{width:100%;font-size:12px;color:#dc2626}
+  .di-panel{margin-top:10px}.di-title{font-weight:700;font-size:14px;margin-bottom:6px;color:#166534}
+  .di-row{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:8px;background:#fff}
+  .di-thumb{width:84px;height:60px;object-fit:contain;background:#f9fafb;border-radius:8px;flex:none}
+  .di-ctl{flex:1;min-width:0}.di-name{font-size:13px;font-weight:700;color:#374151;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .di-size,.di-align{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:#6b7280;margin-bottom:6px}
+  .di-size input[type=range]{flex:1 1 140px;accent-color:#16a34a}.di-size b{min-width:40px;color:#166534}
+  .di-chip,.di-align button{border:1px solid #d1d5db;background:#fff;border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer}
+  .di-align button.on{background:#16a34a;border-color:#16a34a;color:#fff}
+  .di-prev-wrap{margin-top:10px;border:2px dashed #bbf7d0;border-radius:12px;padding:10px;background:#fafafa}
+  .di-prev-title{font-size:12px;font-weight:700;color:#15803d;margin-bottom:6px}.di-prev{font-size:14px;color:#374151;line-height:1.7;max-height:420px;overflow:auto}
   /* 창업지원 관리 카드(2026-10-19) — 머리줄(번호·로고·이름·상태) + 접는 내용 + 액션 줄 */
   .bl-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px;font-size:14px}
   .bl-tools label{display:inline-flex;gap:6px;align-items:center;font-weight:600;cursor:pointer}
@@ -520,6 +533,7 @@
   .bl-actions .bl-vis{flex:1.3 1 0!important}
 </style>
 <script src="/admin/js/dialog.js"></script>
+<script src="/js/desc-images.js"></script>
 </head>
 <body>
 
@@ -674,13 +688,24 @@
               🖼️ 갤러리에서 선택
             </button>
             <button type="button" class="btn btn-sm" onclick="insertImage()" style="padding: 0.25rem 0.75rem; font-size: 0.813rem; background: #e5e7eb; color: #374151; margin-left: 0.25rem;">
-              🔗 URL로 삽입
+              🔗 주소로 넣기
             </button>
             <span style="font-size: 0.75rem; color: #6b7280; margin-left: 0.5rem;">
-              이미지는 ![설명](URL) 형식으로 입력됩니다
+              넣은 그림은 아래 「그림 크기·정렬」에서 크기(%)와 왼쪽·가운데·오른쪽을 바로 바꿀 수 있어요
             </span>
           </div>
-          <textarea class="form-textarea" id="brandDesc" rows="8" placeholder="브랜드 설명을 입력하세요.&#10;&#10;이미지 삽입 예시:&#10;![메뉴 이미지](https://example.com/menu.jpg)&#10;&#10;줄바꿈과 들여쓰기가 그대로 유지됩니다."></textarea>
+          <!-- 주소로 그림 넣기(브라우저 기본 입력창 대신 · 2026-10-19) -->
+          <div id="diUrlForm" class="di-url" style="display:none">
+            <input type="text" id="diUrl" class="form-input" placeholder="그림 주소 (예: /uploads/gallery/… 또는 https://…)">
+            <input type="text" id="diAlt" class="form-input" placeholder="그림 설명 (선택)">
+            <button type="button" class="btn btn-sm" style="background:#16a34a;color:#fff" onclick="insertImageGo()">넣기</button>
+            <button type="button" class="btn btn-sm" onclick="document.getElementById('diUrlForm').style.display='none'">취소</button>
+            <div class="di-url-msg" id="diUrlMsg"></div>
+          </div>
+          <textarea class="form-textarea" id="brandDesc" oninput="diRefresh()" rows="8" placeholder="브랜드 설명을 입력하세요.&#10;&#10;이미지 삽입 예시:&#10;![메뉴 이미지](https://example.com/menu.jpg)&#10;&#10;줄바꿈과 들여쓰기가 그대로 유지됩니다."></textarea>
+          <!-- 그림 크기·정렬 + 미리보기(2026-10-19 「켈리그래피들이 너무 커 · % 줄이기 · 미리보기 · 좌우 맞추기」) -->
+          <div class="di-panel" id="diPanel"></div>
+          <div class="di-prev-wrap"><div class="di-prev-title">👁 미리보기 — 홈페이지에 보이는 모양</div><div class="di-prev" id="diPreview"></div></div>
         </div>
 
         <div class="form-group">
@@ -819,29 +844,8 @@ function renderBrands() {
   document.getElementById('blFoldAll').textContent = shown.length && shown.every(b => BL_OPEN.has(b.id)) ? '모두 접기' : '모두 펼치기';
   if (!shown.length) { brandList.innerHTML = '<p style="grid-column:1/-1;padding:24px;text-align:center;color:#6b7280;background:#fff;border-radius:12px">홈페이지에 보이는 브랜드가 없어요. 체크를 풀면 감춘 것까지 보여요.</p>'; return; }
   brandList.innerHTML = shown.map((brand, bi) => {
-    // description을 HTML로 변환 (줄바꿈과 bullet point 처리)
-    let formattedDesc = brand.description || '설명이 없습니다.';
-    
-    // HTML 이스케이프 처리 (이미지 마크다운은 제외)
-    formattedDesc = formattedDesc
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-    
-    // 이미지 마크다운을 HTML로 변환 ![alt](url)
-    formattedDesc = formattedDesc.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, 
-      '<img src="$2" alt="$1" style="display: block; max-width: 100%; height: auto; margin: 0.5rem auto; border-radius: 0.5rem;">');
-    
-    // 줄바꿈을 <br> 태그로 변환
-    formattedDesc = formattedDesc.replace(/\n/g, '<br>');
-    
-    // 공백 2개 이상을 &nbsp;로 변환하여 들여쓰기 유지
-    formattedDesc = formattedDesc.replace(/ {2,}/g, (match) => {
-      return '&nbsp;'.repeat(match.length);
-    });
-    
+    // 설명 → HTML(홈페이지와 같은 그리기 · 그림 크기·정렬 포함)
+    const formattedDesc = brand.description ? DescImages.toHtml(brand.description) : '설명이 없습니다.';
     const on = brand.status === 'active', open = BL_OPEN.has(brand.id);
     return `
     <div class="brand-card bl-card ${open ? 'open' : ''}">
@@ -885,7 +889,7 @@ function showAddModal() {
   document.getElementById('modalTitle').textContent = '새 브랜드 추가';
   document.getElementById('brandForm').reset();
   resetLogoUpload();
-  document.getElementById('brandModal').classList.add('active');
+  document.getElementById('brandModal').classList.add('active'); diRefresh();
 }
 
 // 로고 업로드 리셋
@@ -937,7 +941,7 @@ async function editBrand(id) {
     resetLogoUpload();
   }
   
-  document.getElementById('brandModal').classList.add('active');
+  document.getElementById('brandModal').classList.add('active'); diRefresh();
 }
 
 // 보이기·감추기(2026-10-19 「지운 거 나중에 되살릴 수 있게 보이기 감추기」) — 홈페이지는 「보임(active)」만 보여 준다
@@ -1189,26 +1193,43 @@ function showAlert(message, type = 'success') {
   }, 3000);
 }
 
-// 이미지 삽입 함수
+// 그림 넣기(주소) — 브라우저 기본 입력창 대신 창 안 입력칸(2026-10-19)
 function insertImage() {
-  const textarea = document.getElementById('brandDesc');
-  const url = prompt('이미지 URL을 입력하세요:');
-  
-  if (url) {
-    const description = prompt('이미지 설명을 입력하세요 (선택사항):', '이미지');
-    const imageMarkdown = `![${description || '이미지'}](${url})`;
-    
-    // 현재 커서 위치에 삽입
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = textarea.value;
-    
-    textarea.value = text.substring(0, start) + imageMarkdown + text.substring(end);
-    
-    // 커서를 삽입한 텍스트 뒤로 이동
-    textarea.selectionStart = textarea.selectionEnd = start + imageMarkdown.length;
-    textarea.focus();
-  }
+  const f = document.getElementById('diUrlForm'); f.style.display = 'flex';
+  document.getElementById('diUrlMsg').textContent = ''; document.getElementById('diUrl').focus();
+}
+function insertAtCursor(md) {
+  const ta = document.getElementById('brandDesc'), st = ta.selectionStart ?? ta.value.length, en = ta.selectionEnd ?? st, v = ta.value;
+  const pre = v.substring(0, st), post = v.substring(en), ins = (pre && !pre.endsWith('\n') ? '\n' : '') + md + (post.startsWith('\n') ? '' : '\n');
+  ta.value = pre + ins + post; ta.selectionStart = ta.selectionEnd = (pre + ins).length; ta.focus(); diRefresh();
+}
+function insertImageGo() {
+  const url = document.getElementById('diUrl').value.trim(), alt = document.getElementById('diAlt').value.trim() || '이미지', msg = document.getElementById('diUrlMsg');
+  if (!/^(\/|https?:\/\/)/.test(url)) { msg.textContent = '주소는 / 또는 https:// 로 시작해야 해요'; return; }
+  insertAtCursor(`![${alt.replace(/[\[\]]/g, '')}](${url})`);
+  document.getElementById('diUrl').value = ''; document.getElementById('diAlt').value = ''; document.getElementById('diUrlForm').style.display = 'none';
+}
+// 그림 크기·정렬 칸 — 글 속 그림마다 크기(%) 막대와 왼쪽·가운데·오른쪽 단추. 바꾸면 글과 미리보기가 바로 바뀐다
+function diRefresh() {
+  const ta = document.getElementById('brandDesc'); if (!ta || !window.DescImages) return;
+  const imgs = DescImages.list(ta.value), panel = document.getElementById('diPanel');
+  panel.innerHTML = imgs.length ? '<div class="di-title">🖼 그림 크기·정렬</div>' + imgs.map((g, n) => `
+    <div class="di-row">
+      <img src="${g.url}" alt="" class="di-thumb">
+      <div class="di-ctl">
+        <div class="di-name">${n + 1}. ${g.alt || '그림'}</div>
+        <div class="di-size"><span>크기</span><input type="range" min="10" max="100" step="5" value="${g.w}" oninput="diSet(${n}, +this.value, null, this)"><b id="diW${n}">${g.w}%</b>
+          ${[100, 75, 50, 30].map(v => `<button type="button" class="di-chip" onclick="diSet(${n}, ${v}, null)">${v}%</button>`).join('')}</div>
+        <div class="di-align"><span>정렬</span>${[['left', '⬅ 왼쪽'], ['center', '↔ 가운데'], ['right', '오른쪽 ➡']].map(([a, t]) => `<button type="button" class="${g.a === a ? 'on' : ''}" onclick="diSet(${n}, null, '${a}')">${t}</button>`).join('')}</div>
+      </div>
+    </div>`).join('') : '';
+  document.getElementById('diPreview').innerHTML = ta.value.trim() ? DescImages.toHtml(ta.value) : '<span style="color:#9ca3af">설명을 쓰면 여기에 홈페이지 모양으로 보여요</span>';
+}
+function diSet(n, w, a, slider) {
+  const ta = document.getElementById('brandDesc'), g = DescImages.list(ta.value)[n]; if (!g) return;
+  ta.value = DescImages.set(ta.value, n, w ?? g.w, a ?? g.a);
+  if (slider) { document.getElementById('diW' + n).textContent = w + '%'; document.getElementById('diPreview').innerHTML = DescImages.toHtml(ta.value); }   // 끄는 중에는 막대를 다시 그리지 않는다
+  else diRefresh();
 }
 
 // ESC 키로 모달 닫기
@@ -1518,7 +1539,7 @@ function selectGalleryImage(url, title) {
   textarea.focus();
   
   // 모달 닫기
-  closeGalleryModal();
+  closeGalleryModal(); diRefresh();
 }
 
 let allGalleryImages = [];

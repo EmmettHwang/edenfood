@@ -290,6 +290,7 @@
 }
 </style>
 <style>.brand-desc .bd-img{display:block;max-width:100%;height:auto;margin:1rem auto;border-radius:.5rem}</style>
+<script src="/js/desc-images.js"></script>
 </head>
 <body>
 
@@ -427,31 +428,9 @@ function renderBrands(brands) {
   const brandGrid = document.getElementById('brandGrid');
   
   brandGrid.innerHTML = brands.map(brand => {
-    // description 텍스트를 HTML로 변환
-    let formattedDesc = brand.description || '';
-    
-    // HTML 이스케이프 처리
-    formattedDesc = formattedDesc
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-    
-    // 이미지 마크다운을 HTML로 변환 ![alt](url)
-    formattedDesc = formattedDesc.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, 
-      '<img src="$2" alt="$1" class="bd-img">');   // 설명 속 그림은 늘 가운데(2026-10-19 — 줄 앞 공백·원본 크기 때문에 점점 왼쪽으로 밀렸다)
-    
-    // 그림 앞뒤의 공백·줄바꿈은 지운다(그림이 들여쓰기에 밀리지 않게)
-    formattedDesc = formattedDesc.replace(/[ \t]*(<img [^>]*class="bd-img">)[ \t]*\n?/g, '$1');
-    // 줄바꿈을 <br> 태그로 변환
-    formattedDesc = formattedDesc.replace(/\n/g, '<br>');
-    
-    // 공백 2개 이상을 &nbsp;로 변환하여 들여쓰기 유지
-    formattedDesc = formattedDesc.replace(/ {2,}/g, (match) => {
-      return '&nbsp;'.repeat(match.length);
-    });
-    
+    // 설명 → HTML(그림 크기·정렬 포함) — /js/desc-images.js (2026-10-19)
+    const formattedDesc = window.DescImages ? DescImages.toHtml(brand.description || '') : '';
+
     return `
       <div class="brand-card">
         <div class="brand-logo">
