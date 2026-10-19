@@ -493,6 +493,29 @@
   .pb-gal .it{border:2px solid transparent;border-radius:12px;padding:0;background:#f9fafb;cursor:pointer;overflow:hidden;text-align:left}
   .pb-gal .it:hover{border-color:#16a34a}.pb-gal .it img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
   .pb-gal .it span{display:block;padding:6px 8px;font-size:12px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* 창업지원 관리 카드(2026-10-19) — 머리줄(번호·로고·이름·상태) + 접는 내용 + 액션 줄 */
+  .bl-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px;font-size:14px}
+  .bl-tools label{display:inline-flex;gap:6px;align-items:center;font-weight:600;cursor:pointer}
+  .bl-tools .bl-hint{color:#6b7280;font-size:13px}
+  .bl-card{display:flex;flex-direction:column;padding:0;overflow:hidden}
+  .bl-head{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;border-bottom:1px solid #f3f4f6}
+  .bl-no{width:26px;height:26px;border-radius:50%;background:#f0fdf4;color:#15803d;font-weight:800;font-size:13px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+  .bl-thumb{width:44px;height:44px;object-fit:contain;border-radius:8px;background:#f9fafb;flex:none}.bl-thumb-empty{display:inline-flex;align-items:center;justify-content:center;font-size:22px}
+  .bl-name{font-weight:800;font-size:16px;color:#111827;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bl-state{font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+  .bl-state.on{background:#dcfce7;color:#15803d}.bl-state.off{background:#f3f4f6;color:#6b7280}
+  .bl-caret{font-size:12px;color:#6b7280;white-space:nowrap}
+  .bl-body{display:none}.bl-card.open .bl-body{display:block}
+  .bl-actions{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;background:#fafafa;border-top:1px solid #f3f4f6;margin-top:auto}
+  .bl-actions button{padding:7px 12px;border-radius:8px;border:1px solid #d1d5db;background:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .bl-actions button:disabled{opacity:.4;cursor:default}
+  .bl-actions .bl-vis.to-show{background:#dcfce7;border-color:#86efac;color:#15803d}.bl-actions .bl-vis.to-hide{background:#f3f4f6;color:#374151}
+  .bl-actions .btn-edit{margin-left:auto}
+  .bl-actions .btn-edit,.bl-actions .btn-delete{flex:none!important;width:auto!important;padding:7px 14px}
+  .bl-name{white-space:normal!important;word-break:keep-all;line-height:1.3}
+  .bl-head{flex-wrap:wrap}
+  #brandList{align-items:start}
+  .bl-card{height:auto!important;min-height:0!important;align-self:start}
 </style>
 <script src="/admin/js/dialog.js"></script>
 </head>
@@ -537,6 +560,12 @@
     </button>
   </div>
 
+  <!-- 도구줄(2026-10-19) — 보이는 것만 거르기 · 모두 펼치기/접기 -->
+  <div class="bl-tools">
+    <label><input type="checkbox" id="blOnlyVisible" onchange="renderBrands()"> 홈페이지에 보이는 것만</label>
+    <button type="button" class="btn btn-secondary" id="blFoldAll" onclick="toggleAllBrands()">모두 펼치기</button>
+    <span class="bl-hint">카드를 접어 두면 순서를 한눈에 보고 ◀ ▶ 로 바꿀 수 있어요</span>
+  </div>
   <!-- 브랜드 리스트 -->
   <div class="brand-list" id="brandList">
     <!-- 브랜드 카드들이 여기에 동적으로 추가됩니다 -->
@@ -784,7 +813,10 @@ function renderBrands() {
   
   // 순서 = order_num → 이름 (홈페이지와 같은 순서)
   brands.sort((a, b) => (a.order_num || 0) - (b.order_num || 0) || String(a.name).localeCompare(String(b.name)));
-  brandList.innerHTML = brands.map((brand, bi) => {
+  const shown = document.getElementById('blOnlyVisible')?.checked ? brands.filter(b => b.status === 'active') : brands;
+  document.getElementById('blFoldAll').textContent = shown.length && shown.every(b => BL_OPEN.has(b.id)) ? '모두 접기' : '모두 펼치기';
+  if (!shown.length) { brandList.innerHTML = '<p style="grid-column:1/-1;padding:24px;text-align:center;color:#6b7280;background:#fff;border-radius:12px">홈페이지에 보이는 브랜드가 없어요. 체크를 풀면 감춘 것까지 보여요.</p>'; return; }
+  brandList.innerHTML = shown.map((brand, bi) => {
     // description을 HTML로 변환 (줄바꿈과 bullet point 처리)
     let formattedDesc = brand.description || '설명이 없습니다.';
     
@@ -808,31 +840,36 @@ function renderBrands() {
       return '&nbsp;'.repeat(match.length);
     });
     
+    const on = brand.status === 'active', open = BL_OPEN.has(brand.id);
     return `
-    <div class="brand-card">
-      <div class="brand-image" style="background: ${brand.color_primary || '#16a34a'}20;">
-        ${brand.logo_url ? 
-          `<img src="${brand.logo_url}" alt="${brand.name}">` : 
-          `<div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 3rem; color: ${brand.color_primary || '#16a34a'}">🏪</div>`
-        }
+    <div class="brand-card bl-card ${open ? 'open' : ''}">
+      <div class="bl-head" onclick="toggleBrand(${brand.id})" title="눌러서 내용 ${open ? '접기' : '펼치기'}">
+        <span class="bl-no">${bi + 1}</span>
+        ${brand.logo_url ? `<img class="bl-thumb" src="${brand.logo_url}" alt="">` : '<span class="bl-thumb bl-thumb-empty">🏪</span>'}
+        <span class="bl-name">${brand.name}</span>
+        <span class="bl-state ${on ? 'on' : 'off'}">${on ? '🟢 홈페이지에 보임' : '⚪ 감춤'}</span>
+        <span class="bl-caret">${open ? '▾ 접기' : '▸ 펼치기'}</span>
       </div>
-      <div class="brand-content">
-        <h3 class="brand-name">${brand.name}</h3>
-        ${brand.tagline ? `<p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.5rem;">${brand.tagline}</p>` : ''}
-        <p class="brand-desc" style="white-space: pre-wrap;">${formattedDesc}</p>
-        <div style="font-size: 0.813rem; color: #6b7280; margin-bottom: 0.5rem;">
-          ${brand.website ? `<a href="${brand.website}" target="_blank" style="color: ${brand.color_primary || '#16a34a'}; text-decoration: none;">🌐 웹사이트</a>` : ''}
+      <div class="bl-body">
+        <div class="brand-image" style="background: ${brand.color_primary || '#16a34a'}20;">
+          ${brand.logo_url ?
+            `<img src="${brand.logo_url}" alt="${brand.name}">` :
+            `<div style="display: flex; align-items: center; justify-content: center; height: 100%; font-size: 3rem; color: ${brand.color_primary || '#16a34a'}">🏪</div>`
+          }
         </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
-          <button type="button" class="brand-type" style="border:0;cursor:pointer;background:${brand.status === 'active' ? '#dcfce7' : '#f3f4f6'};color:${brand.status === 'active' ? '#15803d' : '#6b7280'}" onclick="toggleBrandVisible(${brand.id})"
-            title="눌러서 홈페이지에 보이기/감추기">${brand.status === 'active' ? '👁 홈페이지에 보임 · 누르면 감추기' : '🙈 감춤 · 누르면 보이기'}</button>
-          <button type="button" class="btn btn-secondary" style="padding:4px 10px;font-size:13px" ${bi === 0 ? 'disabled' : ''} onclick="moveBrand(${bi},-1)">◀ 앞으로</button>
-          <button type="button" class="btn btn-secondary" style="padding:4px 10px;font-size:13px" ${bi === brands.length - 1 ? 'disabled' : ''} onclick="moveBrand(${bi},1)">뒤로 ▶</button>
+        <div class="brand-content">
+          ${brand.tagline ? `<p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 0.5rem;">${brand.tagline}</p>` : ''}
+          <p class="brand-desc" style="white-space: pre-wrap;">${formattedDesc}</p>
+          ${brand.website ? `<div style="font-size: 0.813rem; margin-bottom: 0.5rem;"><a href="${brand.website}" target="_blank" style="color: ${brand.color_primary || '#16a34a'}; text-decoration: none;">🌐 웹사이트</a></div>` : ''}
         </div>
-        <div class="brand-actions">
-          <button class="btn-edit" onclick="editBrand(${brand.id})">수정</button>
-          <button class="btn-delete" onclick="deleteBrand(${brand.id})">삭제</button>
-        </div>
+      </div>
+      <!-- 액션 줄 — 순서 · 보이기/감추기 · 수정 · 삭제 -->
+      <div class="bl-actions">
+        <button type="button" ${shown[0] && shown[0].id === brand.id ? 'disabled' : ''} onclick="moveBrand(${brand.id},-1)">◀ 앞으로</button>
+        <button type="button" ${shown[shown.length - 1] && shown[shown.length - 1].id === brand.id ? 'disabled' : ''} onclick="moveBrand(${brand.id},1)">뒤로 ▶</button>
+        <button type="button" class="bl-vis ${on ? 'to-hide' : 'to-show'}" onclick="toggleBrandVisible(${brand.id})">${on ? '🙈 감추기' : '👁 보이기'}</button>
+        <button type="button" class="btn-edit" onclick="editBrand(${brand.id})">수정</button>
+        <button type="button" class="btn-delete" onclick="deleteBrand(${brand.id})">삭제</button>
       </div>
     </div>
   `}).join('');
@@ -913,10 +950,17 @@ async function toggleBrandVisible(id) {
   try { await brandPut(id, { status: show ? 'active' : 'inactive' }); showAlert(show ? `「${b.name}」을(를) 홈페이지에 보이게 했어요.` : `「${b.name}」을(를) 홈페이지에서 감췄어요(지워지지 않고 여기 남아 있어요).`); await loadBrands(); }
   catch (e) { showAlert('바꾸지 못했어요: ' + e.message, 'error'); }
 }
-// 순서 바꾸기 — 바뀐 두 브랜드의 order_num 을 10 간격으로 다시 매겨 저장
-async function moveBrand(i, d) {
-  const k = i + d; if (k < 0 || k >= brands.length) return;
-  const list = brands.slice(); [list[i], list[k]] = [list[k], list[i]];
+// 접기·펼치기(처음엔 접어서 순서를 한눈에)
+const BL_OPEN = new Set();
+function toggleBrand(id) { BL_OPEN.has(id) ? BL_OPEN.delete(id) : BL_OPEN.add(id); renderBrands(); }
+function toggleAllBrands() { const shown = document.getElementById('blOnlyVisible').checked ? brands.filter(b => b.status === 'active') : brands;
+  const all = shown.every(b => BL_OPEN.has(b.id)); shown.forEach(b => all ? BL_OPEN.delete(b.id) : BL_OPEN.add(b.id)); renderBrands(); }
+// 순서 바꾸기 — 화면에 보이는(걸러진) 이웃과 자리를 바꾸고 order_num 을 10 간격으로 다시 매겨 저장
+async function moveBrand(id, d) {
+  const shown = document.getElementById('blOnlyVisible').checked ? brands.filter(b => b.status === 'active') : brands;
+  const si = shown.findIndex(b => b.id === id), sk = si + d; if (si < 0 || sk < 0 || sk >= shown.length) return;
+  const list = brands.slice(), i = list.findIndex(b => b.id === id), k = list.findIndex(b => b.id === shown[sk].id);
+  [list[i], list[k]] = [list[k], list[i]];
   try { for (let n = 0; n < list.length; n++) { const want = (n + 1) * 10; if (list[n].order_num !== want) await brandPut(list[n].id, { order_num: want }); }
     showAlert('순서를 바꿨어요 — 홈페이지에도 이 순서로 보입니다.'); await loadBrands(); }
   catch (e) { showAlert('순서를 바꾸지 못했어요: ' + e.message, 'error'); await loadBrands(); }
