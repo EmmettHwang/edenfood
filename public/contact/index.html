@@ -159,6 +159,27 @@
       line-height: 1.6;
     }
     
+    /* 연락처 정보 — 줄 맞춤(2026-10-19) */
+    .ci{text-align:left}
+    .ci .contact-info-title{text-align:left;margin-bottom:1.25rem}
+    .ci-list{margin:0 0 1.75rem;border-top:1px solid #e5e7eb}
+    .ci-row{display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:baseline;padding:14px 2px;border-bottom:1px solid #e5e7eb}
+    .ci-row dt{font-weight:700;color:#111827;display:flex;align-items:center;gap:8px;white-space:nowrap}
+    .ci-row dd{margin:0;color:#374151;font-size:1rem;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
+    .ci-row dd a{color:#15803d;font-weight:700;text-decoration:none}.ci-row dd small{color:#6b7280;font-size:.85rem}
+    .ci-ic{display:inline-flex;width:30px;height:30px;border-radius:50%;background:#dcfce7;align-items:center;justify-content:center;font-size:.95rem}
+    .ci-sub{font-size:1.125rem;font-weight:700;margin:0 0 .75rem;text-align:left}
+    .ci-addr{margin-bottom:12px}.ci-addr .ci-row{grid-template-columns:96px 1fr}
+    .ci-mini{margin-left:6px;font-size:.8rem;padding:2px 8px;border-radius:999px;background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d!important}
+    .ci-mapimg{display:block;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb}.ci-mapimg img{display:block;width:100%;height:auto}
+    .ci-place{display:grid;grid-template-columns:96px 1fr;gap:10px;align-items:center;text-align:left;padding:10px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;cursor:pointer;font:inherit}
+    .ci-place b{color:#111827;font-size:.95rem}.ci-place span{color:#4b5563;font-size:.92rem}
+    .ci-place.on{border-color:#16a34a;background:#f0fdf4;box-shadow:inset 3px 0 0 #16a34a}
+    .ci .map-container{height:280px;margin:0}
+    .ci-maplinks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .ci-maplinks a{display:block;text-align:center;padding:10px;border-radius:999px;font-weight:700;font-size:.9rem;text-decoration:none}
+    .ci-maplinks a:first-child{background:#03c75a;color:#fff}.ci-maplinks a:last-child{background:#fee500;color:#191919}
+    @media (max-width:640px){.ci-row{grid-template-columns:92px 1fr}.ci-place{grid-template-columns:1fr;gap:2px}}
     /* 지도 섹션 */
     .map-section {
       margin-top: 2rem;
@@ -436,57 +457,27 @@
 <section class="contact-section">
   <div class="contact-wrapper">
     
-    <!-- 연락처 정보 -->
-    <div class="contact-info-section">
+    <!-- 연락처 정보 — 줄 맞춰 다시 정리(2026-10-19) · 지도는 끼워 넣기가 되는 구글 지도, 네이버·카카오는 새 창 -->
+    <div class="contact-info-section ci">
       <h3 class="contact-info-title">연락처 정보</h3>
-      
-      <div class="contact-info-item">
-        <div class="contact-info-icon">📍</div>
-        <div class="contact-info-content">
-          <h4>본사 / 공장</h4>
-          <p><strong>본사/유통:</strong> 인천광역시 서구 서곶길 314번길 9</p>
-          <p style="margin-top: 0.5rem;"><strong>제2공장:</strong> 인천광역시 서구 염곡로 722-1</p>
-          <p style="margin-top: 0.5rem;"><strong>제3공장:</strong> 경기도 시흥시 죽율로 209번길 7-1</p>
-        </div>
-      </div>
-      
-      <div class="contact-info-item">
-        <div class="contact-info-icon">📞</div>
-        <div class="contact-info-content">
-          <h4>전화번호</h4>
-          <p>032-567-0111</p>
-          <p>평일 08:00 ~ 18:00</p>
-        </div>
-      </div>
-      
-      <div class="contact-info-item">
-        <div class="contact-info-icon">📧</div>
-        <div class="contact-info-content">
-          <h4>이메일</h4>
-          <p>noidid@hanmail.net</p>
-        </div>
-      </div>
-      
-      <div class="contact-info-item">
-        <div class="contact-info-icon">📠</div>
-        <div class="contact-info-content">
-          <h4>팩스</h4>
-          <p>032-567-0133</p>
-        </div>
-      </div>
-      
-      <!-- 지도 섹션 -->
-      <div class="map-section">
-        <h4 style="font-size: 1.125rem; margin-bottom: 1rem;">오시는 길</h4>
-        <div class="map-container">
-          <iframe src="https://map.naver.com/p/search/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C%20%EC%84%9C%EA%B5%AC%20%EC%84%9C%EA%B3%B6%EB%A1%9C314%EB%B2%88%EA%B8%B8%209/address/14130105.6965439,4505988.7307829,%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C%20%EC%84%9C%EA%B5%AC%20%EC%84%9C%EA%B3%B6%EB%A1%9C314%EB%B2%88%EA%B8%B8%209,new?c=17.00,0,0,0,dh" width="100%" height="300" frameborder="0" style="border:0; border-radius: 0.75rem;" allowfullscreen="" loading="lazy"></iframe>
-        </div>
-        <a href="https://map.naver.com/p/search/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C%20%EC%84%9C%EA%B5%AC%20%EC%84%9C%EA%B3%B6%EB%A1%9C314%EB%B2%88%EA%B8%B8%209/address/14130105.6965439,4505988.7307829,%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C%20%EC%84%9C%EA%B5%AC%20%EC%84%9C%EA%B3%B6%EB%A1%9C314%EB%B2%88%EA%B8%B8%209,new?c=17.00,0,0,0,dh" target="_blank" class="btn-primary-lg" style="margin-top: 1rem; font-size: 0.875rem; padding: 0.5rem 1.5rem; display: inline-block; width: 100%; text-align: center;">
-          네이버 지도로 크게 보기
-        </a>
-      </div>
+      <dl class="ci-list">
+        <div class="ci-row"><dt><span class="ci-ic">📞</span>대표전화</dt><dd><a href="tel:0325670111">032-567-0111</a><small>평일 08:00 ~ 18:00</small></dd></div>
+        <div class="ci-row"><dt><span class="ci-ic">📠</span>팩스</dt><dd>032-567-0133</dd></div>
+        <div class="ci-row"><dt><span class="ci-ic">📧</span>이메일</dt><dd><a href="mailto:noidid@hanmail.net">noidid@hanmail.net</a></dd></div>
+      </dl>
+      <h4 class="ci-sub">📍 오시는 길</h4>
+      <dl class="ci-list ci-addr">
+        <div class="ci-row"><dt>본사 · 유통</dt><dd>인천광역시 서구 서곶로314번길 9 <a class="ci-mini" href="https://map.naver.com/p/search/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C%20%EC%84%9C%EA%B5%AC%20%EC%84%9C%EA%B3%B6%EB%A1%9C314%EB%B2%88%EA%B8%B8%209" target="_blank" rel="noopener">지도</a></dd></div>
+        <div class="ci-row"><dt>제2공장</dt><dd>인천광역시 서구 염곡로 722-1 <a class="ci-mini" href="https://map.naver.com/p/search/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C%20%EC%84%9C%EA%B5%AC%20%EC%97%BC%EA%B3%A1%EB%A1%9C%20722-1" target="_blank" rel="noopener">지도</a></dd></div>
+        <div class="ci-row"><dt>제3공장</dt><dd>경기도 시흥시 죽율로209번길 7-1 <a class="ci-mini" href="https://map.naver.com/p/search/%EA%B2%BD%EA%B8%B0%EB%8F%84%20%EC%8B%9C%ED%9D%A5%EC%8B%9C%20%EC%A3%BD%EC%9C%A8%EB%A1%9C209%EB%B2%88%EA%B8%B8%207-1" target="_blank" rel="noopener">지도</a></dd></div>
+      </dl>
+      <!-- 네이버 지도는 다른 사이트 안에 끼워 넣기를 막아(X-Frame-Options: deny) 빈칸이었다 → 본사 위치 그림 + 누르면 네이버 지도(2026-10-19) -->
+      <a class="ci-mapimg" href="https://map.naver.com/p/search/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C%20%EC%84%9C%EA%B5%AC%20%EC%84%9C%EA%B3%B6%EB%A1%9C314%EB%B2%88%EA%B8%B8%209" target="_blank" rel="noopener" title="네이버 지도로 크게 보기">
+        <img src="/assets/map_bonsa.png" alt="본사 위치 지도 — 인천광역시 서구 서곶로314번길 9 (서구청역 인근)" loading="lazy">
+      </a>
+      <div class="ci-maplinks"><a href="https://map.naver.com/p/search/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C%20%EC%84%9C%EA%B5%AC%20%EC%84%9C%EA%B3%B6%EB%A1%9C314%EB%B2%88%EA%B8%B8%209" target="_blank" rel="noopener">네이버 지도로 크게 보기</a><a href="https://map.kakao.com/link/search/%EC%9D%B8%EC%B2%9C%EA%B4%91%EC%97%AD%EC%8B%9C%20%EC%84%9C%EA%B5%AC%20%EC%84%9C%EA%B3%B6%EB%A1%9C314%EB%B2%88%EA%B8%B8%209" target="_blank" rel="noopener">카카오맵으로 보기</a></div>
     </div>
-    
+
     <!-- 문의 폼 -->
     <div class="contact-form-section">
       <h3 class="form-title">문의하기</h3>
@@ -815,7 +806,7 @@ function handleSubmit(event) {
   </div>
   <div class="footer-bottom">
     <p><strong>㈜이든푸드</strong></p>
-    <p>본사/유통 : 인천광역시 서구 서곶길 314번길 9</p>
+    <p>본사/유통 : 인천광역시 서구 서곶로314번길 9</p>
     <p>제2공장 : 인천광역시 서구 염곡로 722-1 | 제3공장 : 경기도 시흥시 죽율로 209번길 7-1</p>
     <p>TEL : 032-567-0111 | FAX : 032-567-0133</p>
     <p>사업자등록번호: 222-87-02900 | 대표: 노진훈</p>
