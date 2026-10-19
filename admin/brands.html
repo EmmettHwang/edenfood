@@ -477,6 +477,11 @@
   .pb-msg{font-size:12px;margin-top:4px;color:#374151}.pb-msg.err{color:#dc2626}
   .pb-card-row{display:grid;grid-template-columns:150px 1fr;gap:10px;border-top:1px dashed #e5e7eb;padding-top:10px;margin-top:10px}
   @media (max-width:640px){.pb-card-row{grid-template-columns:1fr}}
+  .pb-actions{position:sticky;bottom:0;z-index:50;display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:16px;padding:12px 16px;
+    background:rgba(255,255,255,.96);border:1px solid #e5e7eb;border-radius:14px;box-shadow:0 -6px 20px rgba(0,0,0,.08);backdrop-filter:blur(6px)}
+  .pb-actions #pbDirty{margin-right:auto;font-size:13px;color:#6b7280}.pb-actions #pbDirty.on{color:#b45309;font-weight:700}
+  .pb-card-row .mv{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}.pb-card-row .mv button{padding:5px 10px;font-size:13px}
+  .pb-card-no{font-size:12px;font-weight:700;color:#15803d;margin-bottom:4px}
   .pb-galbtn{margin-top:8px;padding:6px 12px;border:1px solid #bbf7d0;background:#fff;color:#166534;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px}
   .pb-gal{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px}
   .pb-gal.on{display:flex}.pb-gal .box{background:#fff;border-radius:16px;width:min(900px,100%);max-height:86vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25)}
@@ -552,10 +557,6 @@
   <div id="startup-content" class="tab-content">
     <div class="action-bar" style="flex-wrap:wrap;gap:8px">
       <h2 style="font-size:1.125rem;font-weight:600;margin:0">창업지원 소개 — 홈페이지 「창업지원」 맨 위에 보입니다</h2>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-secondary" type="button" onclick="pbPreview()">👁 미리보기</button>
-        <button class="btn-add" type="button" id="pbSave" onclick="pbSave()">💾 저장</button>
-      </div>
     </div>
     <div class="pb-toolbar">
       <span>블록 추가 :</span>
@@ -566,6 +567,12 @@
     <div id="pbList"></div>
     <div id="pbPreviewBox" style="display:none;margin-top:18px;border:2px dashed #16a34a;border-radius:14px;padding:12px;background:#f9fafb">
       <div style="font-size:13px;color:#15803d;font-weight:700;margin-bottom:6px">미리보기 — 홈페이지와 같은 모양(저장 전)</div><div id="pbPreview"></div>
+    </div>
+    <!-- 맨 아래 고정 액션바(2026-10-19 「저장·미리보기는 맨 아래 액션바로 고정」) -->
+    <div class="pb-actions">
+      <span id="pbDirty">저장된 상태</span>
+      <button class="btn btn-secondary" type="button" onclick="pbPreview()">👁 미리보기</button>
+      <button class="btn-add" type="button" id="pbSave" onclick="pbSave()">💾 저장</button>
     </div>
   </div>
 
@@ -1514,10 +1521,12 @@ function pbRender(){
     if (b.type==='heading') body=`<input type="text" style="font-weight:800;font-size:17px" value="${pbEsc(b.text)}" placeholder="제목" oninput="pbSet(${i},'text',this.value)">`;
     else if (b.type==='text') body=`<textarea placeholder="본문(줄바꿈 그대로 보입니다)" oninput="pbSet(${i},'text',this.value)">${pbEsc(b.text)}</textarea>`;
     else if (b.type==='image') body=pbDropZone(`pbimg-${i}`, b.url)+`<input type="text" style="margin-top:8px" value="${pbEsc(b.caption)}" placeholder="사진 설명(선택)" oninput="pbSet(${i},'caption',this.value)">`;
-    else if (b.type==='cards') body=(b.items||[]).map((it,j)=>`<div class="pb-card-row">${pbDropZone(`pbcard-${i}-${j}`, it.image)}
+    else if (b.type==='cards') body=(b.items||[]).map((it,j)=>`<div class="pb-card-row"><div><div class="pb-card-no">카드 ${j+1}</div>${pbDropZone(`pbcard-${i}-${j}`, it.image)}</div>
         <div><input type="text" value="${pbEsc(it.title)}" placeholder="카드 제목 (예: 전문 레시피 교육)" oninput="pbSetItem(${i},${j},'title',this.value)">
         <textarea style="min-height:60px;margin-top:6px" placeholder="설명" oninput="pbSetItem(${i},${j},'desc',this.value)">${pbEsc(it.desc)}</textarea>
-        <button type="button" class="btn btn-secondary" style="margin-top:6px;padding:5px 10px;font-size:13px" onclick="pbCardDel(${i},${j})">이 카드 빼기</button></div></div>`).join('')
+        <div class="mv"><button type="button" class="btn btn-secondary" ${j===0?'disabled':''} onclick="pbCardMove(${i},${j},-1)">◀ 앞으로</button>
+        <button type="button" class="btn btn-secondary" ${j===(b.items.length-1)?'disabled':''} onclick="pbCardMove(${i},${j},1)">뒤로 ▶</button>
+        <button type="button" class="btn btn-secondary" onclick="pbCardDel(${i},${j})">이 카드 빼기</button></div></div></div>`).join('')
         +`<button type="button" class="btn btn-secondary" style="margin-top:10px;padding:6px 12px;font-size:13px" onclick="PB[${i}].items.push({title:'',desc:'',image:''});pbRender()">＋ 카드 하나 더</button>`;
     else if (b.type==='table') body=`<input type="text" value="${pbEsc(b.title)}" placeholder="표 제목(선택)" oninput="pbSet(${i},'title',this.value)">
         <div class="hint">머리글 — 칸은 | 로 나눕니다</div><input type="text" id="pbth-${i}" value="${pbEsc((b.headers||[]).join(' | '))}" oninput="pbTable(${i},this.value,document.getElementById('pbtr-${i}').value)">
@@ -1528,6 +1537,7 @@ function pbRender(){
       <button type="button" class="del" onclick="pbDel(${i})">삭제</button></span></div>${body}</div>`;
   }).join('');
 }
+function pbCardMove(i,j,d){ const a=PB[i].items, k=j+d; if (k<0||k>=a.length) return; [a[j],a[k]]=[a[k],a[j]]; pbRender(); pbPreviewIfOpen(); }
 async function pbCardDel(i,j){ if (!(await confirm('이 카드를 뺄까요?'))) return; PB[i].items.splice(j,1); pbRender(); pbPreviewIfOpen(); }
 function pbPick(id){ const f=document.createElement('input'); f.type='file'; f.accept='image/jpeg,image/png,image/gif,image/webp'; f.onchange=()=>f.files[0]&&pbUpload(id,f.files[0]); f.click(); }
 function pbDrop(e,id){ e.preventDefault(); e.stopPropagation(); document.getElementById(id).classList.remove('over'); const f=e.dataTransfer.files[0]; if (f) pbUpload(id,f); }
@@ -1575,12 +1585,13 @@ function pbUseUrl(id, url){
   showAlert('갤러리 사진을 넣었어요. 「저장」을 눌러야 홈페이지에 반영됩니다.');
 }
 function pbPreview(){ const b=document.getElementById('pbPreviewBox'); b.style.display=b.style.display==='none'?'block':'none'; pbPreviewIfOpen(); }
-function pbPreviewIfOpen(){ const b=document.getElementById('pbPreviewBox'); if (b && b.style.display!=='none') document.getElementById('pbPreview').innerHTML=window.renderPageBlocks(PB)||'<p style="color:#6b7280">보일 내용이 없습니다.</p>'; }
+function pbDirty(on){ const d=document.getElementById('pbDirty'); if (!d) return; d.classList.toggle('on',on); d.textContent=on?'● 저장하지 않은 변경이 있어요':'저장된 상태'; }
+function pbPreviewIfOpen(){ pbDirty(true); const b=document.getElementById('pbPreviewBox'); if (b && b.style.display!=='none') document.getElementById('pbPreview').innerHTML=window.renderPageBlocks(PB)||'<p style="color:#6b7280">보일 내용이 없습니다.</p>'; }
 async function pbSave(){
   const btn=document.getElementById('pbSave'); btn.disabled=true; btn.textContent='저장 중…';
   try { const r=await fetch('/api/page-blocks/brands',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+localStorage.getItem('eden_token')},body:JSON.stringify({blocks:PB})});
     let j={}; try{ j=await r.json(); }catch(_){}
-    if (r.ok && j.ok) { PB=j.data.blocks; pbRender(); showAlert(`저장했어요 — 블록 ${PB.length}개가 홈페이지 「창업지원」에 바로 보입니다.`); }
+    if (r.ok && j.ok) { PB=j.data.blocks; pbRender(); pbDirty(false); showAlert(`저장했어요 — 블록 ${PB.length}개가 홈페이지 「창업지원」에 바로 보입니다.`); }
     else showAlert('저장하지 못했어요: '+({401:'로그인이 풀렸습니다',403:'권한이 없습니다(관리자만)'}[r.status]||j.error||('서버 응답 '+r.status)),'error');
   } catch(e){ showAlert('저장하지 못했어요: 연결이 끊겼습니다','error'); }
   btn.disabled=false; btn.textContent='💾 저장';
