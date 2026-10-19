@@ -13,7 +13,9 @@ const multer   = require('multer');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'edenfood-intranet-secret-2026';
+// 비밀키는 .env 에만 둔다 — 코드에 기본값이 있으면 코드를 본 누구나 관리자 토큰을 만들 수 있었다(2026-10-19 교체)
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) { console.error('JWT_SECRET 이 .env 에 없거나 너무 짧습니다 — 서버를 시작하지 않습니다'); process.exit(1); }
 
 // execSync를 child_process에서 가져오기
 const { execSync } = require('child_process');
