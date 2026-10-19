@@ -564,10 +564,10 @@
 <div class="menu-tabs">
   <div class="menu-tabs-inner" id="category-tabs">
     <div class="menu-tab active" onclick="showCategory('all')">전체</div>
-    <div class="menu-tab" onclick="showCategory('signature')">시그니처</div>
     <div class="menu-tab" onclick="showCategory('import')">수입목뼈유통</div>
     <div class="menu-tab" onclick="showCategory('sauce')">소스.스프유통(OEM)</div>
     <div class="menu-tab" onclick="showCategory('domestic')">국내산 우거지무청</div>
+    <div class="menu-tab" onclick="showCategory('signature')">시그니처</div>
   </div>
 </div>
 
@@ -642,7 +642,7 @@ async function loadProducts() {
     if (data.ok) {
       productsData = data.data?.products || data.products || [];
       console.log('Loaded products:', productsData);
-      renderProducts();
+      await orderReady; renderProducts();
     } else {
       console.error('제품 데이터 로드 실패:', data.message);
       showEmptyState('제품을 불러오는데 실패했습니다.');
@@ -665,12 +665,26 @@ function getCategoryName(category) {
   return names[category] || category;
 }
 
+// 순서 — 관리자 「제품소개 관리」에서 정한 탭 순서·제품 순서(/api/settings) (2026-10-19)
+let CAT_ORDER = ['import','sauce','domestic','signature'], ITEM_ORDER = [];
+const orderReady = fetch('/api/settings').then(r => r.json()).then(j => { const st = (j.data && j.data.settings) || {};
+  try { const a = JSON.parse(st.product_category_order || '[]'); if (Array.isArray(a) && a.length) CAT_ORDER = a; } catch (_) {}
+  try { const b = JSON.parse(st.product_item_order || '[]'); if (Array.isArray(b)) ITEM_ORDER = b; } catch (_) {}
+  const tabs = document.getElementById('category-tabs'), all = tabs.querySelector('.menu-tab');
+  const byCat = {}; tabs.querySelectorAll('.menu-tab').forEach(t => { const m = (t.getAttribute('onclick') || '').match(/'(\w+)'/); if (m) byCat[m[1]] = t; });
+  CAT_ORDER.forEach(c => { if (byCat[c]) tabs.appendChild(byCat[c]); });
+}).catch(() => {});
+function orderedProducts() {
+  const ci = c => { const k = CAT_ORDER.indexOf(c); return k < 0 ? 99 : k; }, pi = id => { const k = ITEM_ORDER.indexOf(id); return k < 0 ? 1e6 : k; };
+  return productsData.map((p, n) => [p, n]).sort((a, b) => ci(a[0].category) - ci(b[0].category) || pi(a[0].id) - pi(b[0].id) || a[1] - b[1]).map(x => x[0]);
+}
+
 // 제품 렌더링
 function renderProducts() {
   const container = document.getElementById('products-container');
   
   // 현재 카테고리에 맞는 제품 필터링
-  let filteredProducts = productsData;
+  let filteredProducts = orderedProducts();
   if (currentCategory !== 'all') {
     filteredProducts = productsData.filter(p => p.category === currentCategory);
   }

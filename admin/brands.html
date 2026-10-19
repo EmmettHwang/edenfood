@@ -670,8 +670,8 @@
         <div class="form-group">
           <label class="form-label">상태</label>
           <select class="form-select" id="brandStatus">
-            <option value="active">활성</option>
-            <option value="inactive">비활성</option>
+            <option value="active">보이기(홈페이지에 표시)</option>
+            <option value="inactive">감추기(홈페이지에 안 보임)</option>
           </select>
         </div>
 
@@ -782,7 +782,9 @@ function renderBrands() {
   brandList.style.display = 'grid';
   emptyState.style.display = 'none';
   
-  brandList.innerHTML = brands.map(brand => {
+  // 순서 = order_num → 이름 (홈페이지와 같은 순서)
+  brands.sort((a, b) => (a.order_num || 0) - (b.order_num || 0) || String(a.name).localeCompare(String(b.name)));
+  brandList.innerHTML = brands.map((brand, bi) => {
     // description을 HTML로 변환 (줄바꿈과 bullet point 처리)
     let formattedDesc = brand.description || '설명이 없습니다.';
     
@@ -821,9 +823,12 @@ function renderBrands() {
         <div style="font-size: 0.813rem; color: #6b7280; margin-bottom: 0.5rem;">
           ${brand.website ? `<a href="${brand.website}" target="_blank" style="color: ${brand.color_primary || '#16a34a'}; text-decoration: none;">🌐 웹사이트</a>` : ''}
         </div>
-        <span class="brand-type" style="background: ${brand.status === 'active' ? '#dcfce7' : '#fee2e2'}; color: ${brand.status === 'active' ? '#15803d' : '#dc2626'};">
-          ${brand.status === 'active' ? '활성' : '비활성'}
-        </span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+          <button type="button" class="brand-type" style="border:0;cursor:pointer;background:${brand.status === 'active' ? '#dcfce7' : '#f3f4f6'};color:${brand.status === 'active' ? '#15803d' : '#6b7280'}" onclick="toggleBrandVisible(${brand.id})"
+            title="눌러서 홈페이지에 보이기/감추기">${brand.status === 'active' ? '👁 홈페이지에 보임 · 누르면 감추기' : '🙈 감춤 · 누르면 보이기'}</button>
+          <button type="button" class="btn btn-secondary" style="padding:4px 10px;font-size:13px" ${bi === 0 ? 'disabled' : ''} onclick="moveBrand(${bi},-1)">◀ 앞으로</button>
+          <button type="button" class="btn btn-secondary" style="padding:4px 10px;font-size:13px" ${bi === brands.length - 1 ? 'disabled' : ''} onclick="moveBrand(${bi},1)">뒤로 ▶</button>
+        </div>
         <div class="brand-actions">
           <button class="btn-edit" onclick="editBrand(${brand.id})">수정</button>
           <button class="btn-delete" onclick="deleteBrand(${brand.id})">삭제</button>
@@ -894,6 +899,27 @@ async function editBrand(id) {
   }
   
   document.getElementById('brandModal').classList.add('active');
+}
+
+// 보이기·감추기(2026-10-19 「지운 거 나중에 되살릴 수 있게 보이기 감추기」) — 홈페이지는 「보임(active)」만 보여 준다
+async function brandPut(id, body) {
+  const r = await fetch(`/api/brands/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('eden_token') }, body: JSON.stringify(body) });
+  let j = {}; try { j = await r.json(); } catch (_) {}
+  if (!(r.ok && (j.ok || j.success))) throw new Error({ 401: '로그인이 풀렸습니다', 403: '권한이 없습니다(관리자만)' }[r.status] || j.error || j.message || ('서버 응답 ' + r.status));
+}
+async function toggleBrandVisible(id) {
+  const b = brands.find(x => x.id === id); if (!b) return;
+  const show = b.status !== 'active';
+  try { await brandPut(id, { status: show ? 'active' : 'inactive' }); showAlert(show ? `「${b.name}」을(를) 홈페이지에 보이게 했어요.` : `「${b.name}」을(를) 홈페이지에서 감췄어요(지워지지 않고 여기 남아 있어요).`); await loadBrands(); }
+  catch (e) { showAlert('바꾸지 못했어요: ' + e.message, 'error'); }
+}
+// 순서 바꾸기 — 바뀐 두 브랜드의 order_num 을 10 간격으로 다시 매겨 저장
+async function moveBrand(i, d) {
+  const k = i + d; if (k < 0 || k >= brands.length) return;
+  const list = brands.slice(); [list[i], list[k]] = [list[k], list[i]];
+  try { for (let n = 0; n < list.length; n++) { const want = (n + 1) * 10; if (list[n].order_num !== want) await brandPut(list[n].id, { order_num: want }); }
+    showAlert('순서를 바꿨어요 — 홈페이지에도 이 순서로 보입니다.'); await loadBrands(); }
+  catch (e) { showAlert('순서를 바꾸지 못했어요: ' + e.message, 'error'); await loadBrands(); }
 }
 
 // 브랜드 삭제

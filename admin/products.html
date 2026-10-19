@@ -442,7 +442,11 @@
       font-size: 0.875rem;
       color: #6b7280;
     }
-  </style>
+    .ord-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 14px;font-size:13px;color:#6b7280}
+  .ord-row .lbl{margin-right:4px}.ord-row .chip{display:inline-flex;align-items:center;gap:4px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:999px;padding:3px 8px;color:#166534}
+  .ord-row .chip button{border:0;background:#dcfce7;border-radius:6px;cursor:pointer;padding:1px 6px;color:#166534}
+  .btn-ord{border:1px solid #d1d5db;background:#fff;border-radius:6px;padding:4px 7px;cursor:pointer;margin-right:2px}
+</style>
 <script src="/admin/js/dialog.js"></script>
 </head>
 <body>
@@ -531,13 +535,9 @@
   </div>
 
   <!-- 카테고리 탭 -->
-  <div class="category-tabs">
-    <button class="category-tab active" data-category="all" onclick="filterByCategory('all')">전체</button>
-    <button class="category-tab" data-category="signature" onclick="filterByCategory('signature')">시그니처</button>
-    <button class="category-tab" data-category="import" onclick="filterByCategory('import')">수입목뼈유통</button>
-    <button class="category-tab" data-category="sauce" onclick="filterByCategory('sauce')">소스.스프유통(OEM)</button>
-    <button class="category-tab" data-category="domestic" onclick="filterByCategory('domestic')">국내산 우거지무청</button>
-  </div>
+  <div class="category-tabs" id="categoryTabs"></div>
+  <!-- 탭 순서 바꾸기(2026-10-19 고객 요청 「시그니처를 우거지 뒤로 · 수입목뼈가 첫 번째로」) — 홈페이지 제품소개 탭도 이 순서 -->
+  <div class="ord-row" id="catOrderRow"></div>
 
   <!-- 제품 리스트 -->
   <div class="product-list">
@@ -641,7 +641,7 @@ let editingProductId = null;
 async function init() {
   await checkAuth();
   await loadPageSettings();
-  await loadProducts();
+  await loadOrder(); await loadProducts();
 }
 
 // 관리자 권한 확인
@@ -694,12 +694,50 @@ async function loadProducts() {
   }
 }
 
+// ── 순서(분류 탭 · 제품) — /api/settings 의 product_category_order · product_item_order(JSON) ──
+const CAT_NAMES = {'signature':'시그니처','import':'수입목뼈유통','sauce':'소스.스프유통(OEM)','domestic':'국내산 우거지무청'};
+let CAT_ORDER = ['import','sauce','domestic','signature'], ITEM_ORDER = [];
+async function loadOrder() {
+  try { const j = await (await fetch('/api/settings')).json(); const st = (j.data && j.data.settings) || {};
+    try { const a = JSON.parse(st.product_category_order || '[]'); if (Array.isArray(a) && a.length) CAT_ORDER = a; } catch (_) {}
+    try { const b = JSON.parse(st.product_item_order || '[]'); if (Array.isArray(b)) ITEM_ORDER = b; } catch (_) {} } catch (_) {}
+  Object.keys(CAT_NAMES).forEach(c => { if (!CAT_ORDER.includes(c)) CAT_ORDER.push(c); });
+  renderCatTabs();
+}
+async function saveOrder(obj, okMsg) {
+  try { const r = await fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('eden_token') }, body: JSON.stringify({ settings: obj }) });
+    let j = {}; try { j = await r.json(); } catch (_) {}
+    if (r.ok && j.ok) showAlert(okMsg); else showAlert('순서를 저장하지 못했어요: ' + ({401:'로그인이 풀렸습니다',403:'권한이 없습니다(관리자만)'}[r.status] || j.error || ('서버 응답 ' + r.status)), 'error');
+  } catch (e) { showAlert('순서를 저장하지 못했어요: 연결이 끊겼습니다', 'error'); }
+}
+function renderCatTabs() {
+  document.getElementById('categoryTabs').innerHTML = ['all', ...CAT_ORDER].map(c =>
+    `<button class="category-tab ${c === currentCategory ? 'active' : ''}" data-category="${c}" onclick="filterByCategory('${c}')">${c === 'all' ? '전체' : CAT_NAMES[c] || c}</button>`).join('');
+  document.getElementById('catOrderRow').innerHTML = '<span class="lbl">탭 순서</span>' + CAT_ORDER.map((c, i) =>
+    `<span class="chip">${i > 0 ? `<button type="button" title="앞으로" onclick="moveCat(${i},-1)">◀</button>` : ''}<b>${CAT_NAMES[c] || c}</b>${i < CAT_ORDER.length - 1 ? `<button type="button" title="뒤로" onclick="moveCat(${i},1)">▶</button>` : ''}</span>`).join('');
+}
+async function moveCat(i, d) { const k = i + d; [CAT_ORDER[i], CAT_ORDER[k]] = [CAT_ORDER[k], CAT_ORDER[i]]; renderCatTabs(); renderProducts();
+  await saveOrder({ product_category_order: JSON.stringify(CAT_ORDER) }, '탭 순서를 바꿨어요 — 홈페이지 제품소개에도 이 순서로 보입니다.'); }
+function sortedProducts() {
+  const ci = c => { const k = CAT_ORDER.indexOf(c); return k < 0 ? 99 : k; }, pi = id => { const k = ITEM_ORDER.indexOf(id); return k < 0 ? 1e6 : k; };
+  return products.map((p, n) => [p, n]).sort((a, b) => ci(a[0].category) - ci(b[0].category) || pi(a[0].id) - pi(b[0].id) || a[1] - b[1]).map(x => x[0]);
+}
+async function moveItem(id, d) {
+  const list = sortedProducts().filter(p => p.category === currentCategory), i = list.findIndex(p => p.id === id), k = i + d;
+  if (k < 0 || k >= list.length) return; [list[i], list[k]] = [list[k], list[i]];
+  // 이 분류의 새 순서를 앞에, 나머지 분류의 기존 순서는 그대로
+  const rest = sortedProducts().filter(p => p.category !== currentCategory).map(p => p.id);
+  ITEM_ORDER = [...rest, ...list.map(p => p.id)]; renderProducts();
+  await saveOrder({ product_item_order: JSON.stringify(ITEM_ORDER) }, '제품 순서를 바꿨어요 — 홈페이지에도 이 순서로 보입니다.');
+}
+
 // 제품 목록 렌더링
 function renderProducts() {
   const tbody = document.getElementById('productTableBody');
+  const all = sortedProducts();
   const filteredProducts = currentCategory === 'all' 
-    ? products 
-    : products.filter(p => p.category === currentCategory);
+    ? all 
+    : all.filter(p => p.category === currentCategory);
   
   if (filteredProducts.length === 0) {
     tbody.innerHTML = `
@@ -732,6 +770,7 @@ function renderProducts() {
       </td>
       <td>
         <div class="action-buttons">
+          ${currentCategory !== 'all' ? `<button class="btn-ord" title="위로" onclick="moveItem(${product.id},-1)">▲</button><button class="btn-ord" title="아래로" onclick="moveItem(${product.id},1)">▼</button>` : ''}
           <button class="btn-edit" onclick="editProduct(${product.id})">수정</button>
           <button class="btn-delete" onclick="deleteProduct(${product.id})">삭제</button>
         </div>
@@ -753,7 +792,7 @@ function getCategoryName(category) {
 
 // 카테고리 필터
 function filterByCategory(category) {
-  currentCategory = category;
+  currentCategory = category; renderCatTabs();
   
   // 탭 활성화 상태 변경
   document.querySelectorAll('.category-tab').forEach(tab => {
