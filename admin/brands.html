@@ -477,6 +477,17 @@
   .pb-msg{font-size:12px;margin-top:4px;color:#374151}.pb-msg.err{color:#dc2626}
   .pb-card-row{display:grid;grid-template-columns:150px 1fr;gap:10px;border-top:1px dashed #e5e7eb;padding-top:10px;margin-top:10px}
   @media (max-width:640px){.pb-card-row{grid-template-columns:1fr}}
+  .pb-galbtn{margin-top:8px;padding:6px 12px;border:1px solid #bbf7d0;background:#fff;color:#166534;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px}
+  .pb-gal{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px}
+  .pb-gal.on{display:flex}.pb-gal .box{background:#fff;border-radius:16px;width:min(900px,100%);max-height:86vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  .pb-gal .hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid #e5e7eb}
+  .pb-gal .hd .x{margin-left:auto;border:0;background:#f3f4f6;border-radius:8px;padding:6px 12px;cursor:pointer}
+  .pb-gal .cats button{border:1px solid #e5e7eb;background:#fff;border-radius:999px;padding:4px 12px;margin-right:4px;cursor:pointer;font-size:13px}
+  .pb-gal .cats button.on{background:#16a34a;color:#fff;border-color:#16a34a}
+  .pb-gal .grid{overflow:auto;padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .pb-gal .it{border:2px solid transparent;border-radius:12px;padding:0;background:#f9fafb;cursor:pointer;overflow:hidden;text-align:left}
+  .pb-gal .it:hover{border-color:#16a34a}.pb-gal .it img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+  .pb-gal .it span{display:block;padding:6px 8px;font-size:12px;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 <script src="/admin/js/dialog.js"></script>
 </head>
@@ -495,7 +506,7 @@
 
   <div class="header">
     <div class="header-inner">
-      <h1>브랜드소개 관리</h1>
+      <h1>창업지원 관리</h1>
       <button class="btn btn-secondary" onclick="goBack()">← 돌아가기</button>
     </div>
   </div>
@@ -1492,7 +1503,8 @@ function pbTable(i,head,rows){ PB[i].headers=head.split('|').map(x=>x.trim()); P
 function pbDropZone(id, url){
   return `<div class="pb-drop" id="${id}" onclick="pbPick('${id}')" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="pbDrop(event,'${id}')">
     ${url?`<img src="${pbEsc(url)}" alt="">`:''}<div>${url?'다른 사진으로 바꾸려면':'사진을'} 여기에 끌어다 놓거나 눌러서 고르세요 · JPG·PNG·WEBP · 최대 30MB</div>
-    <div class="pb-bar"><i></i></div><div class="pb-msg"></div></div>`;
+    <div class="pb-bar"><i></i></div><div class="pb-msg"></div>
+    <button type="button" class="pb-galbtn" onclick="event.stopPropagation();pbGallery('${id}')">🖼 갤러리에서 고르기</button></div>`;
 }
 function pbRender(){
   const box = document.getElementById('pbList');
@@ -1537,6 +1549,30 @@ function pbUpload(id,file){
       msg.textContent='올리지 못했어요: '+({413:'파일이 너무 큽니다(최대 30MB)',401:'로그인이 풀렸습니다. 다시 로그인해 주세요',403:'권한이 없습니다(관리자만)'}[x.status]||j.error||('서버 응답 '+x.status)); } };
   x.onerror=()=>{ bar.style.display='none'; msg.className='pb-msg err'; msg.textContent='올리지 못했어요: 연결이 끊겼습니다. 인터넷 연결을 확인하고 다시 시도해 주세요.'; };
   x.open('POST','/api/page-blocks/upload-image'); x.setRequestHeader('Authorization','Bearer '+localStorage.getItem('eden_token')); x.send(fd);
+}
+// 갤러리 사진 고르기(2026-10-19) — 이미 올려 둔 갤러리 사진을 그대로 쓴다
+let PB_GAL = null;
+async function pbGallery(id){
+  let m = document.getElementById('pbGalModal');
+  if (!m) { m = document.createElement('div'); m.id = 'pbGalModal'; m.className = 'pb-gal';
+    m.innerHTML = '<div class="box"><div class="hd"><b>🖼 갤러리에서 사진 고르기</b><span class="cats"></span><button type="button" class="x">✕ 닫기</button></div><div class="grid"><p style="padding:20px;color:#6b7280">불러오는 중…</p></div></div>';
+    document.body.appendChild(m); m.querySelector('.x').onclick = () => m.classList.remove('on'); m.onclick = e => { if (e.target === m) m.classList.remove('on'); }; }
+  m.dataset.target = id; m.classList.add('on');
+  if (!PB_GAL) { try { const r = await fetch('/api/gallery'); const j = await r.json(); PB_GAL = (j.data && j.data.images) || []; }
+    catch (e) { m.querySelector('.grid').innerHTML = '<p style="padding:20px;color:#dc2626">갤러리를 불러오지 못했어요: 연결이 끊겼습니다</p>'; return; } }
+  const CAT = {'':'전체', product:'제품', store:'매장', event:'행사', etc:'기타'};
+  const draw = cat => { const list = PB_GAL.filter(g => !cat || g.category === cat);
+    m.querySelector('.cats').innerHTML = Object.entries(CAT).map(([k,v]) => `<button type="button" class="${k===cat?'on':''}" data-c="${k}">${v}</button>`).join('');
+    m.querySelectorAll('.cats button').forEach(b => b.onclick = () => draw(b.dataset.c));
+    m.querySelector('.grid').innerHTML = list.length ? list.map(g => `<button type="button" class="it" data-u="${pbEsc(g.image_url)}"><img src="${pbEsc(g.thumbnail_url || g.image_url)}" alt="" loading="lazy"><span>${pbEsc(g.title||'')}</span></button>`).join('') : '<p style="padding:20px;color:#6b7280">이 분류에는 사진이 없어요.</p>';
+    m.querySelectorAll('.grid .it').forEach(b => b.onclick = () => pbUseUrl(m.dataset.target, b.dataset.u)); };
+  draw('');
+}
+function pbUseUrl(id, url){
+  const mm = id.match(/^pbimg-(\d+)$/), c = id.match(/^pbcard-(\d+)-(\d+)$/);
+  if (mm) PB[+mm[1]].url = url; else if (c) PB[+c[1]].items[+c[2]].image = url; else return;
+  document.getElementById('pbGalModal').classList.remove('on'); pbRender(); pbPreviewIfOpen();
+  showAlert('갤러리 사진을 넣었어요. 「저장」을 눌러야 홈페이지에 반영됩니다.');
 }
 function pbPreview(){ const b=document.getElementById('pbPreviewBox'); b.style.display=b.style.display==='none'?'block':'none'; pbPreviewIfOpen(); }
 function pbPreviewIfOpen(){ const b=document.getElementById('pbPreviewBox'); if (b && b.style.display!=='none') document.getElementById('pbPreview').innerHTML=window.renderPageBlocks(PB)||'<p style="color:#6b7280">보일 내용이 없습니다.</p>'; }
