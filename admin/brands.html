@@ -1596,7 +1596,7 @@ async function pbGallery(id){
   m.dataset.target = id; m.classList.add('on');
   if (!PB_GAL) { try { const r = await fetch('/api/gallery'); const j = await r.json(); PB_GAL = (j.data && j.data.images) || []; }
     catch (e) { m.querySelector('.grid').innerHTML = '<p style="padding:20px;color:#dc2626">갤러리를 불러오지 못했어요: 연결이 끊겼습니다</p>'; return; } }
-  const CAT = {'':'전체', product:'제품', store:'매장', event:'행사', etc:'기타'};
+  const CAT = {'':'전체', product:'시그니처메뉴', store:'매장', event:'이벤트', etc:'설비'};
   const draw = cat => { const list = PB_GAL.filter(g => !cat || g.category === cat);
     m.querySelector('.cats').innerHTML = Object.entries(CAT).map(([k,v]) => `<button type="button" class="${k===cat?'on':''}" data-c="${k}">${v}</button>`).join('');
     m.querySelectorAll('.cats button').forEach(b => b.onclick = () => draw(b.dataset.c));

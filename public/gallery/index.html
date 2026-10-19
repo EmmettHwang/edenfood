@@ -7,7 +7,7 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/css/landing.css?v=4.9.3" />
   <link rel="stylesheet" href="/css/global.css?v=2.0" />
   <style>
     /* 헤더 공간 확보 */
@@ -447,6 +447,10 @@
   #page-header h1::after{content:''!important;margin:0!important}
   #page-header p{display:block!important;margin-top:.4rem!important;font-size:.95rem!important;line-height:1.45!important}
 }
+/* 폰에서 갤러리 분류 탭이 한두 글자씩 끊기던 것(2026-10-19) — 줄바꿈 없이 옆으로 밀어 보기 */
+.gallery-tabs-inner{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.gallery-tabs-inner::-webkit-scrollbar{display:none}
+.gallery-tab{white-space:nowrap;flex-shrink:0}
 </style>
 </head>
 <body>

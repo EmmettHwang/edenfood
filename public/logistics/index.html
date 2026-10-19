@@ -7,7 +7,7 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/css/landing.css?v=4.9.3" />
   <link rel="stylesheet" href="/css/global.css?v=2.0" />
   <style>
     /* 헤더 공간 확보 */
@@ -575,6 +575,10 @@ async function loadPageSettings() {
         header.style.background = `linear-gradient(rgba(21, 128, 61, 0.9), rgba(22, 163, 74, 0.9)), url(${setting.header_image}) center/cover`;
       }
       
+      // 내용이 비어 있는 칸은 숨긴다 — 제목만 덩그러니 보였다(2026-10-19 · 관리자 「물류·유통시스템 관리」에서 넣으면 나타난다)
+      { const c = setting.content || {};
+        if (!(c.features && c.features.length)) { const sec = document.getElementById('features-list').closest('section'); if (sec) sec.style.display = 'none'; }
+        if (!(c.processes && c.processes.length)) { const sec = document.getElementById('process-list').closest('section'); if (sec) sec.style.display = 'none'; } }
       // 콘텐츠 업데이트
       if (setting.content) {
         // 주요 특징

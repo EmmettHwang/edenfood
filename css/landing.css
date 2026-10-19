@@ -255,8 +255,19 @@ img, video { display: block; max-width: 100%; }
   background: rgba(255,255,255,.98);
   border-top: 1px solid var(--border);
   padding: 16px 24px;
+  /* 머리줄(72px, 세로 가운데 정렬) 안에 끼어 위쪽 메뉴 3개가 화면 밖으로 올라갔다(2026-10-19) → 머리줄 바로 아래에 펼친다 */
+  position: fixed;
+  top: 72px;
+  left: 0;
+  right: 0;
+  max-height: calc(100vh - 72px);
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 12px 24px rgba(0,0,0,.12);
 }
 .mobile-menu.open { display: flex; }
+/* 메뉴를 열면 공지 팝업(z 9999~10001)보다 위로 — 메뉴는 머리줄 안에 있어 머리줄째 올린다 */
+.site-header:has(.mobile-menu.open) { z-index: 10010; }
 .mobile-menu a {
   padding: 10px 0;
   font-size: 18px;

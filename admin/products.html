@@ -446,6 +446,9 @@
   .ord-row .lbl{margin-right:4px}.ord-row .chip{display:inline-flex;align-items:center;gap:4px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:999px;padding:3px 8px;color:#166534}
   .ord-row .chip button{border:0;background:#dcfce7;border-radius:6px;cursor:pointer;padding:1px 6px;color:#166534}
   .btn-ord{border:1px solid #d1d5db;background:#fff;border-radius:6px;padding:4px 7px;cursor:pointer;margin-right:2px}
+  /* 단추 글자가 한 글자씩 끊기던 것(2026-10-19) */
+  .btn-search,.btn-edit,.btn-delete,.btn-ord{white-space:nowrap}
+  .action-buttons{flex-wrap:nowrap}
 </style>
 <script src="/admin/js/dialog.js"></script>
 </head>

@@ -7,7 +7,7 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/landing.css?v=2.0" />
+  <link rel="stylesheet" href="/css/landing.css?v=4.9.3" />
   <link rel="stylesheet" href="/css/global.css?v=2.0" />
   <style>
     /* 헤더 공간 확보 */
@@ -536,7 +536,7 @@
               </label>
               <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
                 <input type="checkbox" id="type-franchise" name="type[]" value="창업브랜드" onchange="updateExamples()" style="width: 1.25rem; height: 1.25rem;">
-                <span>창업·브랜드 상담</span>
+                <span>창업 상담</span>
               </label>
             </div>
           </div>
@@ -670,7 +670,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const type = urlParams.get('type');
   
   if (type === 'franchise') {
-    // 창업·브랜드 상담 체크
+    // 창업 상담 체크
     document.getElementById('type-franchise').checked = true;
     updateExamples();
   } else if (type === 'supply') {
@@ -721,7 +721,7 @@ function updateExamples() {
     
     if (franchiseChecked) {
       html += '<div style="margin-bottom: 1rem;">';
-      html += '<strong style="font-size: 0.875rem; color: #374151;">창업·브랜드 상담 예시</strong>';
+      html += '<strong style="font-size: 0.875rem; color: #374151;">창업 상담 예시</strong>';
       html += '<div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;">';
       html += '<label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; font-size: 0.875rem;"><input type="checkbox" class="example-checkbox" value="감자탕 전문점 창업을 준비 중입니다. 초기 투자비용과 수익률이 궁금합니다." style="margin-top: 0.125rem;"><span>감자탕 전문점 창업을 준비 중입니다. 초기 투자비용과 수익률이 궁금합니다.</span></label>';
       html += '<label style="display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer; font-size: 0.875rem;"><input type="checkbox" class="example-checkbox" value="이든푸드의 감자탕 브랜드 가맹점 개설 조건을 알고 싶습니다." style="margin-top: 0.125rem;"><span>이든푸드의 감자탕 브랜드 가맹점 개설 조건을 알고 싶습니다.</span></label>';
